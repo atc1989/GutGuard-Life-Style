@@ -24,6 +24,10 @@ Open [http://localhost:3000](http://localhost:3000). In development, a phase jum
 - `npm run lint` — ESLint
 - `npm run build` — production build
 
+## Two-week plan
+
+Week 1 (HTML → Next.js conversion) is in this repo. Week 2 (mobile, polish, first Supabase write-through) is in [docs/bien-two-week-plan.md](docs/bien-two-week-plan.md).
+
 ## Vaults (read-only)
 
 - Tech stack: `d:\GutGuard\GutGuard Tech Stack\`
