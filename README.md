@@ -26,7 +26,7 @@ Open [http://localhost:3000](http://localhost:3000). In development, a phase jum
 
 ## Two-week plan
 
-Week 1 (HTML → Next.js conversion) is in this repo. Week 2 (mobile, polish, first Supabase write-through) is in [docs/bien-two-week-plan.md](docs/bien-two-week-plan.md).
+Week 1 (HTML → Next.js conversion) is in this repo. Week 2 (mobile, polish, first Supabase write-through) is in [BIEN-TWO-WEEK-PLAN.md](BIEN-TWO-WEEK-PLAN.md).
 
 ## Vaults (read-only)
 
