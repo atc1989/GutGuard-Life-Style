@@ -7,12 +7,13 @@ import { CardBack, CardFace, FlipCard } from "@/components/lifestyle/FlipCard";
 import { Confetti } from "@/components/lifestyle/Confetti";
 import { useSession } from "@/lib/session";
 
-export function DoorCard() {
+export function DoorCard({ memberName }: { memberName?: string }) {
   const { session, setPhase, update } = useSession();
   const params = useSearchParams();
   const claimed = params.get("claimed") === "1" || session.claimed;
   const [flipped, setFlipped] = useState(false);
   const router = useRouter();
+  const name = memberName?.trim() || session.name;
 
   return (
     <main className="gg-funnel">
@@ -22,7 +23,7 @@ export function DoorCard() {
           flipped={flipped}
           onFlip={() => setFlipped((value) => !value)}
           front={
-            <CardFace name={session.name} claimed={claimed}>
+            <CardFace name={name} claimed={claimed}>
               <p className="gg-help" style={{ color: "var(--gg-gold-soft)", marginTop: 24 }}>
                 Click to flip · Ipakita ito sa pintuan
               </p>

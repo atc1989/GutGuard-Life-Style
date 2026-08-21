@@ -1,21 +1,34 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { startTransition, useActionState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
+import { register } from "@/lib/actions/auth";
 import { registerSchema, type RegisterValues } from "@/lib/schemas/register";
-import { useSession } from "@/lib/session";
 
 export function RegisterForm() {
-  const router = useRouter();
-  const { update, setPhase } = useSession();
+  const [state, formAction, pending] = useActionState(register, null);
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", mobile: "" },
   });
+  const { setError } = form;
+
+  useEffect(() => {
+    if (state?.fieldErrors?.name) {
+      setError("name", { type: "server", message: state.fieldErrors.name });
+    }
+    if (state?.fieldErrors?.mobile) {
+      setError("mobile", {
+        type: "server",
+        message: state.fieldErrors.mobile,
+      });
+    }
+  }, [setError, state]);
 
   return (
     <main className="gg-funnel gg-funnel--editorial">
@@ -32,17 +45,20 @@ export function RegisterForm() {
         <Card variant="editorial">
           <form
             className="gg-stack"
+            noValidate
+            action={formAction}
             onSubmit={form.handleSubmit((values) => {
-              const parsed = registerSchema.parse(values);
-              update({
-                name: parsed.name,
-                mobile: parsed.mobile,
-                phase: "invited",
+              const payload = new FormData();
+              payload.set("name", values.name);
+              payload.set("mobile", values.mobile);
+              startTransition(() => {
+                formAction(payload);
               });
-              setPhase("invited");
-              router.push("/card");
             })}
           >
+            <div aria-live="polite">
+              {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
+            </div>
             <FormField
               variant="ruled"
               label="Your name"
@@ -60,8 +76,14 @@ export function RegisterForm() {
               {...form.register("mobile")}
               error={form.formState.errors.mobile?.message}
             />
-            <Button type="submit" variant="editorial" block>
-              Get your card
+            <Button
+              type="submit"
+              variant="editorial"
+              block
+              disabled={pending}
+              aria-busy={pending}
+            >
+              {pending ? "Getting your card…" : "Get your card"}
             </Button>
           </form>
         </Card>
