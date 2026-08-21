@@ -8,13 +8,16 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
 import { register } from "@/lib/actions/auth";
-import { registerSchema, type RegisterValues } from "@/lib/schemas/register";
+import {
+  authRegisterSchema,
+  type AuthRegisterValues,
+} from "@/lib/schemas/auth";
 
 export function RegisterForm() {
   const [state, formAction, pending] = useActionState(register, null);
-  const form = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", mobile: "" },
+  const form = useForm<AuthRegisterValues>({
+    resolver: zodResolver(authRegisterSchema),
+    defaultValues: { name: "", mobile: "", password: "" },
   });
   const { setError } = form;
 
@@ -28,6 +31,12 @@ export function RegisterForm() {
         message: state.fieldErrors.mobile,
       });
     }
+    if (state?.fieldErrors?.password) {
+      setError("password", {
+        type: "server",
+        message: state.fieldErrors.password,
+      });
+    }
   }, [setError, state]);
 
   return (
@@ -39,7 +48,7 @@ export function RegisterForm() {
             Enter your <em>name</em>
           </h1>
           <p className="gg-lede" style={{ marginTop: 14 }}>
-            Your name and number — that’s it. Free, no payment, no password.
+            Your name, number, and a password — free, no payment.
           </p>
         </div>
         <Card variant="editorial">
@@ -51,6 +60,7 @@ export function RegisterForm() {
               const payload = new FormData();
               payload.set("name", values.name);
               payload.set("mobile", values.mobile);
+              payload.set("password", values.password);
               startTransition(() => {
                 formAction(payload);
               });
@@ -76,6 +86,15 @@ export function RegisterForm() {
               {...form.register("mobile")}
               error={form.formState.errors.mobile?.message}
             />
+            <FormField
+              variant="ruled"
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              hint="At least 8 characters, with uppercase, lowercase, and a number."
+              {...form.register("password")}
+              error={form.formState.errors.password?.message}
+            />
             <Button
               type="submit"
               variant="editorial"
@@ -83,7 +102,7 @@ export function RegisterForm() {
               disabled={pending}
               aria-busy={pending}
             >
-              {pending ? "Getting your card…" : "Get your card"}
+              Get your card
             </Button>
           </form>
         </Card>

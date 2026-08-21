@@ -19,6 +19,12 @@ export function FormField({
 }: Props) {
   const fieldId = id ?? props.name;
   const invalid = Boolean(error);
+  const describedBy = [
+    error ? `${fieldId}-error` : null,
+    hint ? `${fieldId}-hint` : null,
+  ]
+    .filter(Boolean)
+    .join(" ") || undefined;
 
   if (variant === "ruled") {
     return (
@@ -29,13 +35,17 @@ export function FormField({
         <input
           id={fieldId}
           className="gg-ruled-field__control"
-          aria-invalid={invalid}
-          aria-describedby={error ? `${fieldId}-error` : undefined}
           {...props}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
         />
         {error ? (
           <p className="gg-field__error" id={`${fieldId}-error`}>
             {error}
+          </p>
+        ) : hint ? (
+          <p className="gg-help" id={`${fieldId}-hint`}>
+            {hint}
           </p>
         ) : null}
       </div>
@@ -48,16 +58,18 @@ export function FormField({
       <input
         id={fieldId}
         className={cx("gg-field__control", props["aria-label"] ? undefined : "gg-field__control--lg")}
-        aria-invalid={invalid}
-        aria-describedby={error ? `${fieldId}-error` : undefined}
         {...props}
+        aria-invalid={invalid}
+        aria-describedby={describedBy}
       />
       {error ? (
         <span className="gg-field__error" id={`${fieldId}-error`}>
           {error}
         </span>
       ) : hint ? (
-        <span className="gg-help">{hint}</span>
+        <span className="gg-help" id={`${fieldId}-hint`}>
+          {hint}
+        </span>
       ) : null}
     </label>
   );

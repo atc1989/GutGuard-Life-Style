@@ -1,8 +1,8 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
-import { registerSchema, toE164Phone } from "@/lib/schemas/register";
+import { authRegisterSchema } from "@/lib/schemas/auth";
+import { toE164Phone } from "@/lib/schemas/register";
 import { createClient } from "@/lib/supabase/server";
 
 export type RegisterState = {
@@ -10,89 +10,75 @@ export type RegisterState = {
   fieldErrors?: {
     name?: string;
     mobile?: string;
+    password?: string;
   };
 };
+
+function memberEmailFromMobile(mobile: string) {
+  return `${mobile.replace(/\D/g, "")}@members.gutguard.local`;
+}
 
 function registerErrorMessage(message: string) {
   const normalized = message.toLowerCase();
   if (normalized.includes("already registered")) {
     return "This mobile number is already registered.";
   }
-  if (normalized.includes("phone") && normalized.includes("invalid")) {
-    return "Enter a valid PH mobile number.";
+  if (normalized.includes("password")) {
+    return "Choose a stronger password and try again.";
   }
   return "We could not create your card. Please try again.";
-}
-
-function phoneSignupUnsupported(message: string) {
-  return /sms|phone provider|unsupported phone|phone signups? (are )?not enabled/i.test(
-    message,
-  );
-}
-
-function memberEmailFromMobile(mobile: string) {
-  return `${mobile.replace(/\D/g, "")}@members.gutguard.local`;
 }
 
 export async function register(
   _prevState: RegisterState | null,
   formData: FormData,
 ): Promise<RegisterState | null> {
-  const parsed = registerSchema.safeParse({
+  const parsed = authRegisterSchema.safeParse({
     name: formData.get("name"),
     mobile: formData.get("mobile"),
+    password: formData.get("password"),
   });
 
   if (!parsed.success) {
     const { fieldErrors } = parsed.error.flatten();
     return {
-      error: "Please check your name and mobile number.",
+      error: "Please check your details and try again.",
       fieldErrors: {
         name: fieldErrors.name?.[0],
         mobile: fieldErrors.mobile?.[0],
+        password: fieldErrors.password?.[0],
       },
     };
   }
 
   const mobile = toE164Phone(parsed.data.mobile);
-  const password = randomBytes(32).toString("base64url");
+  const email = memberEmailFromMobile(mobile);
   const supabase = await createClient();
-  const metadata = {
-    name: parsed.data.name,
-    mobile,
-  };
 
-  let method: "phone" | "email" = "phone";
-  let result = await supabase.auth.signUp({
-    phone: mobile,
-    password,
-    options: { data: metadata },
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: parsed.data.password,
+    options: {
+      data: {
+        name: parsed.data.name,
+        mobile,
+      },
+    },
   });
 
-  if (result.error && phoneSignupUnsupported(result.error.message)) {
-    method = "email";
-    result = await supabase.auth.signUp({
-      email: memberEmailFromMobile(mobile),
-      password,
-      options: { data: metadata },
-    });
+  if (error) {
+    return { error: registerErrorMessage(error.message) };
   }
 
-  if (result.error) {
-    return { error: registerErrorMessage(result.error.message) };
-  }
-
-  if (!result.data.user?.identities?.length) {
+  if (!data.user?.identities?.length) {
     return { error: "This mobile number is already registered." };
   }
 
-  if (!result.data.session) {
-    const identifier =
-      method === "phone"
-        ? { phone: mobile, password }
-        : { email: memberEmailFromMobile(mobile), password };
-    const { error: signInError } =
-      await supabase.auth.signInWithPassword(identifier);
+  if (!data.session) {
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: parsed.data.password,
+    });
     if (signInError) {
       return { error: registerErrorMessage(signInError.message) };
     }
