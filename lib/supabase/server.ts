@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-/** Cookie / SSR anon client. Unused until real auth is wired. */
+/** Cookie / SSR anon client. Used by Server Actions and Server Components. */
 export async function createClient() {
   const cookieStore = await cookies();
 

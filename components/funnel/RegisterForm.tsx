@@ -1,21 +1,44 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { startTransition, useActionState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
-import { registerSchema, type RegisterValues } from "@/lib/schemas/register";
-import { useSession } from "@/lib/session";
+import { register } from "@/lib/actions/auth";
+import {
+  authRegisterSchema,
+  type AuthRegisterValues,
+} from "@/lib/schemas/auth";
 
 export function RegisterForm() {
-  const router = useRouter();
-  const { update, setPhase } = useSession();
-  const form = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", mobile: "" },
+  const [state, formAction, pending] = useActionState(register, null);
+  const form = useForm<AuthRegisterValues>({
+    resolver: zodResolver(authRegisterSchema),
+    defaultValues: { name: "", mobile: "", password: "" },
   });
+  const { setError } = form;
+
+  useEffect(() => {
+    if (state?.fieldErrors?.name) {
+      setError("name", { type: "server", message: state.fieldErrors.name });
+    }
+    if (state?.fieldErrors?.mobile) {
+      setError("mobile", {
+        type: "server",
+        message: state.fieldErrors.mobile,
+      });
+    }
+    if (state?.fieldErrors?.password) {
+      setError("password", {
+        type: "server",
+        message: state.fieldErrors.password,
+      });
+    }
+  }, [setError, state]);
 
   return (
     <main className="gg-funnel gg-funnel--editorial">
@@ -26,23 +49,30 @@ export function RegisterForm() {
             Enter your <em>name</em>
           </h1>
           <p className="gg-lede" style={{ marginTop: 14 }}>
-            Your name and number — that’s it. Free, no payment, no password.
+            Your name, number, and a password — free, no payment.
           </p>
         </div>
         <Card variant="editorial">
           <form
             className="gg-stack"
+            noValidate
+            action={formAction}
             onSubmit={form.handleSubmit((values) => {
-              const parsed = registerSchema.parse(values);
-              update({
-                name: parsed.name,
-                mobile: parsed.mobile,
-                phase: "invited",
+              const payload = new FormData();
+              payload.set("name", values.name);
+              payload.set("mobile", values.mobile);
+              payload.set("password", values.password);
+              startTransition(() => {
+                formAction(payload);
               });
-              setPhase("invited");
-              router.push("/card");
             })}
           >
+            <div aria-live="polite">
+              {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
+              {pending ? (
+                <span className="gg-vh">Creating your card</span>
+              ) : null}
+            </div>
             <FormField
               variant="ruled"
               label="Your name"
@@ -60,8 +90,26 @@ export function RegisterForm() {
               {...form.register("mobile")}
               error={form.formState.errors.mobile?.message}
             />
-            <Button type="submit" variant="editorial" block>
+            <FormField
+              variant="ruled"
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              hint="At least 8 characters, with uppercase, lowercase, and a number."
+              {...form.register("password")}
+              error={form.formState.errors.password?.message}
+            />
+            <Button
+              type="submit"
+              variant="editorial"
+              block
+              disabled={pending}
+              aria-busy={pending}
+            >
               Get your card
+              <span className="gg-button__icon" aria-hidden="true">
+                {pending ? <Loader2 className="gg-spin" size={20} /> : null}
+              </span>
             </Button>
           </form>
         </Card>

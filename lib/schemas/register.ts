@@ -13,6 +13,13 @@ const phMobile = z
       ),
   );
 
+/** Normalize a validated PH mobile number to E.164 (`+639…`). */
+export function toE164Phone(mobile: string): string {
+  const compact = mobile.replace(/[\s()-]/g, "");
+  if (compact.startsWith("+63")) return compact;
+  return `+63${compact.slice(1)}`;
+}
+
 export const registerSchema = z.object({
   name: z
     .string()
