@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { authRegisterSchema } from "@/lib/schemas/auth";
-import { toE164Phone } from "@/lib/schemas/register";
+import { authRegisterSchema, toE164Phone } from "@/lib/schemas/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export type RegisterState = {

@@ -10,6 +10,13 @@ const phMobile = z
       .regex(/^(09\d{9}|\+639\d{9})$/, "Enter a valid PH mobile number"),
   );
 
+/** Normalize a validated PH mobile number to E.164 (`+639…`). */
+export function toE164Phone(mobile: string) {
+  const compact = mobile.replace(/[\s()-]/g, "");
+  if (compact.startsWith("+63")) return compact;
+  return `+63${compact.slice(1)}`;
+}
+
 export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")

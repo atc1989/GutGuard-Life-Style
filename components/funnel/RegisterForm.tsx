@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { startTransition, useActionState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Alert } from "@/components/ui/Alert";
@@ -68,6 +69,9 @@ export function RegisterForm() {
           >
             <div aria-live="polite">
               {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
+              {pending ? (
+                <span className="gg-vh">Creating your card</span>
+              ) : null}
             </div>
             <FormField
               variant="ruled"
@@ -103,6 +107,9 @@ export function RegisterForm() {
               aria-busy={pending}
             >
               Get your card
+              <span className="gg-button__icon" aria-hidden="true">
+                {pending ? <Loader2 className="gg-spin" size={20} /> : null}
+              </span>
             </Button>
           </form>
         </Card>
