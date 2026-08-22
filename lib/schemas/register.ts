@@ -7,10 +7,7 @@ const phMobile = z
   .pipe(
     z
       .string()
-      .regex(
-        /^(09\d{9}|\+639\d{9})$/,
-        "Enter a valid PH mobile number",
-      ),
+      .regex(/^(09\d{9}|\+639\d{9})$/, "Enter a valid PH mobile number"),
   );
 
 /** Normalize a validated PH mobile number to E.164 (`+639…`). */
@@ -21,12 +18,14 @@ export function toE164Phone(mobile: string): string {
 }
 
 export const registerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Enter your name")
-    .max(80, "Name is too long"),
+  name: z.string().trim().min(2, "Enter your name").max(80, "Name is too long"),
   mobile: phMobile,
+  email: z.string().trim().email("Enter a valid email"),
+});
+
+export const otpSchema = z.object({
+  email: z.string().trim().email(),
+  token: z.string().trim().min(6, "Enter the 6-digit code").max(8),
 });
 
 export type RegisterValues = z.input<typeof registerSchema>;

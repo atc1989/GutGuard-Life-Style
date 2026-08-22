@@ -1,0 +1,17 @@
+-- Development seed only. Do not run on production.
+-- Apply after a user exists, or use the in-app register + OTP flow.
+
+-- Example (replace the uuid with a real auth.users id):
+-- insert into public.profiles (id, name, mobile, email, card_no, phase, claimed, points, pending, banked)
+-- values (
+--   '00000000-0000-0000-0000-000000000001',
+--   'Maria Santos',
+--   '09175550100',
+--   'demo.member@gutguard.ph',
+--   '0240 5578 9012 3456',
+--   'member',
+--   true,
+--   125,
+--   5,
+--   500
+-- );

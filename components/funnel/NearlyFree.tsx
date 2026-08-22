@@ -3,20 +3,14 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { ProgressRail } from "@/components/ui/ProgressRail";
 import { Badge } from "@/components/ui/Badge";
-import {
-  FIRST_ORDER_PESOS,
-  PESO_PER_POINT,
-  POINTS,
-} from "@/lib/mock/seed";
+import { PointsLedger } from "@/components/lifestyle/PointsLedger";
+import { POINTS } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
 
 export function NearlyFree() {
   const { session, setPhase } = useSession();
   const router = useRouter();
-  const earned = Math.min(session.points * PESO_PER_POINT + session.banked, FIRST_ORDER_PESOS);
-  const pct = earned / FIRST_ORDER_PESOS;
 
   return (
     <main className="gg-funnel">
@@ -26,17 +20,14 @@ export function NearlyFree() {
           <h1 className="gg-display" style={{ marginTop: 10 }}>
             Most of your first order is <em>already paid</em>.
           </h1>
-          <Card style={{ marginTop: 28 }}>
-            <p className="gg-eyebrow">Lifestyle rewards</p>
-            <p className="gg-heading" style={{ fontSize: 48, margin: "8px 0" }}>
-              ₱{earned.toLocaleString()}
-            </p>
-            <p className="gg-help">of ₱{FIRST_ORDER_PESOS.toLocaleString()} first order</p>
-            <ProgressRail value={pct * 100} label="Points toward first order" />
-            <p className="gg-help" style={{ marginTop: 10 }}>
-              {session.points} points · {session.pending} pending · {session.banked} banked
-            </p>
-          </Card>
+          <div style={{ marginTop: 28 }}>
+            <PointsLedger
+              points={session.points}
+              pending={session.pending}
+              banked={session.banked}
+              ledger={session.ledger}
+            />
+          </div>
           <Card style={{ marginTop: 18 }}>
             <p className="gg-eyebrow">Two ways to earn</p>
             <p style={{ marginTop: 8 }}>

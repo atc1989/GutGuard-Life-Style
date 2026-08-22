@@ -8,11 +8,13 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { persistProfile } from "@/lib/actions/member";
 import {
   createDefaultSession,
   type FunnelPhase,
   type MockSession,
 } from "@/lib/mock/seed";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 const STORAGE_KEY = "gg-lifestyle-session";
 const EVENT_KEY = "gg-lifestyle-session";
@@ -63,23 +65,39 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const session = parseSession(raw);
   const ready = raw !== null || typeof window !== "undefined";
 
-  const update = useCallback(
-    (patch: Partial<MockSession>) => {
-      writeSession({ ...parseSession(getSnapshot()), ...patch });
-    },
-    [],
-  );
+  const update = useCallback((patch: Partial<MockSession>) => {
+    const next = { ...parseSession(getSnapshot()), ...patch };
+    writeSession(next);
+    if (isSupabaseConfigured()) {
+      void persistProfile({
+        name: patch.name,
+        mobile: patch.mobile,
+        email: patch.email,
+        phase: patch.phase,
+        claimed: patch.claimed,
+        points: patch.points,
+        pending: patch.pending,
+        banked: patch.banked,
+        daysLeft: patch.daysLeft,
+        capsulesPerDay: patch.capsulesPerDay,
+        telegram: patch.telegram,
+        facebook: patch.facebook,
+        notifications: patch.notifications,
+        welcomeSeen: patch.welcomeSeen,
+      });
+    }
+  }, []);
 
   const setPhase = useCallback((phase: FunnelPhase) => {
     const current = parseSession(getSnapshot());
-    writeSession({
-      ...current,
-      phase,
-      claimed:
-        phase === "claimed" || phase === "nearly" || phase === "member"
-          ? true
-          : current.claimed,
-    });
+    const claimed =
+      phase === "claimed" || phase === "nearly" || phase === "member"
+        ? true
+        : current.claimed;
+    writeSession({ ...current, phase, claimed });
+    if (isSupabaseConfigured()) {
+      void persistProfile({ phase, claimed });
+    }
   }, []);
 
   const reset = useCallback(() => {

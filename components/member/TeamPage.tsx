@@ -3,16 +3,14 @@
 import { CONTACTS, BASE_STEPS } from "@/lib/mock/seed";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
-import { useToast } from "@/lib/toast";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export function TeamPage() {
-  const { session, update } = useSession();
+  const { session } = useSession();
   const { open } = useOverlay();
-  const { push } = useToast();
   const unlocked = session.baseDone.filter(Boolean).length === BASE_STEPS.length;
 
   if (!unlocked) {
@@ -42,6 +40,9 @@ export function TeamPage() {
             Invite friends to any gathering. Points the moment they join.
           </p>
         </div>
+        <Button variant="commerce" onClick={() => open("invite")}>
+          Invite
+        </Button>
       </div>
       <div className="gg-grid-2">
         {CONTACTS.map((contact) => {
@@ -56,29 +57,7 @@ export function TeamPage() {
                 {invited ? (
                   <Badge active>Invited</Badge>
                 ) : (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      update({
-                        contactInvited: {
-                          ...session.contactInvited,
-                          [contact.id]: true,
-                        },
-                        invites: session.invites.some((row) => row.name === contact.name)
-                          ? session.invites
-                          : [
-                              ...session.invites,
-                              { name: contact.name, stage: "registered" },
-                            ],
-                        pending: session.pending + 5,
-                      });
-                      push({
-                        tone: "success",
-                        title: "Invite sent",
-                        body: contact.name,
-                      });
-                    }}
-                  >
+                  <Button variant="secondary" onClick={() => open("invite")}>
                     Invite
                   </Button>
                 )}

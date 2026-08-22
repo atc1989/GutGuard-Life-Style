@@ -266,7 +266,16 @@ export type OverlayId =
   | "ggverse"
   | "share"
   | "qr"
+  | "invite"
   | null;
+
+export type LedgerEntry = {
+  id: string;
+  kind: string;
+  amount: number;
+  pending: boolean;
+  label: string;
+};
 
 export type FunnelPhase =
   | "landing"
@@ -280,6 +289,7 @@ export type FunnelPhase =
 export type MockSession = {
   name: string;
   mobile: string;
+  email: string;
   sponsor: string;
   team: string;
   cardNo: string;
@@ -294,8 +304,11 @@ export type MockSession = {
   invites: Invite[];
   baseDone: boolean[];
   telegram: boolean;
+  facebook: boolean;
   notifications: boolean;
+  welcomeSeen: boolean;
   contactInvited: Record<string, boolean>;
+  ledger: LedgerEntry[];
 };
 
 export function createDefaultSession(
@@ -304,6 +317,7 @@ export function createDefaultSession(
   return {
     name: "Maria Santos",
     mobile: "09175550100",
+    email: "",
     sponsor: "Ate Marites",
     team: "GenSan",
     cardNo: CARD_NUMBER,
@@ -323,8 +337,15 @@ export function createDefaultSession(
     ],
     baseDone: [true, true, false, false, false],
     telegram: false,
+    facebook: false,
     notifications: true,
+    welcomeSeen: false,
     contactInvited: { c1: true, c2: true },
+    ledger: [
+      { id: "l1", kind: "bought", amount: 25, pending: false, label: "Nene R. bought" },
+      { id: "l2", kind: "showed", amount: 25, pending: false, label: "Boy Tapang came to an event" },
+      { id: "l3", kind: "registered", amount: 5, pending: true, label: "Aling Puring registered" },
+    ],
     ...overrides,
   };
 }

@@ -36,6 +36,7 @@ export function Dialog({ title, open, onClose, children, footer }: Props) {
         aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
       >
+        <div className="gg-dialog-grab" aria-hidden />
         <div className="gg-dialog-header">
           <h2 className="gg-dialog-title" id={titleId}>
             {title}

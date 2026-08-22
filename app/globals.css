@@ -1151,6 +1151,107 @@ body.has-demo .gg-frame {
   gap: 12px;
 }
 
+.gg-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: gg-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.gg-spinner--block {
+  width: 28px;
+  height: 28px;
+  margin: 16px auto;
+}
+
+@keyframes gg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gg-dialog-grab {
+  width: 42px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-rule);
+}
+
+.gg-welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 88;
+  display: grid;
+  place-items: end center;
+  padding: 28px 20px 40px;
+  background:
+    linear-gradient(180deg, rgba(15, 15, 24, 0.88), rgba(4, 6, 122, 0.92)),
+    var(--gg-ink);
+}
+
+.gg-welcome__panel {
+  width: min(520px, 100%);
+  animation: gg-welcome-in 0.45s var(--gg-ease-out);
+}
+
+@keyframes gg-welcome-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.gg-cal {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.gg-cal__day {
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-sm);
+  background: var(--gg-paper);
+  color: var(--gg-ink);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.gg-cal__day[aria-selected="true"] {
+  border-color: var(--gg-blue);
+  color: var(--gg-blue);
+  box-shadow: 0 0 0 3px rgba(6, 8, 169, 0.12);
+}
+
+.gg-cal__day i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gg-rule);
+}
+
+.gg-cal__day i[data-count="1"],
+.gg-cal__day i[data-count="2"] {
+  background: var(--gg-gold);
+}
+
+.gg-cal__day i[data-count="3"] {
+  background: var(--gg-blue);
+}
+
 @media (min-width: 900px) {
   .gg-sidebar {
     display: flex;
@@ -1249,6 +1350,18 @@ body.has-demo .gg-frame {
     box-shadow: -22px 0 70px rgba(15, 15, 24, 0.22);
   }
 
+  .gg-dialog-grab {
+    display: none;
+  }
+
+  .gg-cal {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+
+  .gg-welcome {
+    place-items: center;
+  }
+
   .gg-dialog-body {
     flex: 1;
     max-height: none;
@@ -1293,7 +1406,9 @@ body.has-demo .gg-frame {
   .gg-switch::after,
   .gg-acc-head .gg-chev,
   .gg-flip__inner,
-  .gg-confetti i {
+  .gg-confetti i,
+  .gg-spinner,
+  .gg-welcome__panel {
     transition-duration: 0.01ms;
     animation: none;
   }

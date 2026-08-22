@@ -4,21 +4,18 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { DoseCalendar } from "@/components/lifestyle/DoseCalendar";
+import { PointsLedger } from "@/components/lifestyle/PointsLedger";
+import { persistDose, uploadDoseProof } from "@/lib/actions/member";
 import { BASE_STEPS, refillCopy } from "@/lib/mock/seed";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useToast } from "@/lib/toast";
-
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function HealthPage() {
   const { session, update } = useSession();
   const { open } = useOverlay();
   const { push } = useToast();
-  const day = todayKey();
-  const log = session.doseLog[day] ?? {};
   const refill = refillCopy(session.daysLeft);
   const baseCount = session.baseDone.filter(Boolean).length;
 
@@ -36,9 +33,7 @@ export function HealthPage() {
 
       {refill ? (
         <Alert>
-          {refill.en}
-          {" "}
-          <em>{refill.tl}</em>
+          {refill.en} <em>{refill.tl}</em>
         </Alert>
       ) : null}
 
@@ -47,25 +42,38 @@ export function HealthPage() {
           <DoseCalendar
             log={session.doseLog}
             capsulesPerDay={session.capsulesPerDay}
-            onToggle={(slotId) => {
+            onToggle={(day, slotId) => {
+              const entry = session.doseLog[day] ?? {};
+              const nextValue = !entry[slotId];
               update({
                 doseLog: {
                   ...session.doseLog,
-                  [day]: { ...log, [slotId]: !log[slotId] },
+                  [day]: { ...entry, [slotId]: nextValue },
                 },
               });
+              if (isSupabaseConfigured()) {
+                void persistDose(day, slotId, nextValue);
+              }
             }}
-            onProof={(file) => {
+            onProof={(day, file) => {
+              const entry = session.doseLog[day] ?? {};
               update({
                 doseLog: {
                   ...session.doseLog,
-                  [day]: { ...log, proof: file.name },
+                  [day]: { ...entry, proof: file.name },
                 },
               });
+              if (isSupabaseConfigured()) {
+                const form = new FormData();
+                form.set("file", file);
+                void uploadDoseProof(day, form);
+              }
               push({
                 tone: "success",
                 title: "Proof saved",
-                body: "Kept on this device for the mock session.",
+                body: isSupabaseConfigured()
+                  ? "Uploaded to your member record."
+                  : "Kept on this device for the mock session.",
               });
             }}
           />
@@ -76,9 +84,7 @@ export function HealthPage() {
             <h2 className="gg-heading" style={{ fontSize: 28, margin: "8px 0" }}>
               {session.daysLeft} days left
             </h2>
-            <p className="gg-help">
-              {session.sponsor} will reach you before it runs out.
-            </p>
+            <p className="gg-help">{session.sponsor} will reach you before it runs out.</p>
           </Card>
           <Card>
             <p className="gg-eyebrow">Activation badge</p>
@@ -90,6 +96,12 @@ export function HealthPage() {
               {baseCount === BASE_STEPS.length ? "BASE Activation ✓" : "Continue BASE →"}
             </Button>
           </Card>
+          <PointsLedger
+            points={session.points}
+            pending={session.pending}
+            banked={session.banked}
+            ledger={session.ledger}
+          />
         </div>
       </div>
     </div>

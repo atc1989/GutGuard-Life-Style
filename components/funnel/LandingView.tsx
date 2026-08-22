@@ -5,6 +5,7 @@ import { Accordion } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionLabel } from "@/components/ui/EmptyState";
+import { WelcomeOverlay } from "@/components/lifestyle/WelcomeOverlay";
 import {
   FUNNEL_STEPS,
   LANDING_FAQ,
@@ -15,6 +16,7 @@ import {
 export function LandingView({ variant }: { variant: "gift" | "plain" }) {
   return (
     <main className="gg-funnel">
+      <WelcomeOverlay />
       <section className="gg-split">
         <div>
           <p className="gg-eyebrow">Ginhawa</p>

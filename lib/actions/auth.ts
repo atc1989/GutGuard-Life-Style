@@ -1,95 +1,54 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { authRegisterSchema, toE164Phone } from "@/lib/schemas/auth";
+import { otpSchema, registerSchema } from "@/lib/schemas/register";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { CARD_NUMBER } from "@/lib/mock/seed";
 
-export type RegisterState = {
-  error: string;
-  fieldErrors?: {
-    name?: string;
-    mobile?: string;
-    password?: string;
-  };
-};
-
-function memberEmailFromMobile(mobile: string) {
-  return `${mobile.replace(/\D/g, "")}@members.gutguard.local`;
-}
-
-function registerErrorMessage(message: string) {
-  const normalized = message.toLowerCase();
-  if (normalized.includes("already registered")) {
-    return "This mobile number is already registered.";
-  }
-  if (normalized.includes("password")) {
-    return "Choose a stronger password and try again.";
-  }
-  return "We could not create your card. Please try again.";
-}
-
-export async function register(
-  _prevState: RegisterState | null,
-  formData: FormData,
-): Promise<RegisterState | null> {
-  const parsed = authRegisterSchema.safeParse({
-    name: formData.get("name"),
-    mobile: formData.get("mobile"),
-    password: formData.get("password"),
-  });
-
-  if (!parsed.success) {
-    const { fieldErrors } = parsed.error.flatten();
-    return {
-      error: "Please check your details and try again.",
-      fieldErrors: {
-        name: fieldErrors.name?.[0],
-        mobile: fieldErrors.mobile?.[0],
-        password: fieldErrors.password?.[0],
-      },
-    };
+export async function sendRegisterOtp(input: unknown) {
+  const parsed = registerSchema.parse(input);
+  if (!isSupabaseConfigured()) {
+    return { ok: true as const, mode: "mock" as const };
   }
 
-  const mobile = toE164Phone(parsed.data.mobile);
-  const email = memberEmailFromMobile(mobile);
   const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password: parsed.data.password,
+  const { error } = await supabase.auth.signInWithOtp({
+    email: parsed.email,
     options: {
-      data: {
-        name: parsed.data.name,
-        mobile,
-      },
+      shouldCreateUser: true,
+      data: { name: parsed.name, mobile: parsed.mobile },
     },
   });
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const, mode: "otp" as const };
+}
 
-  if (error) {
-    return { error: registerErrorMessage(error.message) };
+export async function verifyRegisterOtp(input: unknown) {
+  const parsed = otpSchema.parse(input);
+  if (!isSupabaseConfigured()) {
+    return { ok: true as const, mode: "mock" as const };
   }
 
-  if (!data.user?.identities?.length) {
-    return { error: "This mobile number is already registered." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: parsed.email,
+    token: parsed.token,
+    type: "email",
+  });
+  if (error || !data.user) {
+    return { ok: false as const, error: error?.message ?? "Invalid code" };
   }
 
-  if (!data.session) {
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: parsed.data.password,
-    });
-    if (signInError) {
-      return { error: registerErrorMessage(signInError.message) };
-    }
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "We could not start your session. Please try again." };
-  }
-
-  redirect("/card");
+  const meta = data.user.user_metadata ?? {};
+  const { error: profileError } = await supabase.from("profiles").upsert({
+    id: data.user.id,
+    name: String(meta.name ?? "Member"),
+    mobile: String(meta.mobile ?? ""),
+    email: parsed.email,
+    card_no: CARD_NUMBER,
+    phase: "invited",
+    claimed: false,
+  });
+  if (profileError) return { ok: false as const, error: profileError.message };
+  return { ok: true as const, mode: "otp" as const };
 }

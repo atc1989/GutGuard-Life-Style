@@ -20,15 +20,27 @@ import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { QRBlock } from "@/components/ui/QRBlock";
 import { RequirementTimeline } from "@/components/ui/RequirementTimeline";
 import { Switch } from "@/components/ui/Switch";
+import { InvitePicker } from "@/components/overlays/InvitePicker";
 import { StoryShare } from "@/components/overlays/StoryShare";
-import { useState } from "react";
+import { persistBaseStep, persistPointEvent, gemaUnlocked } from "@/lib/actions/member";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { useEffect, useState } from "react";
 
 export function MemberOverlays() {
   const { overlay, close, open } = useOverlay();
   const { session, update } = useSession();
   const { push } = useToast();
   const [qty, setQty] = useState(1);
-  const baseComplete = session.baseDone.every(Boolean);
+  const [serverGema, setServerGema] = useState<boolean | null>(null);
+  const localComplete = session.baseDone.every(Boolean);
+  const baseComplete = isSupabaseConfigured()
+    ? Boolean(serverGema)
+    : localComplete;
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    void gemaUnlocked().then(setServerGema);
+  }, [session.baseDone]);
 
   return (
     <>
@@ -114,6 +126,9 @@ export function MemberOverlays() {
               const next = [...session.baseDone];
               next[index] = !next[index];
               update({ baseDone: next });
+              if (isSupabaseConfigured()) {
+                void persistBaseStep(index, next[index]);
+              }
             },
           }))}
         />
@@ -194,10 +209,85 @@ export function MemberOverlays() {
           >
             Ask my sponsor for access
           </Button>
-          <p className="gg-help">
-            +{POINTS.telegram} points if you join Ate Marites’ Telegram · +
-            {POINTS.facebook} for Facebook.
-          </p>
+          <Button
+            variant="secondary"
+            disabled={session.telegram}
+            onClick={() => {
+              window.open(LINKS.telegram, "_blank", "noopener");
+              if (session.telegram) return;
+              const nextPoints = session.points + POINTS.telegram;
+              update({
+                telegram: true,
+                points: nextPoints,
+                ledger: [
+                  {
+                    id: `tg-${Date.now()}`,
+                    kind: "telegram",
+                    amount: POINTS.telegram,
+                    pending: false,
+                    label: "Joined Telegram",
+                  },
+                  ...session.ledger,
+                ],
+              });
+              if (isSupabaseConfigured()) {
+                void persistPointEvent({
+                  kind: "telegram",
+                  amount: POINTS.telegram,
+                  pending: false,
+                  label: "Joined Telegram",
+                });
+              }
+              push({
+                tone: "success",
+                title: "Telegram points",
+                body: `+${POINTS.telegram} added to your card.`,
+              });
+            }}
+          >
+            {session.telegram
+              ? "Telegram joined"
+              : `Join Telegram · +${POINTS.telegram}`}
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={session.facebook}
+            onClick={() => {
+              window.open(LINKS.facebook, "_blank", "noopener");
+              if (session.facebook) return;
+              update({
+                facebook: true,
+                points: session.points + POINTS.facebook,
+                ledger: [
+                  {
+                    id: `fb-${Date.now()}`,
+                    kind: "facebook",
+                    amount: POINTS.facebook,
+                    pending: false,
+                    label: "Followed on Facebook",
+                  },
+                  ...session.ledger,
+                ],
+              });
+              if (isSupabaseConfigured()) {
+                void persistPointEvent({
+                  kind: "facebook",
+                  amount: POINTS.facebook,
+                  pending: false,
+                  label: "Followed on Facebook",
+                });
+              }
+              push({
+                tone: "success",
+                title: "Facebook points",
+                body: `+${POINTS.facebook} added to your card.`,
+              });
+            }}
+          >
+            {session.facebook
+              ? "Facebook followed"
+              : `Follow Facebook · +${POINTS.facebook}`}
+          </Button>
         </div>
       </Drawer>
 
@@ -217,6 +307,7 @@ export function MemberOverlays() {
       </Drawer>
 
       <StoryShare open={overlay === "share"} onClose={close} />
+      <InvitePicker />
     </>
   );
 }
