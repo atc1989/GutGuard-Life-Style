@@ -17,8 +17,8 @@ export function EmptyState({
       {action ? (
         <Button
           variant="secondary"
+          className="gg-empty__action"
           onClick={action.onClick}
-          style={{ marginTop: 12 }}
         >
           {action.label}
         </Button>

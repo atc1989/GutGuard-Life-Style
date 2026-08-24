@@ -22,7 +22,12 @@ import { RequirementTimeline } from "@/components/ui/RequirementTimeline";
 import { Switch } from "@/components/ui/Switch";
 import { InvitePicker } from "@/components/overlays/InvitePicker";
 import { StoryShare } from "@/components/overlays/StoryShare";
-import { persistBaseStep, persistPointEvent, gemaUnlocked } from "@/lib/actions/member";
+import {
+  persistBaseStep,
+  persistPointEvent,
+  gemaUnlocked,
+  saveSettings,
+} from "@/lib/actions/member";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
 
@@ -31,6 +36,8 @@ export function MemberOverlays() {
   const { session, update } = useSession();
   const { push } = useToast();
   const [qty, setQty] = useState(1);
+  const [orderNote, setOrderNote] = useState("");
+  const [eventNote, setEventNote] = useState("");
   const [serverGema, setServerGema] = useState<boolean | null>(null);
   const localComplete = session.baseDone.every(Boolean);
   const baseComplete = isSupabaseConfigured()
@@ -45,18 +52,16 @@ export function MemberOverlays() {
   return (
     <>
       <Drawer title="Order now" open={overlay === "order"} onClose={close}>
-        <p className="gg-lede" style={{ marginBottom: 16 }}>
-          Mock checkout only — no payment in this pass.
+        <p className="gg-lede gg-sheet-lede">
+          Mock checkout only — no payment in this pass. No card is charged.
         </p>
         <Card>
           <p className="gg-eyebrow">Your Gutguard</p>
-          <h3 className="gg-heading" style={{ fontSize: 28, margin: "8px 0" }}>
-            Monthly protocol
-          </h3>
+          <h3 className="gg-heading gg-stat-title">Monthly protocol</h3>
           <p className="gg-help">
             ₱{FIRST_ORDER_PESOS.toLocaleString()} · 1 bottle / 2 blisters
           </p>
-          <div className="gg-row" style={{ marginTop: 16 }}>
+          <div className="gg-row gg-sheet-row">
             <span>Quantity</span>
             <QuantityStepper
               label="Order quantity"
@@ -70,18 +75,23 @@ export function MemberOverlays() {
         <Button
           variant="commerce"
           block
-          style={{ marginTop: 16 }}
+          className="gg-card-action"
           onClick={() => {
+            const note = `${qty} bottle${qty > 1 ? "s" : ""} queued — mock only.`;
+            setOrderNote(note);
             push({
               tone: "success",
               title: "Order queued",
-              body: `${qty} bottle${qty > 1 ? "s" : ""} — mock only.`,
+              body: note,
             });
             close();
           }}
         >
           Place mock order
         </Button>
+        <p className="gg-live" aria-live="polite">
+          {orderNote}
+        </p>
       </Drawer>
 
       <Drawer title="Settings" open={overlay === "settings"} onClose={close}>
@@ -89,7 +99,13 @@ export function MemberOverlays() {
           <Switch
             label="Phone alerts"
             checked={session.notifications}
-            onChange={(notifications) => update({ notifications })}
+            onChange={(notifications) => {
+              update({ notifications });
+              void saveSettings({
+                notifications,
+                capsulesPerDay: session.capsulesPerDay,
+              });
+            }}
           />
           <p className="gg-help">Nudges + low-supply reminders</p>
           <div className="gg-row">
@@ -99,7 +115,13 @@ export function MemberOverlays() {
               value={session.capsulesPerDay}
               min={2}
               max={3}
-              onChange={(capsulesPerDay) => update({ capsulesPerDay })}
+              onChange={(capsulesPerDay) => {
+                update({ capsulesPerDay });
+                void saveSettings({
+                  notifications: session.notifications,
+                  capsulesPerDay,
+                });
+              }}
             />
           </div>
           <p className="gg-help">The protocol needs at least 2 capsules a day.</p>
@@ -113,7 +135,7 @@ export function MemberOverlays() {
       </Drawer>
 
       <Drawer title="BASE Activation" open={overlay === "base"} onClose={close}>
-        <p className="gg-lede" style={{ marginBottom: 16 }}>
+        <p className="gg-lede gg-sheet-lede">
           Where every Gentrep starts. Learn the product and the protocol properly.
         </p>
         <RequirementTimeline
@@ -132,23 +154,27 @@ export function MemberOverlays() {
             },
           }))}
         />
-        <div style={{ marginTop: 16 }}>
+        <div className="gg-event-list">
           {EVENTS.slice(0, 3).map((event) => (
             <EventRow
               key={event.id}
               title={event.title}
               place={event.place}
               when={event.when}
-              onBook={() =>
+              onBook={() => {
+                setEventNote(`Reserved: ${event.title}`);
                 push({
                   tone: "success",
                   title: "Reserved",
                   body: event.title,
-                })
-              }
+                });
+              }}
             />
           ))}
         </div>
+        <p className="gg-live" aria-live="polite">
+          {eventNote}
+        </p>
       </Drawer>
 
       <Drawer
@@ -171,14 +197,14 @@ export function MemberOverlays() {
             {GEMA_RANKS.map((rank) => (
               <Card key={rank.title}>
                 <p className="gg-eyebrow">{rank.title}</p>
-                <p style={{ marginTop: 8 }}>{rank.copy}</p>
+                <p className="gg-rank-copy">{rank.copy}</p>
               </Card>
             ))}
           </div>
         ) : (
           <EmptyState
             title="GEMA is locked"
-            copy={`Opens when BASE Activation is complete — ${BASE_STEPS.length - session.baseDone.filter(Boolean).length} to go.`}
+            copy={`Opens when BASE Activation is complete — ${BASE_STEPS.length - session.baseDone.filter(Boolean).length} to go. The server checks lifestyle_base_complete() before this path opens.`}
             action={{ label: "Continue BASE", onClick: () => open("base") }}
           />
         )}
@@ -187,20 +213,11 @@ export function MemberOverlays() {
       <Drawer title="GG-VERSE" open={overlay === "ggverse"} onClose={close}>
         <div className="gg-stack">
           <Card variant="ceremonial">
-            <p className="gg-eyebrow" style={{ color: "var(--gg-gold-soft)" }}>
-              Invitation only
-            </p>
-            <h3
-              className="gg-heading"
-              style={{ color: "var(--gg-bone)", marginTop: 8 }}
-            >
-              The members’ world
-            </h3>
-            <p
-              className="gg-lede"
-              style={{ color: "var(--gg-bone)", marginTop: 10 }}
-            >
-              Ranks, tools, the builder economy. Your sponsor decides when you’re ready and sends the link.
+            <p className="gg-eyebrow">Invitation only</p>
+            <h3 className="gg-heading">The members’ world</h3>
+            <p className="gg-lede">
+              Ranks, tools, the builder economy. Your sponsor decides when you’re
+              ready and sends the link. You cannot open GG-VERSE yourself.
             </p>
           </Card>
           <Button
@@ -292,22 +309,18 @@ export function MemberOverlays() {
       </Drawer>
 
       <Drawer title="Your QR" open={overlay === "qr"} onClose={close}>
-        <div style={{ textAlign: "center" }}>
+        <div className="gg-qr-sheet">
           <p className="gg-eyebrow">{session.name}</p>
-          <p className="gg-help" style={{ margin: "8px 0 12px" }}>
+          <p className="gg-help gg-qr-sheet__copy">
             Show this to staff at the door and in the centers.
           </p>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <QRBlock seed={session.cardNo} />
-          </div>
-          <p className="gg-help" style={{ fontFamily: "var(--gg-mono)", marginTop: 12 }}>
-            {session.cardNo}
-          </p>
+          <QRBlock seed={session.cardNo} />
+          <p className="gg-card-no">{session.cardNo}</p>
         </div>
       </Drawer>
 
       <StoryShare open={overlay === "share"} onClose={close} />
-      <InvitePicker />
+      <InvitePicker baseComplete={baseComplete} />
     </>
   );
 }

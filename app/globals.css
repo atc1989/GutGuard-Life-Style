@@ -346,7 +346,14 @@ a.gg-button {
 .gg-acc-head:focus-visible,
 .gg-ruled-field__control:focus-visible,
 .gg-field__control:focus-visible,
-.gg-cal__day:focus-visible {
+.gg-cal__day:focus-visible,
+.gg-flip:focus-visible,
+.gg-nav-btn:focus-visible,
+.gg-chip:focus-visible,
+.gg-switch-row:focus-visible,
+.gg-stepper button:focus-visible,
+.gg-file__zone:focus-visible,
+.gg-check input:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
@@ -542,6 +549,7 @@ a.gg-button {
 
 .gg-file__zone {
   display: block;
+  min-height: 44px;
   border: 1.5px dashed var(--gg-rule);
   border-radius: var(--gg-r-md);
   background: var(--gg-bone);
@@ -679,20 +687,20 @@ a.gg-button {
 
 .gg-switch {
   position: relative;
-  width: 44px;
-  height: 26px;
+  width: 52px;
+  height: 32px;
   border: 0;
   border-radius: var(--gg-r-pill);
   background: var(--gg-bone-deep);
-  cursor: pointer;
   flex-shrink: 0;
+  display: inline-block;
   transition: background 0.18s var(--gg-ease-out);
 }
 
 .gg-switch::after {
   content: "";
   position: absolute;
-  top: 3px;
+  top: 6px;
   left: 3px;
   width: 20px;
   height: 20px;
@@ -706,8 +714,9 @@ a.gg-button {
   background: var(--gg-blue);
 }
 
-.gg-switch[aria-checked="true"]::after {
-  transform: translateX(18px);
+.gg-switch[aria-checked="true"]::after,
+.gg-switch-row[aria-checked="true"] .gg-switch::after {
+  transform: translateX(20px);
 }
 
 .gg-switch-row {
@@ -715,9 +724,20 @@ a.gg-button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: 14px;
   font-weight: 600;
   color: var(--gg-ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.gg-switch-row[aria-checked="true"] .gg-switch {
+  background: var(--gg-blue);
 }
 
 .gg-acc-item {
@@ -826,6 +846,12 @@ a.gg-button {
   cursor: pointer;
 }
 
+.gg-stepper button:disabled {
+  background: var(--gg-bone-soft);
+  color: var(--gg-ink-4);
+  cursor: not-allowed;
+}
+
 .gg-stepper button:first-child {
   border-radius: var(--gg-r-sm) 0 0 var(--gg-r-sm);
 }
@@ -862,10 +888,10 @@ a.gg-button {
 }
 
 .gg-qr {
-  background: #ffffff;
-  border: 1px solid var(--gg-rule);
+  background: var(--gg-paper);
+  border: 2px solid var(--gg-ink);
   border-radius: var(--gg-r-md);
-  padding: 10px;
+  padding: 16px;
   display: inline-flex;
 }
 
@@ -998,6 +1024,7 @@ a.gg-button {
   font-weight: 600;
   text-align: left;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .gg-nav-btn.is-active {
@@ -1010,6 +1037,32 @@ a.gg-button {
   min-height: 44px;
   font-size: 13px;
   color: var(--gg-ink-3);
+}
+
+.gg-sidebar__nav,
+.gg-sidebar__tools {
+  display: grid;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.gg-sidebar__rule {
+  height: 1px;
+  background: var(--gg-rule);
+  margin: 14px 12px;
+}
+
+.gg-sidebar__foot {
+  margin-top: auto;
+  padding: 18px 12px 0;
+}
+
+.gg-sidebar__supply {
+  margin-top: 8px;
+}
+
+.gg-masthead__tabs {
+  margin-bottom: 16px;
 }
 
 .gg-bottom-bar {
@@ -1163,6 +1216,15 @@ a.gg-button {
   width: 100%;
   max-width: 380px;
   margin: 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 
 .gg-flip__inner {
@@ -1184,6 +1246,220 @@ a.gg-button {
 
 .gg-flip__face--back {
   transform: rotateY(180deg);
+}
+
+.gg-card-face {
+  min-height: 420px;
+}
+
+.gg-card-face--back {
+  text-align: center;
+}
+
+.gg-card-face__name {
+  margin-top: 12px;
+}
+
+.gg-card-face__brand {
+  margin-top: 8px;
+}
+
+.gg-card-face__hint {
+  margin-top: 24px;
+  color: var(--gg-gold-soft);
+}
+
+.gg-card-face__back-title {
+  font-size: 28px;
+  margin: 10px 0 16px;
+}
+
+.gg-card--ceremonial.is-claimed {
+  box-shadow:
+    0 0 0 3px var(--gold),
+    0 12px 32px rgba(176, 141, 91, 0.38);
+}
+
+.gg-card-no {
+  margin-top: 14px;
+  font-family: var(--gg-mono);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  user-select: text;
+  color: var(--gg-ink);
+}
+
+.gg-door-copy {
+  margin: 10px 0 16px;
+}
+
+.gg-door-lede {
+  margin-bottom: 24px;
+}
+
+.gg-door-actions {
+  min-height: 62px;
+}
+
+.gg-nearly-ledger {
+  margin-top: 28px;
+}
+
+.gg-nearly-copy {
+  margin-top: 8px;
+}
+
+.gg-nearly-cta {
+  margin-top: 22px;
+}
+
+.gg-invite-row {
+  min-height: 44px;
+  align-items: center;
+}
+
+.gg-invite-copy {
+  margin-top: 6px;
+}
+
+.gg-stat-title {
+  font-size: 28px;
+  margin: 8px 0;
+}
+
+.gg-card-action {
+  margin-top: 12px;
+}
+
+.gg-cal-help {
+  margin: 6px 0 12px;
+}
+
+.gg-cal-slots,
+.gg-cal-proof {
+  margin-top: 16px;
+}
+
+.gg-cal-proof__hint {
+  margin-top: 8px;
+}
+
+.gg-story-name {
+  font-size: 26px;
+  margin-top: 6px;
+}
+
+.gg-story-quote {
+  margin-top: 8px;
+}
+
+.gg-req-title {
+  font-size: 24px;
+  margin-top: 8px;
+}
+
+.gg-req-copy {
+  margin-top: 6px;
+}
+
+.gg-event__body {
+  flex: 1;
+}
+
+.gg-event__num {
+  font-size: 22px;
+}
+
+.gg-event-list {
+  margin-top: 16px;
+}
+
+.gg-sheet-lede {
+  margin-bottom: 16px;
+}
+
+.gg-sheet-row {
+  margin-top: 16px;
+}
+
+.gg-rank-copy {
+  margin-top: 8px;
+}
+
+.gg-qr-sheet {
+  text-align: center;
+}
+
+.gg-qr-sheet__copy {
+  margin: 8px 0 12px;
+}
+
+.gg-qr-sheet .gg-qr {
+  margin: 0 auto;
+}
+
+.gg-ledger-peso {
+  font-size: 40px;
+  margin: 8px 0;
+}
+
+.gg-ledger-meta {
+  margin-top: 10px;
+}
+
+.gg-empty__action {
+  margin-top: 12px;
+}
+
+.gg-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gg-chip {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-paper);
+  color: var(--gg-ink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gg-chip.is-on {
+  border-color: var(--gg-blue);
+  color: var(--gg-blue);
+  background: rgba(6, 8, 169, 0.06);
+}
+
+.gg-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  color: var(--gg-ink-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.gg-check input {
+  width: 22px;
+  height: 22px;
+  margin-top: 11px;
+  flex-shrink: 0;
+  accent-color: var(--gg-blue);
+}
+
+.gg-share-form {
+  margin-top: 16px;
+}
+
+.gg-share-footer {
+  width: 100%;
 }
 
 .gg-demo {
@@ -1234,11 +1510,15 @@ body.has-demo .gg-frame {
   z-index: 50;
 }
 
-.gg-confetti i {
+.gg-confetti i,
+.gg-confetti__bit {
   position: absolute;
   top: -12px;
   width: 8px;
   height: 14px;
+  left: var(--gg-confetti-left);
+  animation-delay: var(--gg-confetti-delay);
+  background: var(--gg-confetti-color);
   animation: gg-fall 1.8s linear forwards;
 }
 
@@ -1556,5 +1836,20 @@ body.has-demo .gg-frame {
   .gg-welcome__panel {
     transition-duration: 0.01ms;
     animation: none;
+  }
+
+  .gg-flip__inner {
+    transform: none !important;
+  }
+
+  .gg-flip__face,
+  .gg-flip__face--back {
+    transform: none;
+    backface-visibility: visible;
+  }
+
+  .gg-flip:not(.is-back) .gg-flip__face--back,
+  .gg-flip.is-back .gg-flip__face:not(.gg-flip__face--back) {
+    visibility: hidden;
   }
 }

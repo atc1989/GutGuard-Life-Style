@@ -4,6 +4,8 @@ export const DEV_MEMBER_COOKIE = "gg-dev-member";
 export type DevMember = {
   name: string;
   mobile: string;
+  claimed?: boolean;
+  cardNo?: string;
 };
 
 export function encodeDevMember(member: DevMember): string {
@@ -22,9 +24,12 @@ export function decodeDevMember(raw: string | undefined): DevMember | null {
       typeof (parsed as DevMember).name === "string" &&
       typeof (parsed as DevMember).mobile === "string"
     ) {
+      const member = parsed as DevMember;
       return {
-        name: (parsed as DevMember).name,
-        mobile: (parsed as DevMember).mobile,
+        name: member.name,
+        mobile: member.mobile,
+        claimed: Boolean(member.claimed),
+        cardNo: typeof member.cardNo === "string" ? member.cardNo : undefined,
       };
     }
   } catch {

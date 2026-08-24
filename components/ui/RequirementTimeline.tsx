@@ -23,17 +23,14 @@ export function RequirementTimeline({
           </div>
           <Card>
             <Badge active={step.done}>{step.done ? "Done" : step.when}</Badge>
-            <h3 className="gg-heading" style={{ fontSize: 24, marginTop: 8 }}>
-              {step.title}
-            </h3>
-            <p className="gg-help" style={{ marginTop: 6 }}>
-              {step.detail}
-            </p>
+            <h3 className="gg-heading gg-req-title">{step.title}</h3>
+            <p className="gg-help gg-req-copy">{step.detail}</p>
             {step.onToggle ? (
               <Button
                 variant="secondary"
+                className="gg-card-action"
+                aria-pressed={step.done}
                 onClick={step.onToggle}
-                style={{ marginTop: 12 }}
               >
                 {step.done ? "Mark open" : "Mark done"}
               </Button>
@@ -61,9 +58,9 @@ export function EventRow({
     <div className="gg-event">
       <div className="gg-event__date">
         <small>{day}</small>
-        <strong style={{ fontSize: 22 }}>{when.match(/\d+/)?.[0] ?? "—"}</strong>
+        <strong className="gg-event__num">{when.match(/\d+/)?.[0] ?? "—"}</strong>
       </div>
-      <div style={{ flex: 1 }}>
+      <div className="gg-event__body">
         <strong>{title}</strong>
         <p className="gg-help">
           {place} · {when}

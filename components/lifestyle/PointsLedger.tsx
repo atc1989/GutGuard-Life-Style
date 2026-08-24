@@ -20,7 +20,7 @@ export function PointsLedger({
     <div className="gg-stack">
       <Card>
         <p className="gg-eyebrow">Lifestyle rewards</p>
-        <p className="gg-heading" style={{ fontSize: 40, margin: "8px 0" }}>
+        <p className="gg-heading gg-ledger-peso">
           ₱{earned.toLocaleString()}
         </p>
         <p className="gg-help">of ₱{FIRST_ORDER_PESOS.toLocaleString()} first order</p>
@@ -28,7 +28,7 @@ export function PointsLedger({
           value={(earned / FIRST_ORDER_PESOS) * 100}
           label="Points toward first order"
         />
-        <p className="gg-help" style={{ marginTop: 10 }}>
+        <p className="gg-help gg-ledger-meta">
           {points} points · {pending} pending · {banked} banked
         </p>
       </Card>

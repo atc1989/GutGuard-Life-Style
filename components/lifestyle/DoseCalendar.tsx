@@ -48,7 +48,7 @@ export function DoseCalendar({
   return (
     <div>
       <p className="gg-eyebrow">Calendar & proof</p>
-      <p className="gg-help" style={{ margin: "6px 0 12px" }}>
+      <p className="gg-help gg-cal-help">
         {capsulesPerDay} capsules a day · {isToday ? "today" : selected}
       </p>
       <div className="gg-cal" role="tablist" aria-label="Dose days">
@@ -72,7 +72,7 @@ export function DoseCalendar({
         })}
       </div>
       <ProgressRail value={taken} max={DOSE_SLOTS.length} label="Selected day doses" />
-      <div className="gg-stack" style={{ marginTop: 16 }}>
+      <div className="gg-stack gg-cal-slots">
         {DOSE_SLOTS.map((slot) => {
           const done = Boolean(entry[slot.id]);
           return (
@@ -83,6 +83,7 @@ export function DoseCalendar({
               </div>
               <Button
                 variant={done ? "secondary" : "primary"}
+                aria-pressed={done}
                 onClick={() => onToggle(selected, slot.id)}
               >
                 {done ? "Taken" : "Log"}
@@ -91,12 +92,12 @@ export function DoseCalendar({
           );
         })}
       </div>
-      <div style={{ marginTop: 16 }}>
+      <div className="gg-cal-proof">
         <FileAttachment
           fileName={entry.proof ? "dose-proof.jpg" : undefined}
           onPick={(file) => onProof(selected, file)}
         />
-        <p className="gg-help" style={{ marginTop: 8 }}>
+        <p className="gg-help gg-cal-proof__hint">
           Tap a checked day to see its proof.
         </p>
       </div>

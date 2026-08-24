@@ -28,7 +28,7 @@ export function Masthead() {
         </div>
         <NotificationBell />
       </header>
-      <div className="gg-mobile-only" style={{ marginBottom: 16 }}>
+      <div className="gg-mobile-only gg-masthead__tabs">
         <SegmentedControl
           label="Member sections"
           value={current}

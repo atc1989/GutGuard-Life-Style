@@ -8,10 +8,15 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-export function TeamPage() {
+export function TeamPage({
+  serverBaseComplete,
+}: {
+  serverBaseComplete: boolean | null;
+}) {
   const { session } = useSession();
   const { open } = useOverlay();
-  const unlocked = session.baseDone.filter(Boolean).length === BASE_STEPS.length;
+  const localComplete = session.baseDone.filter(Boolean).length === BASE_STEPS.length;
+  const unlocked = serverBaseComplete ?? localComplete;
 
   if (!unlocked) {
     return (
@@ -24,8 +29,8 @@ export function TeamPage() {
         </div>
         <EmptyState
           title="My Team unlocks after BASE"
-          copy="Finish BASE Activation to open your roster, check-ins, and follow-ups."
-          action={{ label: "Continue BASE →", onClick: () => open("base") }}
+          copy="Finish all five BASE Activation steps to open your roster, check-ins, and invites. The lock is enforced on the server, not only on this screen."
+          action={{ label: "Continue BASE", onClick: () => open("base") }}
         />
       </div>
     );
@@ -49,7 +54,7 @@ export function TeamPage() {
           const invited = session.contactInvited[contact.id] ?? contact.invited;
           return (
             <Card key={contact.id}>
-              <div className="gg-row">
+              <div className="gg-row gg-invite-row">
                 <div>
                   <strong>{contact.name}</strong>
                   <p className="gg-help">{contact.handle}</p>

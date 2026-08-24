@@ -8,16 +8,15 @@ export function Switch({
   label: string;
 }) {
   return (
-    <div className="gg-switch-row">
+    <button
+      type="button"
+      className="gg-switch-row"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+    >
       <span>{label}</span>
-      <button
-        type="button"
-        className="gg-switch"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        onClick={() => onChange(!checked)}
-      />
-    </div>
+      <span className="gg-switch" aria-hidden="true" />
+    </button>
   );
 }
