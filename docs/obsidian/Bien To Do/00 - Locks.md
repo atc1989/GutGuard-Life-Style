@@ -34,6 +34,7 @@ Every task in [[Bien To Do]] inherits these. They are also written onto each tas
 | Icons | `lucide-react` outline, consistent stroke. |
 | Secrets | Service role and `admin.ts` server-only. Never `NEXT_PUBLIC_`. Never process payments in the browser. |
 | Dialects | One dialect per screen. Do not mix radius policies. |
+| Admin gate | Middleware **and** Server Action re-check. `admin.ts` never imported from a Client Component. |
 
 ## Dialect map
 
@@ -43,5 +44,15 @@ Every task in [[Bien To Do]] inherits these. They are also written onto each tas
 | Register | Editorial booth |
 | Door card | Editorial ceremonial |
 | Nearly free + member app + sheets | Commerce |
+| `/admin/*` | Admin — dense, radius **0**, [[Components/Admin Shell]] + [[Components/Table]] |
 
-Canonical shell **900px**. Mobile column ~440px. Desktop shell ~1240–1320px.
+## Part 2 operator HCI
+
+| Principle | Rule |
+|---|---|
+| Visibility | Status is a [[Components/Badge]] or labelled text — never colour-only. Filters announce result count. |
+| Control | Search, filter, row action, and bulk action stay ≥ **44×44**. `aria-current` on admin tabs. |
+| Error handling | Failed webhook / failed moderate / failed lookup uses `aria-live` + [[Components/Alert]]. No silent empty table. |
+| Shortcuts | Bulk select + one confirm — not hover-only row menus. |
+
+Canonical shell **900px**. Mobile column ~440px. Desktop shell ~1240–1320px. Admin tables scroll horizontally below 900px or cardize rows — never hide a critical column without a drill-in.

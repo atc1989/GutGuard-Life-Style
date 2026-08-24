@@ -90,5 +90,5 @@ Locks: [[00 - Locks]] · Board: [[Bien To Do]]
 - [ ] **E4-T11** Order sheet stays **mock** — no payment processing in the browser. `#task #epic/member`
   - Route: overlay `order` · bottom bar
   - HCI: Quantity stepper ≥ 44×44; submit ≥ 44×44; `aria-live` for “Order queued”; gold focus.
-  - Stack: No Maya/keys in client; no `NEXT_PUBLIC_` payment secrets; Server Action may record intent later.
+  - Stack: No Maya/keys in client; no `NEXT_PUBLIC_` payment secrets; Server Action may record intent later. Live reconcile is [[Epic 7 Order Reconciliation]].
   - Done when: Place-order cannot charge a card; copy says mock until an approved processor lands.

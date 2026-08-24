@@ -40,11 +40,12 @@ A guest can complete the walk on a phone-sized viewport with:
 - BASE gating in **Postgres/RLS**, not only in the UI
 - **no Tailwind, no ORM, no service-role key in the browser**
 
-## Out of scope
+## Out of scope (Part 1)
 
 | Item | Home |
 |---|---|
-| `/admin`, staff check-in, trainer queue | gentrep-academy |
+| Lifestyle `/admin` (users, orders, stories) | [[02 - Part 2 Admin Management]] |
+| Academy `/admin`, staff check-in, trainer queue | gentrep-academy |
 | Real GEMA training UI | Academy |
-| Maya checkout / webhooks | Later Lifestyle pass |
+| Maya checkout / webhooks | [[Epic 7 Order Reconciliation]] |
 | SMS OTP | After an SMS provider is configured |

@@ -11,7 +11,7 @@ tags:
 
 # Bien To Do
 
-Folder note for the Gutguard Lifestyle board.
+Folder note for the Gutguard Lifestyle board — Part 1 (member journey) and Part 2 (admin).
 
 Drop this **folder** at:
 
@@ -27,14 +27,26 @@ flowchart LR
   N --> H["[[Epic 4 Member Hub|Epic 4 /app]]"]
 ```
 
+```mermaid
+flowchart LR
+  G["[[Epic 5 Admin RBAC|Epic 5 /admin]]"] --> U["[[Epic 6 User Lifecycle|Epic 6 users]]"]
+  G --> O["[[Epic 7 Order Reconciliation|Epic 7 orders]]"]
+  G --> S["[[Epic 8 Story Moderation|Epic 8 stories]]"]
+```
+
 ## Notes in this folder
 
 - [[00 - Locks]] — HCI + stack locks on every task
-- [[01 - Part 1 End-User Journey]] — journey narrative
+- [[01 - Part 1 End-User Journey]] — guest walk
+- [[02 - Part 2 Admin Management]] — operator walk
 - [[Epic 1 Landing]] — `/` and `/welcome`
 - [[Epic 2 Register]] — `/register` Auth & Zod
 - [[Epic 3 Door Card]] — `/card` door interaction
 - [[Epic 4 Member Hub]] — `/app/*` + BASE gating
+- [[Epic 5 Admin RBAC]] — `/admin/*` (Part 2 · Codex Epic 1)
+- [[Epic 6 User Lifecycle]] — `/admin/users` (Part 2 · Codex Epic 2)
+- [[Epic 7 Order Reconciliation]] — `/admin/orders` (Part 2 · Codex Epic 3)
+- [[Epic 8 Story Moderation]] — `/admin/stories` (Part 2 · Codex Epic 4)
 
 ## Vaults (read only)
 
