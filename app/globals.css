@@ -50,11 +50,12 @@
 html,
 body {
   min-height: 100%;
+  background-color: var(--paper);
 }
 
 body {
   color: var(--gg-ink);
-  background-color: var(--gg-bone);
+  background-color: var(--paper);
   font-family: var(--gg-sans);
 }
 
@@ -73,7 +74,7 @@ a {
 
 .gg-surface {
   color: var(--gg-ink);
-  background-color: var(--gg-bone);
+  background-color: var(--paper);
   background-image: radial-gradient(
     circle at 1px 1px,
     rgba(15, 15, 24, 0.025) 1px,
