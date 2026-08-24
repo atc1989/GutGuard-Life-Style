@@ -1,7 +1,15 @@
-import type { MemberFilter } from "@/lib/schemas/admin";
-import { parseMemberRole, type MemberRole } from "@/lib/admin/roles";
-
 export const BASE_STEP_TOTAL = 5;
+
+export type MemberRole = "member" | "admin";
+
+export type MemberFilter =
+  | "all"
+  | "invited"
+  | "claimed"
+  | "active"
+  | "base"
+  | "gema"
+  | "admin";
 
 export type MemberRow = {
   id: string;
@@ -37,15 +45,30 @@ export function normalizeSearch(query: string): string {
   return query.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** Strip separators and PH prefixes so 09… matches +63… */
+export function compactDigits(value: string): string {
+  let digits = value.replace(/\D/g, "");
+  if (digits.startsWith("63") && digits.length >= 12) digits = digits.slice(2);
+  if (digits.startsWith("0") && digits.length >= 10) digits = digits.slice(1);
+  return digits;
+}
+
 export function rowMatchesQuery(row: MemberRow, query: string): boolean {
   const needle = normalizeSearch(query);
   if (!needle) return true;
   const compactNeedle = needle.replace(/\s+/g, "");
+  const digitNeedle = compactDigits(needle);
   return SEARCHABLE.some((key) => {
     const value = row[key];
     if (!value) return false;
     const haystack = value.toLowerCase();
-    return haystack.includes(needle) || haystack.replace(/\s+/g, "").includes(compactNeedle);
+    if (haystack.includes(needle) || haystack.replace(/\s+/g, "").includes(compactNeedle)) {
+      return true;
+    }
+    if (digitNeedle.length >= 6) {
+      return compactDigits(value).includes(digitNeedle);
+    }
+    return false;
   });
 }
 
@@ -129,7 +152,7 @@ export function toMemberRow(input: {
       "—",
     phase: typeof input.phase === "string" && input.phase ? input.phase : "invited",
     claimed: Boolean(input.claimed),
-    role: parseMemberRole(input.role),
+    role: input.role === "admin" ? "admin" : "member",
     registeredAt:
       (typeof input.registeredAt === "string" && input.registeredAt) ||
       (typeof input.created_at === "string" && input.created_at) ||

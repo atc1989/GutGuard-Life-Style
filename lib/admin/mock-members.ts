@@ -1,4 +1,4 @@
-import { toMemberRow, type MemberRow } from "@/lib/admin/search";
+import { toMemberRow, type MemberRow } from "./search";
 
 /** Preview rows when Supabase env or the service-role key is absent. Not authorization. */
 export const MOCK_MEMBERS: MemberRow[] = [
