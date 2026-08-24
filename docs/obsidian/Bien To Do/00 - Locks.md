@@ -43,5 +43,6 @@ Every task in [[Bien To Do]] inherits these. They are also written onto each tas
 | Register | Editorial booth |
 | Door card | Editorial ceremonial |
 | Nearly free + member app + sheets | Commerce |
+| Admin `/admin/*` | Admin (square radii, dense table) |
 
 Canonical shell **900px**. Mobile column ~440px. Desktop shell ~1240–1320px.
