@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 import { Spinner } from "@/components/ui/Spinner";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 
 type Variant =
   | "primary"
@@ -15,6 +15,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   block?: boolean;
   loading?: boolean;
   children: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 export function Button({
@@ -25,10 +26,15 @@ export function Button({
   type = "button",
   disabled,
   children,
+  ref,
   ...props
 }: Props) {
+  const hasStatusSlot = typeof loading === "boolean";
+
   return (
     <button
+      {...props}
+      ref={ref}
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -37,11 +43,15 @@ export function Button({
         `gg-button--${variant}`,
         block && "gg-button--block",
         loading && "gg-button--loading",
+        hasStatusSlot && "gg-button--status",
         className,
       )}
-      {...props}
     >
-      {loading ? <Spinner label="Working" /> : null}
+      {hasStatusSlot ? (
+        <span className="gg-button__icon" aria-hidden="true">
+          {loading ? <Spinner decorative /> : null}
+        </span>
+      ) : null}
       {children}
     </button>
   );

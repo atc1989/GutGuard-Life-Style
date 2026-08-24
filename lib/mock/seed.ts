@@ -10,18 +10,12 @@ export const FIRST_ORDER_PESOS = 4500;
 export const PESO_PER_POINT = 10;
 export const CARD_NUMBER = "0240 5578 9012 3456";
 
-export const TRUST_STATS = [
-  ["6,000+", "members already"],
-  ["20", "product centers nationwide"],
-  ["8", "research institutions"],
-  ["USAID", "funded"],
-] as const;
-
-export const LINKS = {
-  site: "https://gutguard.ph",
-  facebook: "https://facebook.com/gutguard",
-  telegram: "https://t.me/gutguard",
-} as const;
+export {
+  FUNNEL_STEPS,
+  LANDING_FAQ,
+  LINKS,
+  TRUST_STATS,
+} from "@/lib/content/landing";
 
 export const OUTCOMES = [
   "More energy",
@@ -175,51 +169,6 @@ export const STORIES = [
     name: "Jomar L.",
     place: "Davao City",
     quote: "Mas active at masaya ako ngayon kaysa dati.",
-  },
-] as const;
-
-export const LANDING_FAQ = [
-  {
-    q: "What is Gutguard?",
-    a: "Gutguard is a Filipino synbiotic — good bacteria plus the fibre that feeds them — made to support the gut side of the gut–brain connection.",
-  },
-  {
-    q: "What is Gutguard Lifestyle Membership?",
-    a: "A card and an invitation. Come to an event, see it for yourself, decide after. Nothing to pay to come.",
-  },
-  {
-    q: "What do I get right now?",
-    a: "A card and an invitation. Come to an event, see it for yourself, decide after. Nothing to pay to come.",
-  },
-  {
-    q: "What do I get if I bring friends?",
-    a: "Every friend who joins adds points to your card. Invite enough and your first order is free.",
-  },
-  {
-    q: "What is a Gutguard Entrepreneur (Gentrep)?",
-    a: "Becoming a Gentrep is a choice, not a requirement. Most members simply take the protocol. Selling is a separate choice, later, and only if you want it.",
-  },
-  {
-    q: "Do I have to sell anything?",
-    a: "No. Most members just take the product. Selling is a separate choice, later, and only if you want it.",
-  },
-] as const;
-
-export const FUNNEL_STEPS = [
-  {
-    n: "01",
-    title: "Get your card",
-    copy: "Your name and number — that’s it. Free, no payment, no password.",
-  },
-  {
-    n: "02",
-    title: "Invite a friend",
-    copy: "Every friend who joins adds points to your card.",
-  },
-  {
-    n: "03",
-    title: "Points pay for your Gutguard",
-    copy: "Invite enough and your first order is free.",
   },
 ] as const;
 

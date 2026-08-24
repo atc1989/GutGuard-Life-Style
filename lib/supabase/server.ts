@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-/** Cookie / SSR anon client. Used by middleware and member actions when env is set. */
+/** Cookie / SSR anon client. Used by proxy and member actions when env is set. */
 export async function createClient() {
   const cookieStore = await cookies();
 
@@ -19,7 +19,7 @@ export async function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Called from a Server Component — middleware can refresh the session.
+            // Called from a Server Component — proxy can refresh the session.
           }
         },
       },

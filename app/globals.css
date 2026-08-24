@@ -19,6 +19,13 @@
   --gg-rule-soft: #e5e0d2;
   --gg-error: #b0202e;
 
+  --bone: var(--gg-bone);
+  --paper: var(--gg-paper);
+  --blue: var(--gg-blue);
+  --gold: var(--gg-gold);
+  --ink: var(--gg-ink);
+  --error: var(--gg-error);
+
   --gg-serif: var(--font-fraunces), "Fraunces", "Times New Roman", serif;
   --gg-sans: var(--font-inter-tight), "Inter Tight", system-ui, -apple-system,
     "Segoe UI", sans-serif;
@@ -161,6 +168,16 @@ a {
   box-shadow: 0 10px 28px rgba(4, 6, 122, 0.25);
 }
 
+.gg-card--ceremonial .gg-heading,
+.gg-card--ceremonial .gg-lede,
+.gg-card--ceremonial .gg-help {
+  color: var(--gg-bone);
+}
+
+.gg-card--ceremonial .gg-eyebrow {
+  color: var(--gg-gold-soft);
+}
+
 .gg-card--stat {
   text-align: center;
 }
@@ -174,6 +191,7 @@ a {
 }
 
 .gg-button {
+  min-width: 44px;
   min-height: 48px;
   display: inline-flex;
   align-items: center;
@@ -185,8 +203,15 @@ a {
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  text-align: center;
+  text-wrap: balance;
+  white-space: normal;
   transition: background-color 0.2s ease, color 0.2s ease,
     border-color 0.2s ease, transform 0.1s ease;
+}
+
+a.gg-button {
+  text-decoration: none;
 }
 
 .gg-button--primary {
@@ -258,6 +283,11 @@ a {
   min-height: 44px;
 }
 
+.gg-button--ghost:hover:not(:disabled) {
+  color: var(--gg-blue-press);
+  background: var(--gg-bone-soft);
+}
+
 .gg-button--block {
   width: 100%;
 }
@@ -279,6 +309,11 @@ a {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.gg-button--status .gg-button__icon {
+  width: 20px;
+  height: 20px;
 }
 
 .gg-spin {
@@ -304,10 +339,15 @@ a {
 }
 
 .gg-button:focus-visible,
+.gg-button:disabled:focus-visible,
 .gg-link:focus-visible,
 .gg-icon-btn:focus-visible,
-.gg-segment__button:focus-visible {
-  outline: 3px solid var(--gg-gold);
+.gg-segment__button:focus-visible,
+.gg-acc-head:focus-visible,
+.gg-ruled-field__control:focus-visible,
+.gg-field__control:focus-visible,
+.gg-cal__day:focus-visible {
+  outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
 
@@ -350,8 +390,8 @@ a {
 }
 
 .gg-field__control:focus-visible {
-  border-color: var(--gg-blue);
-  box-shadow: 0 0 0 3px rgba(6, 8, 169, 0.14);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(176, 141, 91, 0.28);
 }
 
 .gg-field__control[aria-invalid="true"] {
@@ -384,13 +424,13 @@ a {
 
 .gg-ruled-field__control {
   width: 100%;
+  min-height: 44px;
   border: 0;
   border-radius: 0;
   background: transparent;
   padding: 4px 0;
   color: var(--gg-ink);
   font: 500 17px/1.4 var(--gg-sans);
-  outline: 0;
 }
 
 .gg-ruled-field:focus-within .gg-ruled-field__label {
@@ -686,6 +726,7 @@ a {
 
 .gg-acc-head {
   width: 100%;
+  min-width: 44px;
   min-height: 52px;
   padding: 12px 0;
   display: flex;
@@ -711,14 +752,13 @@ a {
 }
 
 .gg-acc-body {
-  display: none;
   padding: 0 0 16px;
   color: var(--gg-ink-2);
   font-size: 14px;
 }
 
-.gg-acc-item[data-open="true"] .gg-acc-body {
-  display: block;
+.gg-acc-body[hidden] {
+  display: none;
 }
 
 .gg-toast {
@@ -1029,6 +1069,71 @@ a {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  margin: 40px 0;
+}
+
+.gg-hero__title {
+  margin-top: 12px;
+}
+
+.gg-hero__kicker {
+  margin-top: 10px;
+}
+
+.gg-hero__lede {
+  margin-top: 16px;
+}
+
+.gg-hero__cta {
+  margin-top: 28px;
+}
+
+.gg-offer-title {
+  margin-top: 8px;
+  font-size: 32px;
+}
+
+.gg-card--ceremonial .gg-offer-title {
+  margin-top: 10px;
+  font-size: 36px;
+}
+
+.gg-offer-copy {
+  margin-top: 8px;
+}
+
+.gg-card--ceremonial .gg-offer-copy {
+  margin-top: 10px;
+}
+
+.gg-steps {
+  margin: 14px 0 40px;
+}
+
+.gg-step-title {
+  font-size: 26px;
+  margin-top: 6px;
+}
+
+.gg-step-copy {
+  margin-top: 6px;
+}
+
+.gg-section-num {
+  font-family: var(--gg-serif);
+  font-style: italic;
+  margin-right: 8px;
+}
+
+.gg-next-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  line-height: 1.45;
+}
+
+.gg-live:empty {
+  display: none;
 }
 
 .gg-split,
@@ -1046,6 +1151,11 @@ a {
 .gg-cta-row {
   display: grid;
   gap: 12px;
+}
+
+.gg-cta-row .gg-button {
+  width: 100%;
+  max-width: 100%;
 }
 
 .gg-flip {
@@ -1152,8 +1262,8 @@ body.has-demo .gg-frame {
 }
 
 .gg-spinner {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
@@ -1193,9 +1303,44 @@ body.has-demo .gg-frame {
     var(--gg-ink);
 }
 
+.gg-welcome-open {
+  overflow: hidden;
+}
+
 .gg-welcome__panel {
   width: min(520px, 100%);
   animation: gg-welcome-in 0.45s var(--gg-ease-out);
+}
+
+.gg-welcome .gg-eyebrow {
+  color: var(--gg-gold-soft);
+}
+
+.gg-welcome .gg-display {
+  color: var(--gg-bone);
+  font-size: clamp(40px, 6vw, 64px);
+}
+
+.gg-welcome .gg-lede {
+  color: var(--gg-bone);
+  margin-top: 16px;
+}
+
+.gg-welcome__actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+  justify-items: start;
+}
+
+.gg-welcome .gg-button--ghost {
+  color: var(--gg-bone);
+  background: transparent;
+}
+
+.gg-welcome .gg-button--ghost:hover:not(:disabled) {
+  color: var(--gg-gold-soft);
+  background: transparent;
 }
 
 @keyframes gg-welcome-in {

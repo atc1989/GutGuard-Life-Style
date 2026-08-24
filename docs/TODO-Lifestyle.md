@@ -75,7 +75,7 @@ Product surface (not Academy admin):
 2. **Member app** — `/app/health` · `/app/team` · `/app/story`
 3. **Sheets** — Order · Settings · BASE · GEMA · GG-VERSE · Story share · QR
 
-Auth (current): **email OTP** when Supabase env is set; **localStorage mock** when it is not. Mobile is stored on the profile. SMS OTP is later.
+Auth (current): **name + mobile + password** cookie session via `supabase.auth.signUp()` when env is set; **dev cookie + localStorage UI fallback** when it is not. Mobile is stored on the profile. SMS OTP is later.
 
 ---
 
@@ -122,7 +122,7 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 - [x] Migrations under `supabase/migrations/` (profiles, invites, dose_logs, BASE, points, stories, proofs)
 - [x] RLS on every user-facing table (default deny)
 - [x] Middleware cookie session refresh (`@supabase/ssr`)
-- [x] Register verifies email OTP when env is set; mock session still used when env is empty
+- [x] Register creates a cookie session via `signUp` when env is set; mock cookie + localStorage UI fallback when env is empty
 - [x] Seed data for **development only** (optional, commented `supabase/seed.sql`)
 
 ### Phase 4 — Member features on real data

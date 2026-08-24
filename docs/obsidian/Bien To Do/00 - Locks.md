@@ -27,7 +27,7 @@ Every task in [[Bien To Do]] inherits these. They are also written onto each tas
 |---|---|
 | Framework | Next.js **App Router only**. Pages router forbidden. |
 | Language | Strict TypeScript. |
-| Auth | Cookie sessions via `@supabase/ssr`, refreshed in `middleware.ts`. Not `localStorage` as authorization. |
+| Auth | Cookie sessions via `@supabase/ssr`, refreshed in `proxy.ts`. Not `localStorage` as authorization. |
 | Data | Supabase Postgres + **RLS**. No Prisma, Drizzle, or any ORM. |
 | Forms | Zod + react-hook-form + `@hookform/resolvers`. Re-validate in Server Actions. |
 | UI | GutGuard portable CSS custom properties. **No Tailwind. No shadcn.** |

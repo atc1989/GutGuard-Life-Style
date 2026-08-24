@@ -5,7 +5,7 @@ function isMemberShell(pathname: string) {
   return pathname === "/app" || pathname.startsWith("/app/");
 }
 
-/** Cookie client used by root middleware to refresh the Auth token. */
+/** Cookie client used by root `proxy.ts` to refresh the Auth token. */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
