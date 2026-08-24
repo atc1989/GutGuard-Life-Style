@@ -209,7 +209,7 @@ export const FUNNEL_STEPS = [
   {
     n: "01",
     title: "Get your card",
-    copy: "Your name and number — that’s it. Free, no payment, no password.",
+    copy: "Your name, number, and a password. Free, no payment to start.",
   },
   {
     n: "02",

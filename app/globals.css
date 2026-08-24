@@ -384,13 +384,19 @@ a {
 
 .gg-ruled-field__control {
   width: 100%;
+  min-height: 44px;
   border: 0;
   border-radius: 0;
   background: transparent;
   padding: 4px 0;
   color: var(--gg-ink);
   font: 500 17px/1.4 var(--gg-sans);
-  outline: 0;
+  outline: none;
+}
+
+.gg-ruled-field__control:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
 }
 
 .gg-ruled-field:focus-within .gg-ruled-field__label {

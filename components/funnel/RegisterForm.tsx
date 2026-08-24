@@ -4,28 +4,50 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { sendRegisterOtp, verifyRegisterOtp } from "@/lib/actions/auth";
+import { signIn, signUp, type AuthActionResult } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
-import { registerSchema, type RegisterValues } from "@/lib/schemas/register";
+import {
+  authRegisterSchema,
+  authSignInSchema,
+  PASSWORD_HINT,
+  PASSWORD_MIN_LENGTH,
+  type AuthRegisterValues,
+  type AuthSignInValues,
+} from "@/lib/schemas/auth";
 import { useSession } from "@/lib/session";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useToast } from "@/lib/toast";
 
 export function RegisterForm() {
   const router = useRouter();
-  const { update, setPhase } = useSession();
+  const { session, update, setPhase } = useSession();
   const { push } = useToast();
-  const [step, setStep] = useState<"form" | "otp">("form");
-  const [otp, setOtp] = useState("");
+  const [mode, setMode] = useState<"register" | "signin">("register");
   const [loading, setLoading] = useState(false);
-  const form = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", mobile: "", email: "" },
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const registerForm = useForm<AuthRegisterValues>({
+    resolver: zodResolver(authRegisterSchema),
+    defaultValues: { name: "", mobile: "", email: "", password: "" },
+  });
+  const signInForm = useForm<AuthSignInValues>({
+    resolver: zodResolver(authSignInSchema),
+    defaultValues: { email: "", password: "" },
   });
 
-  async function finish(values: { name: string; mobile: string; email: string }) {
+  function switchMode(next: "register" | "signin") {
+    const email =
+      mode === "register"
+        ? registerForm.getValues("email")
+        : signInForm.getValues("email");
+    setFormError(null);
+    setMode(next);
+    if (next === "signin") signInForm.setValue("email", email);
+    else registerForm.setValue("email", email);
+  }
+
+  async function finishMock(values: { name: string; mobile: string; email: string }) {
     update({
       name: values.name,
       mobile: values.mobile,
@@ -36,46 +58,76 @@ export function RegisterForm() {
     router.push("/card");
   }
 
+  async function handleAuthResult(
+    result: AuthActionResult,
+    mockFinish: () => Promise<void>,
+  ) {
+    if (!result.ok) {
+      setFormError(result.error);
+      return;
+    }
+    if (result.mode === "mock") {
+      await mockFinish();
+      return;
+    }
+    switchMode("signin");
+    setFormError("Check your email to confirm your card, then sign in.");
+    push({
+      tone: "success",
+      title: "Confirm your email",
+      body: "Open the link we sent, then sign in with your password.",
+    });
+  }
+
   return (
     <main className="gg-funnel gg-funnel--editorial">
       <div className="gg-split gg-split--form">
         <div>
-          <p className="gg-eyebrow">Sign up</p>
+          <p className="gg-eyebrow">{mode === "register" ? "Sign up" : "Sign in"}</p>
           <h1 className="gg-display" style={{ marginTop: 12 }}>
-            Enter your <em>name</em>
+            {mode === "register" ? (
+              <>
+                Enter your <em>name</em>
+              </>
+            ) : (
+              <>
+                Welcome <em>back</em>
+              </>
+            )}
           </h1>
           <p className="gg-lede" style={{ marginTop: 14 }}>
-            Name, mobile, and email. No password. When Supabase is connected, we send a one-time code.
+            {mode === "register"
+              ? "Name, mobile, email, and a password. Your session is a cookie when Supabase is connected."
+              : "Email and password. Same card, same door."}
           </p>
         </div>
-        <Card variant="editorial">
-          {step === "form" ? (
+        <Card variant="editorial" className="gg-stack">
+          {formError ? (
+            <p className="gg-field__error" role="alert" aria-live="polite">
+              {formError}
+            </p>
+          ) : null}
+          {mode === "register" ? (
             <form
               className="gg-stack"
-              onSubmit={form.handleSubmit(async (values) => {
-                const parsed = registerSchema.parse(values);
+              noValidate
+              aria-busy={loading || undefined}
+              onSubmit={registerForm.handleSubmit(async (values) => {
+                setFormError(null);
                 setLoading(true);
-                const result = await sendRegisterOtp(parsed);
-                setLoading(false);
-                if (!result.ok) {
-                  push({ tone: "error", title: "Could not send code", body: result.error });
-                  return;
+                try {
+                  const result = await signUp(values);
+                  if (!result) return;
+                  await handleAuthResult(result, () =>
+                    finishMock({
+                      name: values.name,
+                      mobile: values.mobile,
+                      email: values.email,
+                    }),
+                  );
+                } finally {
+                  setLoading(false);
                 }
-                update({
-                  name: parsed.name,
-                  mobile: parsed.mobile,
-                  email: parsed.email,
-                });
-                if (!isSupabaseConfigured() || result.mode === "mock") {
-                  await finish(parsed);
-                  return;
-                }
-                setStep("otp");
-                push({
-                  tone: "success",
-                  title: "Code sent",
-                  body: `Check ${parsed.email}`,
-                });
               })}
             >
               <FormField
@@ -83,8 +135,8 @@ export function RegisterForm() {
                 label="Your name"
                 placeholder="Your name here"
                 autoComplete="name"
-                {...form.register("name")}
-                error={form.formState.errors.name?.message}
+                {...registerForm.register("name")}
+                error={registerForm.formState.errors.name?.message}
               />
               <FormField
                 variant="ruled"
@@ -92,8 +144,8 @@ export function RegisterForm() {
                 placeholder="09xx xxx xxxx"
                 inputMode="tel"
                 autoComplete="tel"
-                {...form.register("mobile")}
-                error={form.formState.errors.mobile?.message}
+                {...registerForm.register("mobile")}
+                error={registerForm.formState.errors.mobile?.message}
               />
               <FormField
                 variant="ruled"
@@ -101,43 +153,83 @@ export function RegisterForm() {
                 placeholder="you@email.com"
                 type="email"
                 autoComplete="email"
-                {...form.register("email")}
-                error={form.formState.errors.email?.message}
+                {...registerForm.register("email")}
+                error={registerForm.formState.errors.email?.message}
+              />
+              <FormField
+                variant="ruled"
+                label="Password"
+                type="password"
+                autoComplete="new-password"
+                minLength={PASSWORD_MIN_LENGTH}
+                spellCheck={false}
+                hint={PASSWORD_HINT}
+                {...registerForm.register("password")}
+                error={registerForm.formState.errors.password?.message}
               />
               <Button type="submit" variant="editorial" block loading={loading}>
                 Get your card
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                block
+                onClick={() => switchMode("signin")}
+              >
+                Already have a card? Sign in
               </Button>
             </form>
           ) : (
             <form
               className="gg-stack"
-              onSubmit={async (event) => {
-                event.preventDefault();
+              noValidate
+              aria-busy={loading || undefined}
+              onSubmit={signInForm.handleSubmit(async (values) => {
+                setFormError(null);
                 setLoading(true);
-                const email = form.getValues("email");
-                const result = await verifyRegisterOtp({ email, token: otp });
-                setLoading(false);
-                if (!result.ok) {
-                  push({ tone: "error", title: "Invalid code", body: result.error });
-                  return;
+                try {
+                  const result = await signIn(values);
+                  if (!result) return;
+                  await handleAuthResult(result, () =>
+                    finishMock({
+                      name: session.name || "Member",
+                      mobile: session.mobile || "",
+                      email: values.email,
+                    }),
+                  );
+                } finally {
+                  setLoading(false);
                 }
-                await finish({
-                  name: form.getValues("name"),
-                  mobile: form.getValues("mobile"),
-                  email,
-                });
-              }}
+              })}
             >
               <FormField
                 variant="ruled"
-                label="One-time code"
-                value={otp}
-                onChange={(event) => setOtp(event.target.value)}
-                inputMode="numeric"
-                autoComplete="one-time-code"
+                label="Email"
+                placeholder="you@email.com"
+                type="email"
+                autoComplete="email"
+                {...signInForm.register("email")}
+                error={signInForm.formState.errors.email?.message}
+              />
+              <FormField
+                variant="ruled"
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                spellCheck={false}
+                {...signInForm.register("password")}
+                error={signInForm.formState.errors.password?.message}
               />
               <Button type="submit" variant="editorial" block loading={loading}>
-                Verify and continue
+                Sign in
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                block
+                onClick={() => switchMode("register")}
+              >
+                Need a card? Register
               </Button>
             </form>
           )}

@@ -26,7 +26,7 @@ export function LandingView({ variant }: { variant: "gift" | "plain" }) {
                 A <em>welcome gift</em> for our guests.
               </h1>
               <p className="gg-lede" style={{ marginTop: 16 }}>
-                Your name and number — that’s it. Free, no payment, no password.
+                Your name, number, and a password. Free, no payment to start.
               </p>
             </>
           ) : (

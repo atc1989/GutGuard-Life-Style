@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test lib/points.test.ts"
+    "test": "node --experimental-strip-types --test lib/points.test.ts lib/schemas/auth.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

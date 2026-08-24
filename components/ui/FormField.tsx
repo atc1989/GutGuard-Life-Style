@@ -20,8 +20,8 @@ export function FormField({
   const fieldId = id ?? props.name;
   const invalid = Boolean(error);
   const describedBy = [
-    error ? `${fieldId}-error` : null,
     hint ? `${fieldId}-hint` : null,
+    error ? `${fieldId}-error` : null,
   ]
     .filter(Boolean)
     .join(" ") || undefined;
@@ -39,13 +39,14 @@ export function FormField({
           aria-invalid={invalid}
           aria-describedby={describedBy}
         />
+        {hint ? (
+          <p className="gg-help" id={`${fieldId}-hint`}>
+            {hint}
+          </p>
+        ) : null}
         {error ? (
           <p className="gg-field__error" id={`${fieldId}-error`}>
             {error}
-          </p>
-        ) : hint ? (
-          <p className="gg-help" id={`${fieldId}-hint`}>
-            {hint}
           </p>
         ) : null}
       </div>
@@ -62,13 +63,14 @@ export function FormField({
         aria-invalid={invalid}
         aria-describedby={describedBy}
       />
+      {hint ? (
+        <span className="gg-help" id={`${fieldId}-hint`}>
+          {hint}
+        </span>
+      ) : null}
       {error ? (
         <span className="gg-field__error" id={`${fieldId}-error`}>
           {error}
-        </span>
-      ) : hint ? (
-        <span className="gg-help" id={`${fieldId}-hint`}>
-          {hint}
         </span>
       ) : null}
     </label>
