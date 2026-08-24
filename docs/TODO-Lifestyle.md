@@ -2,6 +2,8 @@
 
 Adapted from `d:\GutGuard\To do Mancera.md` for **this** product repo ([GutGuard-Life-Style](https://github.com/atc1989/GutGuard-Life-Style)).
 
+Obsidian journey board (HCI + stack on every task): [Part 1 — End-User Journey & Task Model](./obsidian/01%20-%20Part%201%20End-User%20Journey%20%26%20Task%20Model.md).
+
 **Do not edit** `GutGuard Design System/` or `GutGuard Tech Stack/`. Implement only here.
 
 Academy `/admin`, `/staff`, `/trainer` work stays in **gentrep-academy** — not this app.
