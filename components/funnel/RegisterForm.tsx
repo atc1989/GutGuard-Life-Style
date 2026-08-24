@@ -3,10 +3,8 @@
 import { startTransition, useActionState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  initialRegisterState,
-  registerMember,
-} from "@/lib/actions/auth";
+import { registerMember } from "@/lib/actions/auth";
+import { initialRegisterState } from "@/lib/register-state";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
@@ -21,6 +19,7 @@ export function RegisterForm() {
     registerMember,
     initialRegisterState,
   );
+  const actionError = state?.error ?? null;
   const form = useForm<AuthRegisterValues>({
     resolver: zodResolver(authRegisterSchema),
     defaultValues: { name: "", mobile: "", password: "" },
@@ -29,13 +28,14 @@ export function RegisterForm() {
 
   const setError = form.setError;
   useEffect(() => {
-    const entries = Object.entries(state.fieldErrors) as Array<
+    const nextErrors = state?.fieldErrors ?? {};
+    const entries = Object.entries(nextErrors) as Array<
       [keyof AuthRegisterValues, string | undefined]
     >;
     for (const [field, message] of entries) {
       if (message) setError(field, { type: "server", message });
     }
-  }, [state.fieldErrors, setError]);
+  }, [state, setError]);
 
   return (
     <main className="gg-funnel gg-funnel--editorial">
@@ -66,8 +66,8 @@ export function RegisterForm() {
             })}
           >
             <div className="gg-live" aria-live="polite" aria-atomic="true">
-              {state.error ? (
-                <p className="gg-field__error">{state.error}</p>
+              {actionError ? (
+                <p className="gg-field__error">{actionError}</p>
               ) : pending ? (
                 <p className="gg-vh">Creating your card</p>
               ) : null}

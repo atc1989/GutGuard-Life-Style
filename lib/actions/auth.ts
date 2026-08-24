@@ -17,16 +17,7 @@ import {
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { markWelcomeSeen } from "@/lib/actions/welcome";
-
-export type RegisterActionState = {
-  error: string | null;
-  fieldErrors: Partial<Record<AuthRegisterField, string>>;
-};
-
-export const initialRegisterState: RegisterActionState = {
-  error: null,
-  fieldErrors: {},
-};
+import type { RegisterActionState } from "@/lib/register-state";
 
 function fieldErrorsFromZod(
   error: z.ZodError,
