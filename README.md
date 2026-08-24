@@ -8,9 +8,11 @@ Member lifestyle app: Ginhawa funnel → door card → My Health / My Team / My 
 
 ## Auth
 
-**Email OTP** when Supabase env is set. Register collects name, mobile, and email. The one-time code goes to email. Mobile is stored on the member profile (SMS OTP later, when a provider is configured).
+**Cookie session** when Supabase env is set. Register collects **name**, **mobile**, and a **password**. The Server Action re-validates with Zod, calls `supabase.auth.signUp()` on the cookie client in `lib/supabase/server.ts`, and **redirects to `/card`**. Identity for Auth is a derived email from the PH mobile (`639…@members.gutguard.ph`) plus `user_metadata` for name and number. Turn **off** “Confirm email” in the Supabase Auth settings so sign-up can issue a session immediately.
 
-**Mock fallback** when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are empty: the same register form writes a `localStorage` session and skips the code step. Use this for UI work.
+**Mock fallback** when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are empty: the same booth still validates, then the action sets a `gg-dev-member` cookie and redirects to `/card`. `localStorage` (`gg-lifestyle-session`) is a **dev UI fallback only** — it is not authorization. `/app` is refused without a Supabase cookie when env is set.
+
+SMS OTP is later, when a provider is configured.
 
 GEMA stays locked until all five BASE steps are done. With Supabase on, `lifestyle_base_complete()` enforces that server-side.
 

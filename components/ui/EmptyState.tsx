@@ -36,11 +36,7 @@ export function SectionLabel({
 }) {
   return (
     <p className="gg-eyebrow">
-      {number ? (
-        <em style={{ fontFamily: "var(--gg-serif)", marginRight: 8 }}>
-          {number}
-        </em>
-      ) : null}
+      {number ? <em className="gg-section-num">{number}</em> : null}
       {children}
     </p>
   );

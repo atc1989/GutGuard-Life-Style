@@ -1,11 +1,12 @@
 import { cx } from "@/lib/cx";
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode, Ref } from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   error?: string;
   variant?: "boxed" | "ruled";
   hint?: ReactNode;
+  ref?: Ref<HTMLInputElement>;
 };
 
 export function FormField({
@@ -15,16 +16,26 @@ export function FormField({
   hint,
   id,
   className,
+  ref,
   ...props
 }: Props) {
   const fieldId = id ?? props.name;
   const invalid = Boolean(error);
-  const describedBy = [
-    error ? `${fieldId}-error` : null,
-    hint ? `${fieldId}-hint` : null,
-  ]
-    .filter(Boolean)
-    .join(" ") || undefined;
+  const describedBy =
+    [hint ? `${fieldId}-hint` : null, error ? `${fieldId}-error` : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
+  const hintNode = hint ? (
+    <p className="gg-help" id={`${fieldId}-hint`}>
+      {hint}
+    </p>
+  ) : null;
+  const errorNode = error ? (
+    <p className="gg-field__error" id={`${fieldId}-error`}>
+      {error}
+    </p>
+  ) : null;
 
   if (variant === "ruled") {
     return (
@@ -36,18 +47,12 @@ export function FormField({
           id={fieldId}
           className="gg-ruled-field__control"
           {...props}
-          aria-invalid={invalid}
+          ref={ref}
+          aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
         />
-        {error ? (
-          <p className="gg-field__error" id={`${fieldId}-error`}>
-            {error}
-          </p>
-        ) : hint ? (
-          <p className="gg-help" id={`${fieldId}-hint`}>
-            {hint}
-          </p>
-        ) : null}
+        {hintNode}
+        {errorNode}
       </div>
     );
   }
@@ -57,20 +62,17 @@ export function FormField({
       <span className="gg-field__label">{label}</span>
       <input
         id={fieldId}
-        className={cx("gg-field__control", props["aria-label"] ? undefined : "gg-field__control--lg")}
+        className={cx(
+          "gg-field__control",
+          props["aria-label"] ? undefined : "gg-field__control--lg",
+        )}
         {...props}
-        aria-invalid={invalid}
+        ref={ref}
+        aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
       />
-      {error ? (
-        <span className="gg-field__error" id={`${fieldId}-error`}>
-          {error}
-        </span>
-      ) : hint ? (
-        <span className="gg-help" id={`${fieldId}-hint`}>
-          {hint}
-        </span>
-      ) : null}
+      {hintNode}
+      {errorNode}
     </label>
   );
 }

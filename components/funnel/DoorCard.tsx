@@ -1,19 +1,34 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CardBack, CardFace, FlipCard } from "@/components/lifestyle/FlipCard";
 import { Confetti } from "@/components/lifestyle/Confetti";
 import { useSession } from "@/lib/session";
 
-export function DoorCard({ memberName }: { memberName?: string }) {
+export function DoorCard({
+  memberName,
+  memberMobile,
+}: {
+  memberName?: string;
+  memberMobile?: string;
+}) {
   const { session, setPhase, update } = useSession();
   const params = useSearchParams();
   const claimed = params.get("claimed") === "1" || session.claimed;
   const [flipped, setFlipped] = useState(false);
   const router = useRouter();
   const name = memberName?.trim() || session.name;
+
+  useEffect(() => {
+    if (!memberName?.trim()) return;
+    update({
+      name: memberName.trim(),
+      ...(memberMobile ? { mobile: memberMobile } : {}),
+      phase: "invited",
+    });
+  }, [memberName, memberMobile, update]);
 
   return (
     <main className="gg-funnel">

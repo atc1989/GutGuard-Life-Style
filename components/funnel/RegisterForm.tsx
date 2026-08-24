@@ -1,146 +1,113 @@
 "use client";
 
+import { startTransition, useActionState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { sendRegisterOtp, verifyRegisterOtp } from "@/lib/actions/auth";
+import { registerMember } from "@/lib/actions/auth";
+import { initialRegisterState } from "@/lib/register-state";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
-import { registerSchema, type RegisterValues } from "@/lib/schemas/register";
-import { useSession } from "@/lib/session";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { useToast } from "@/lib/toast";
+import {
+  PASSWORD_HINT,
+  authRegisterSchema,
+  type AuthRegisterValues,
+} from "@/lib/schemas/auth";
 
 export function RegisterForm() {
-  const router = useRouter();
-  const { update, setPhase } = useSession();
-  const { push } = useToast();
-  const [step, setStep] = useState<"form" | "otp">("form");
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const form = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", mobile: "", email: "" },
+  const [state, formAction, pending] = useActionState(
+    registerMember,
+    initialRegisterState,
+  );
+  const actionError = state?.error ?? null;
+  const form = useForm<AuthRegisterValues>({
+    resolver: zodResolver(authRegisterSchema),
+    defaultValues: { name: "", mobile: "", password: "" },
+    shouldFocusError: true,
   });
 
-  async function finish(values: { name: string; mobile: string; email: string }) {
-    update({
-      name: values.name,
-      mobile: values.mobile,
-      email: values.email,
-      phase: "invited",
-    });
-    setPhase("invited");
-    router.push("/card");
-  }
+  const setError = form.setError;
+  useEffect(() => {
+    const nextErrors = state?.fieldErrors ?? {};
+    const entries = Object.entries(nextErrors) as Array<
+      [keyof AuthRegisterValues, string | undefined]
+    >;
+    for (const [field, message] of entries) {
+      if (message) setError(field, { type: "server", message });
+    }
+  }, [state, setError]);
 
   return (
     <main className="gg-funnel gg-funnel--editorial">
       <div className="gg-split gg-split--form">
         <div>
           <p className="gg-eyebrow">Sign up</p>
-          <h1 className="gg-display" style={{ marginTop: 12 }}>
+          <h1 className="gg-display gg-hero__title">
             Enter your <em>name</em>
           </h1>
-          <p className="gg-lede" style={{ marginTop: 14 }}>
-            Name, mobile, and email. No password. When Supabase is connected, we send a one-time code.
+          <p className="gg-lede gg-hero__lede">
+            Name, mobile, and a password. Nothing to pay to start. We keep your
+            session in a cookie.
           </p>
         </div>
         <Card variant="editorial">
-          {step === "form" ? (
-            <form
-              className="gg-stack"
-              onSubmit={form.handleSubmit(async (values) => {
-                const parsed = registerSchema.parse(values);
-                setLoading(true);
-                const result = await sendRegisterOtp(parsed);
-                setLoading(false);
-                if (!result.ok) {
-                  push({ tone: "error", title: "Could not send code", body: result.error });
-                  return;
-                }
-                update({
-                  name: parsed.name,
-                  mobile: parsed.mobile,
-                  email: parsed.email,
-                });
-                if (!isSupabaseConfigured() || result.mode === "mock") {
-                  await finish(parsed);
-                  return;
-                }
-                setStep("otp");
-                push({
-                  tone: "success",
-                  title: "Code sent",
-                  body: `Check ${parsed.email}`,
-                });
-              })}
+          <form
+            className="gg-stack"
+            noValidate
+            action={formAction}
+            onSubmit={form.handleSubmit((values) => {
+              const data = new FormData();
+              data.set("name", values.name);
+              data.set("mobile", values.mobile);
+              data.set("password", values.password);
+              startTransition(() => {
+                formAction(data);
+              });
+            })}
+          >
+            <div className="gg-live" aria-live="polite" aria-atomic="true">
+              {actionError ? (
+                <p className="gg-field__error">{actionError}</p>
+              ) : pending ? (
+                <p className="gg-vh">Creating your card</p>
+              ) : null}
+            </div>
+            <FormField
+              variant="ruled"
+              label="Your name"
+              placeholder="Your name here"
+              autoComplete="name"
+              {...form.register("name")}
+              error={form.formState.errors.name?.message}
+            />
+            <FormField
+              variant="ruled"
+              label="Mobile number"
+              placeholder="09xx xxx xxxx"
+              inputMode="tel"
+              autoComplete="tel"
+              hint="Philippine mobile: 09… or +639…"
+              {...form.register("mobile")}
+              error={form.formState.errors.mobile?.message}
+            />
+            <FormField
+              variant="ruled"
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              hint={PASSWORD_HINT}
+              {...form.register("password")}
+              error={form.formState.errors.password?.message}
+            />
+            <Button
+              type="submit"
+              variant="editorial"
+              block
+              loading={pending}
             >
-              <FormField
-                variant="ruled"
-                label="Your name"
-                placeholder="Your name here"
-                autoComplete="name"
-                {...form.register("name")}
-                error={form.formState.errors.name?.message}
-              />
-              <FormField
-                variant="ruled"
-                label="Mobile number"
-                placeholder="09xx xxx xxxx"
-                inputMode="tel"
-                autoComplete="tel"
-                {...form.register("mobile")}
-                error={form.formState.errors.mobile?.message}
-              />
-              <FormField
-                variant="ruled"
-                label="Email"
-                placeholder="you@email.com"
-                type="email"
-                autoComplete="email"
-                {...form.register("email")}
-                error={form.formState.errors.email?.message}
-              />
-              <Button type="submit" variant="editorial" block loading={loading}>
-                Get your card
-              </Button>
-            </form>
-          ) : (
-            <form
-              className="gg-stack"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setLoading(true);
-                const email = form.getValues("email");
-                const result = await verifyRegisterOtp({ email, token: otp });
-                setLoading(false);
-                if (!result.ok) {
-                  push({ tone: "error", title: "Invalid code", body: result.error });
-                  return;
-                }
-                await finish({
-                  name: form.getValues("name"),
-                  mobile: form.getValues("mobile"),
-                  email,
-                });
-              }}
-            >
-              <FormField
-                variant="ruled"
-                label="One-time code"
-                value={otp}
-                onChange={(event) => setOtp(event.target.value)}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-              />
-              <Button type="submit" variant="editorial" block loading={loading}>
-                Verify and continue
-              </Button>
-            </form>
-          )}
+              Get your card
+            </Button>
+          </form>
         </Card>
       </div>
     </main>
