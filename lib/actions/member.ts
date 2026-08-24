@@ -170,9 +170,24 @@ export async function persistStory(input: {
 }) {
   const ctx = await requireUser();
   if (!ctx) return { ok: true as const, skipped: true };
+  const { data: profile } = await ctx.supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", ctx.user.id)
+    .maybeSingle();
+  const authorName =
+    (typeof profile?.name === "string" && profile.name) ||
+    (typeof ctx.user.user_metadata?.name === "string" && ctx.user.user_metadata.name) ||
+    "Member";
   const { error } = await ctx.supabase.from("stories").insert({
     user_id: ctx.user.id,
-    ...input,
+    author_name: authorName,
+    about: input.about,
+    relationship: input.relationship,
+    days: input.days,
+    capsules: input.capsules,
+    outcomes: input.outcomes,
+    status: "pending",
   });
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };

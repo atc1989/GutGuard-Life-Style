@@ -70,8 +70,8 @@ export function StoryShare({
     }
     push({
       tone: "success",
-      title: "Signed",
-      body: "Posted to the community page.",
+      title: "Sent for review",
+      body: "An operator will approve it before it appears on My Story.",
     });
     setLoading(false);
     setStep(0);

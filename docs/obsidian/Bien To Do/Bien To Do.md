@@ -27,6 +27,8 @@ flowchart LR
   N --> H["[[Epic 4 Member Hub|Epic 4 /app]]"]
   H --> A["[[Epic 5 Admin RBAC|Epic 5 /admin]]"]
   A --> U["[[Epic 6 User Lifecycle|Epic 6 /admin/users]]"]
+  U --> O["[[Epic 7 Orders|Epic 7 /admin/orders]]"]
+  O --> S["[[Epic 8 Story Moderation|Epic 8 /admin/stories]]"]
 ```
 
 ## Notes in this folder
@@ -39,6 +41,8 @@ flowchart LR
 - [[Epic 4 Member Hub]] — `/app/*` + BASE gating
 - [[Epic 5 Admin RBAC]] — `/admin/*` cookie + `lifestyle_is_admin()`
 - [[Epic 6 User Lifecycle]] — `/admin/users` member directory
+- [[Epic 7 Orders]] — `/admin/orders` + payment webhooks
+- [[Epic 8 Story Moderation]] — `/admin/stories` queue
 
 ## Vaults (read only)
 

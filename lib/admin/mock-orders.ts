@@ -1,0 +1,62 @@
+import type { OrderRow, UnmatchedEvent } from "./orders";
+
+export const MOCK_ORDERS: OrderRow[] = [
+  {
+    id: "a1111111-1111-4111-8111-111111111111",
+    userId: "22222222-2222-4222-8222-222222222222",
+    memberName: "Maria Santos",
+    mobile: "+639175550100",
+    quantity: 1,
+    amountCentavos: 450000,
+    currency: "PHP",
+    provider: "maya",
+    status: "pending",
+    reference: "GG-22222222-1700000001",
+    providerEventId: null,
+    failureReason: null,
+    createdAt: "2026-08-20T08:00:00.000Z",
+    reconciledAt: null,
+  },
+  {
+    id: "a2222222-2222-4222-8222-222222222222",
+    userId: "11111111-1111-4111-8111-111111111111",
+    memberName: "Ate Marites",
+    mobile: "+639175550001",
+    quantity: 2,
+    amountCentavos: 900000,
+    currency: "PHP",
+    provider: "maya",
+    status: "reconciled",
+    reference: "GG-11111111-1700000002",
+    providerEventId: "pay-maya-ok",
+    failureReason: null,
+    createdAt: "2026-08-18T04:00:00.000Z",
+    reconciledAt: "2026-08-18T04:04:00.000Z",
+  },
+  {
+    id: "a3333333-3333-4333-8333-333333333333",
+    userId: "44444444-4444-4444-8444-444444444444",
+    memberName: "Boy Tapang",
+    mobile: "+639185550199",
+    quantity: 1,
+    amountCentavos: 450000,
+    currency: "PHP",
+    provider: "bank",
+    status: "failed",
+    reference: "GG-44444444-1700000003",
+    providerEventId: "bank-fail-3",
+    failureReason: "Provider reported a failed, expired, or cancelled payment.",
+    createdAt: "2026-08-21T11:30:00.000Z",
+    reconciledAt: null,
+  },
+];
+
+export const MOCK_UNMATCHED: UnmatchedEvent[] = [
+  {
+    id: "e1111111-1111-4111-8111-111111111111",
+    provider: "maya",
+    providerEventId: "pay-orphan-9",
+    note: "No queued order for this reference.",
+    processedAt: "2026-08-22T02:15:00.000Z",
+  },
+];

@@ -50,11 +50,12 @@
 html,
 body {
   min-height: 100%;
+  background-color: var(--paper);
 }
 
 body {
   color: var(--gg-ink);
-  background-color: var(--gg-bone);
+  background-color: var(--paper);
   font-family: var(--gg-sans);
 }
 
@@ -73,7 +74,7 @@ a {
 
 .gg-surface {
   color: var(--gg-ink);
-  background-color: var(--gg-bone);
+  background-color: var(--paper);
   background-image: radial-gradient(
     circle at 1px 1px,
     rgba(15, 15, 24, 0.025) 1px,
@@ -356,7 +357,10 @@ a.gg-button {
 .gg-check input:focus-visible,
 .gg-admin-nav a:focus-visible,
 .gg-admin-chip:focus-visible,
-.gg-denied a:focus-visible {
+.gg-denied a:focus-visible,
+.gg-check-hit:focus-within,
+.gg-row-actions .gg-button:focus-visible,
+.gg-admin-bulk .gg-button:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
@@ -1888,6 +1892,76 @@ body.has-demo .gg-frame {
 
 .gg-status--admin {
   color: var(--gg-gold);
+}
+
+.gg-status--pending {
+  color: var(--gg-gold);
+}
+
+.gg-status--failed {
+  color: var(--gg-error);
+}
+
+.gg-admin-pagehead {
+  display: grid;
+  gap: 8px;
+}
+
+.gg-table td.gg-table__wrap {
+  white-space: normal;
+  max-width: 28rem;
+}
+
+.gg-table tbody tr.is-selected {
+  background: var(--gg-bone);
+}
+
+.gg-check-cell {
+  width: 56px;
+}
+
+.gg-check-hit {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gg-check-hit input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gg-blue);
+}
+
+.gg-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gg-button--compact {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.gg-admin-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  position: sticky;
+  bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--gg-rule);
+  background: var(--gg-paper);
+}
+
+.gg-admin-bulk .gg-live {
+  margin: 0;
+  color: var(--gg-ink-3);
+  font-size: 13px;
 }
 
 .gg-denied {
