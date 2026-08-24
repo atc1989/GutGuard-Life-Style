@@ -14,12 +14,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FormField } from "@/components/ui/FormField";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-export function InvitePicker() {
-  const { overlay, close } = useOverlay();
+export function InvitePicker({ baseComplete }: { baseComplete: boolean }) {
+  const { overlay, close, open } = useOverlay();
   const { session, update } = useSession();
   const { push } = useToast();
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -32,6 +33,14 @@ export function InvitePicker() {
   }, [query]);
 
   async function invite(contact: (typeof CONTACTS)[number]) {
+    if (!baseComplete) {
+      setStatus("Finish BASE Activation before inviting friends.");
+      return;
+    }
+    if (session.contactInvited[contact.id] ?? contact.invited) {
+      setStatus(`${contact.name} is already invited.`);
+      return;
+    }
     setBusy(contact.id);
     update({
       contactInvited: { ...session.contactInvited, [contact.id]: true },
@@ -39,26 +48,37 @@ export function InvitePicker() {
       invites: session.invites.some((row) => row.name === contact.name)
         ? session.invites
         : [...session.invites, { name: contact.name, stage: "registered" }],
-      ledger: [
-        {
-          id: `inv-${contact.id}`,
-          kind: "registered",
+      ledger: session.ledger.some((row) => row.id === `inv-${contact.id}`)
+        ? session.ledger
+        : [
+            {
+              id: `inv-${contact.id}`,
+              kind: "registered",
+              amount: POINTS.register,
+              pending: true,
+              label: `${contact.name} registered`,
+            },
+            ...session.ledger,
+          ],
+    });
+    if (isSupabaseConfigured()) {
+      const result = await persistInvite(contact.name, contact.handle, "registered");
+      if (!result.ok) {
+        setStatus(result.error);
+        setBusy(null);
+        return;
+      }
+      if (!("duplicate" in result && result.duplicate)) {
+        await persistPointEvent({
+          kind: "register",
           amount: POINTS.register,
           pending: true,
           label: `${contact.name} registered`,
-        },
-        ...session.ledger,
-      ],
-    });
-    if (isSupabaseConfigured()) {
-      await persistInvite(contact.name, contact.handle, "registered");
-      await persistPointEvent({
-        kind: "register",
-        amount: POINTS.register,
-        pending: true,
-        label: `${contact.name} registered`,
-      });
+        });
+      }
     }
+    const message = `Invite sent to ${contact.name}. +${POINTS.register} pending.`;
+    setStatus(message);
     push({ tone: "success", title: "Invite sent", body: contact.name });
     setBusy(null);
   }
@@ -70,54 +90,77 @@ export function InvitePicker() {
       return;
     }
     void navigator.clipboard.writeText(text);
-    push({ tone: "success", title: "Link copied", body: "Share it from Messages, Messenger, or Viber." });
+    push({
+      tone: "success",
+      title: "Link copied",
+      body: "Share it from Messages, Messenger, or Viber.",
+    });
   }
 
   return (
     <Drawer title="Invite a friend" open={overlay === "invite"} onClose={close}>
       <div className="gg-stack">
-        <p className="gg-lede">
-          Pick anyone from Messages, Messenger, or Viber. The date and place are already in the link.
-        </p>
-        <FormField
-          label="Search contacts"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Name or number"
-        />
-        <Button variant="secondary" onClick={share}>
-          Open phone share menu
-        </Button>
-        {rows.length === 0 ? (
-          <EmptyState title="No one by that name." copy="Try another spelling, or share the link." />
+        {!baseComplete ? (
+          <EmptyState
+            title="Invites stay closed until BASE"
+            copy="Finish all five BASE steps. The server will refuse invites until then."
+            action={{ label: "Continue BASE", onClick: () => open("base") }}
+          />
         ) : (
-          rows.map((contact) => {
-            const invited = session.contactInvited[contact.id] ?? contact.invited;
-            return (
-              <Card key={contact.id}>
-                <div className="gg-row">
-                  <div>
-                    <strong>{contact.name}</strong>
-                    <p className="gg-help">{contact.handle}</p>
-                  </div>
-                  {invited ? (
-                    <Badge active>Invited</Badge>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      loading={busy === contact.id}
-                      onClick={() => void invite(contact)}
-                    >
-                      Invite
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            );
-          })
+          <>
+            <p className="gg-lede">
+              Pick anyone from Messages, Messenger, or Viber. The date and place
+              are already in the link.
+            </p>
+            <FormField
+              label="Search contacts"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Name or number"
+            />
+            <Button variant="secondary" onClick={share}>
+              Open phone share menu
+            </Button>
+            {rows.length === 0 ? (
+              <EmptyState
+                title="No one by that name."
+                copy="Try another spelling, or share the link."
+              />
+            ) : (
+              rows.map((contact) => {
+                const invited =
+                  session.contactInvited[contact.id] ?? contact.invited;
+                return (
+                  <Card key={contact.id}>
+                    <div className="gg-row gg-invite-row">
+                      <div>
+                        <strong>{contact.name}</strong>
+                        <p className="gg-help">{contact.handle}</p>
+                      </div>
+                      {invited ? (
+                        <Badge active>Invited</Badge>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          loading={busy === contact.id}
+                          onClick={() => void invite(contact)}
+                        >
+                          Invite
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+            <p className="gg-help">
+              +{POINTS.register} pending when they join. Points become real when
+              they come to an event.
+            </p>
+          </>
         )}
-        <p className="gg-help">
-          +{POINTS.register} pending when they join. Points become real when they come to an event.
+        <p className="gg-live" aria-live="polite">
+          {status}
         </p>
       </div>
     </Drawer>

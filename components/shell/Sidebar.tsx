@@ -28,19 +28,23 @@ export function Sidebar() {
         <strong>Gutguard</strong>
         <em>Lifestyle</em>
       </div>
-      <nav aria-label="Member" style={{ display: "grid", gap: 4, padding: "0 8px" }}>
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cx("gg-nav-btn", pathname === item.href && "is-active")}
-          >
-            {item.label}
-          </Link>
-        ))}
+      <nav className="gg-sidebar__nav" aria-label="Member">
+        {NAV.map((item) => {
+          const current = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cx("gg-nav-btn", current && "is-active")}
+              aria-current={current ? "page" : undefined}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
-      <div style={{ height: 1, background: "var(--gg-rule)", margin: "14px 12px" }} />
-      <div style={{ display: "grid", gap: 4, padding: "0 8px" }}>
+      <div className="gg-sidebar__rule" />
+      <div className="gg-sidebar__tools">
         <button
           type="button"
           className="gg-nav-btn gg-nav-btn--quiet"
@@ -54,8 +58,9 @@ export function Sidebar() {
           type="button"
           className="gg-nav-btn gg-nav-btn--quiet"
           onClick={() => open(baseComplete ? "gema" : "base")}
+          aria-disabled={!baseComplete || undefined}
         >
-          {baseComplete ? "GEMA" : "GEMA 🔒"}
+          {baseComplete ? "GEMA" : "GEMA locked"}
         </button>
         <button
           type="button"
@@ -72,11 +77,11 @@ export function Sidebar() {
           Settings
         </button>
       </div>
-      <div style={{ marginTop: "auto", padding: "18px 12px 0" }}>
+      <div className="gg-sidebar__foot">
         <Button variant="commerce" block onClick={() => open("order")}>
           Order now
         </Button>
-        <p className="gg-help" style={{ marginTop: 8 }}>
+        <p className="gg-help gg-sidebar__supply">
           {session.daysLeft} days of supply left
         </p>
         <Badge>{session.team}</Badge>

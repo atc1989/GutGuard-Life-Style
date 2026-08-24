@@ -44,7 +44,7 @@ export function QRBlock({ seed, size = 196 }: { seed: string; size?: number }) {
         viewBox={`0 0 ${size} ${size}`}
         aria-hidden
       >
-        <rect width={size} height={size} fill="#ffffff" />
+        <rect width={size} height={size} fill="#fcfaf5" />
         {grid.map((row, y) =>
           row.map((on, x) =>
             on ? (
@@ -54,7 +54,7 @@ export function QRBlock({ seed, size = 196 }: { seed: string; size?: number }) {
                 y={y * cell}
                 width={cell}
                 height={cell}
-                fill="#0608A9"
+                fill="#0f0f18"
               />
             ) : null,
           ),

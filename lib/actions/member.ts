@@ -1,6 +1,7 @@
 "use server";
 
 import { BASE_STEPS, type DoseSlotId, type FunnelPhase, type InviteStage } from "@/lib/mock/seed";
+import { settingsSchema } from "@/lib/schemas/settings";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,6 +13,14 @@ async function requireUser() {
   } = await supabase.auth.getUser();
   if (!user) return null;
   return { supabase, user };
+}
+
+async function baseIsComplete(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("lifestyle_base_complete");
+  if (error) return false;
+  return Boolean(data);
 }
 
 export async function persistProfile(patch: {
@@ -58,6 +67,21 @@ export async function persistProfile(patch: {
 export async function persistInvite(name: string, handle: string, stage: InviteStage) {
   const ctx = await requireUser();
   if (!ctx) return { ok: true as const, skipped: true };
+  if (!(await baseIsComplete(ctx.supabase))) {
+    return {
+      ok: false as const,
+      error: "Finish BASE Activation before inviting friends.",
+    };
+  }
+  const { data: existing } = await ctx.supabase
+    .from("invites")
+    .select("id")
+    .eq("user_id", ctx.user.id)
+    .eq("name", name)
+    .maybeSingle();
+  if (existing) {
+    return { ok: true as const, duplicate: true };
+  }
   const { error } = await ctx.supabase.from("invites").insert({
     user_id: ctx.user.id,
     name,
@@ -168,4 +192,18 @@ export async function uploadDoseProof(logDate: string, formData: FormData) {
   if (error) return { ok: false as const, error: error.message };
   await persistDoseProof(logDate, path);
   return { ok: true as const, path };
+}
+
+export async function saveSettings(input: unknown) {
+  const parsed = settingsSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false as const,
+      error: "Choose 2 or 3 capsules a day.",
+    };
+  }
+  return persistProfile({
+    notifications: parsed.data.notifications,
+    capsulesPerDay: parsed.data.capsulesPerDay,
+  });
 }

@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 type Props = {
   title: string;
@@ -14,6 +14,8 @@ type Props = {
 };
 
 export function Dialog({ title, open, onClose, children, footer }: Props) {
+  const titleId = useId();
+
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -24,8 +26,6 @@ export function Dialog({ title, open, onClose, children, footer }: Props) {
   }, [open, onClose]);
 
   if (!open) return null;
-
-  const titleId = "gg-dialog-title";
 
   return (
     <div className="gg-backdrop" onClick={onClose}>

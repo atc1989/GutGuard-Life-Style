@@ -1,60 +1,80 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { enterMemberHub } from "@/lib/actions/card";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PointsLedger } from "@/components/lifestyle/PointsLedger";
-import { POINTS } from "@/lib/mock/seed";
+import { POINTS, type Invite, type LedgerEntry } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
+import { useFormStatus } from "react-dom";
 
-export function NearlyFree() {
-  const { session, setPhase } = useSession();
-  const router = useRouter();
+function EnterHubButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="commerce" loading={pending}>
+      Start my Lifestyle Protocol
+    </Button>
+  );
+}
+
+export function NearlyFree({
+  points,
+  pending,
+  banked,
+  ledger,
+  invites,
+}: {
+  points?: number;
+  pending?: number;
+  banked?: number;
+  ledger?: LedgerEntry[];
+  invites?: Invite[];
+}) {
+  const { session } = useSession();
+  const earnedPoints = points ?? session.points;
+  const earnedPending = pending ?? session.pending;
+  const earnedBanked = banked ?? session.banked;
+  const rows = ledger ?? session.ledger;
+  const inviteRows = invites ?? session.invites;
 
   return (
-    <main className="gg-funnel">
+    <main className="gg-funnel gg-funnel--commerce">
       <section className="gg-split">
         <div>
           <p className="gg-eyebrow">Nearly free</p>
-          <h1 className="gg-display" style={{ marginTop: 10 }}>
+          <h1 className="gg-display gg-hero__title">
             Most of your first order is <em>already paid</em>.
           </h1>
-          <div style={{ marginTop: 28 }}>
+          <div className="gg-nearly-ledger">
             <PointsLedger
-              points={session.points}
-              pending={session.pending}
-              banked={session.banked}
-              ledger={session.ledger}
+              points={earnedPoints}
+              pending={earnedPending}
+              banked={earnedBanked}
+              ledger={rows}
             />
           </div>
-          <Card style={{ marginTop: 18 }}>
+          <Card>
             <p className="gg-eyebrow">Two ways to earn</p>
-            <p style={{ marginTop: 8 }}>
-              Register +{POINTS.register}. First attend +{POINTS.firstAttend}. Repeat +{POINTS.repeatAttend}.
-              Points are not cash. They only pay for your own first order.
+            <p className="gg-nearly-copy">
+              Register +{POINTS.register}. First attend +{POINTS.firstAttend}. Repeat +
+              {POINTS.repeatAttend}. Points are not cash. They only pay for your own
+              first Gutguard order.
             </p>
           </Card>
-          <Button
-            variant="commerce"
-            style={{ marginTop: 22 }}
-            onClick={() => {
-              setPhase("member");
-              router.push("/app/health");
-            }}
-          >
-            Start my Lifestyle Protocol
-          </Button>
+          <form className="gg-nearly-cta" action={enterMemberHub}>
+            <EnterHubButton />
+          </form>
         </div>
         <div className="gg-stack">
           <p className="gg-eyebrow">Your invites</p>
-          {session.invites.map((invite) => (
+          {inviteRows.map((invite) => (
             <Card key={invite.name}>
-              <div className="gg-row">
+              <div className="gg-row gg-invite-row">
                 <strong>{invite.name}</strong>
                 <Badge active={invite.stage !== "registered"}>{invite.stage}</Badge>
               </div>
-              <p className="gg-help" style={{ marginTop: 6 }}>
+              <p className="gg-help gg-invite-copy">
                 {invite.stage === "registered"
                   ? `+${POINTS.register} points, waiting. They have to come to an event first.`
                   : invite.stage === "showed"
