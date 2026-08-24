@@ -12,7 +12,7 @@ tags:
 
 A guest walks four rooms. Tasks live on the epic notes so checkboxes stay in one place.
 
-Related: [[Bien To Do]] · [[00 - Locks]] · [[Epic 1 Landing]] · [[Epic 2 Register]] · [[Epic 3 Door Card]] · [[Epic 4 Member Hub]] · [[Epic 5 Admin RBAC]] · [[Epic 6 User Lifecycle]]
+Related: [[Bien To Do]] · [[00 - Locks]] · [[Epic 1 Landing]] · [[Epic 2 Register]] · [[Epic 3 Door Card]] · [[Epic 4 Member Hub]] · [[Epic 5 Admin RBAC]] · [[Epic 6 User Lifecycle]] · [[Epic 7 Orders]] · [[Epic 8 Story Moderation]]
 
 ```mermaid
 flowchart LR
@@ -44,7 +44,8 @@ A guest can complete the walk on a phone-sized viewport with:
 
 | Item | Home |
 |---|---|
-| `/admin`, staff check-in, trainer queue | gentrep-academy |
+| `/admin` users / orders / stories | This Lifestyle repo (Epics 5–8) |
+| Academy CMS, staff check-in, trainer queue | gentrep-academy |
 | Real GEMA training UI | Academy |
-| Maya checkout / webhooks | Later Lifestyle pass |
+| Hosted Maya pay page | Later — queue + webhook are in Epic 7 |
 | SMS OTP | After an SMS provider is configured |

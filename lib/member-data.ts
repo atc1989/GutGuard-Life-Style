@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { CARD_NUMBER, type DoseLog, type Invite, type LedgerEntry } from "@/lib/mock/seed";
+import { CARD_NUMBER, STORIES, type DoseLog, type Invite, type LedgerEntry } from "@/lib/mock/seed";
 import { DEV_MEMBER_COOKIE, decodeDevMember } from "@/lib/cookies";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -161,4 +161,71 @@ export async function loadInvites(): Promise<Invite[]> {
     name: String(row.name),
     stage: row.stage as Invite["stage"],
   }));
+}
+
+export type FeedStory = {
+  id: string;
+  name: string;
+  kicker: string;
+  body: string;
+  pending?: boolean;
+};
+
+export async function loadStoryFeed(): Promise<{
+  published: FeedStory[];
+  own: FeedStory[];
+  mock: boolean;
+}> {
+  const ctx = await requireUser();
+  if (!ctx) {
+    return {
+      published: STORIES.map((story) => ({
+        id: story.id,
+        name: story.name,
+        kicker: story.place,
+        body: story.quote,
+      })),
+      own: [],
+      mock: true,
+    };
+  }
+
+  const [{ data: published }, { data: own }] = await Promise.all([
+    ctx.supabase
+      .from("stories")
+      .select("id, about, relationship, days, capsules, outcomes, author_name, status")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false }),
+    ctx.supabase
+      .from("stories")
+      .select("id, about, relationship, days, capsules, outcomes, status, created_at")
+      .eq("user_id", ctx.user.id)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  function bodyFrom(row: {
+    days: string;
+    capsules: string;
+    outcomes: string[] | null;
+  }) {
+    const outcomes = Array.isArray(row.outcomes) ? row.outcomes.join(", ") : "";
+    return `${row.days} days · ${row.capsules} capsules a day${outcomes ? `. ${outcomes}.` : ""}`;
+  }
+
+  return {
+    published: (published ?? []).map((row) => ({
+      id: String(row.id),
+      name: String(row.author_name || "Member"),
+      kicker: row.about === "other" ? row.relationship || "Family story" : "Own story",
+      body: bodyFrom(row),
+    })),
+    own: (own ?? []).map((row) => ({
+      id: String(row.id),
+      name: "You",
+      kicker: row.status === "approved" ? "Approved" : row.status === "flagged" ? "Flagged" : "In review",
+      body: bodyFrom(row),
+      pending: row.status === "pending",
+    })),
+    mock: false,
+  };
 }

@@ -15,10 +15,15 @@ export function MemberDirectory({
 
   return (
     <section className="gg-admin-directory" aria-labelledby="member-directory-heading">
-      <div className="gg-admin-directory__head">
-        <h2 id="member-directory-heading" className="gg-vh">
+      <div className="gg-admin-pagehead">
+        <h1 id="member-directory-heading" className="gg-admin__title">
           Users
-        </h2>
+        </h1>
+        <p className="gg-admin__lede">
+          Track registration, mobile credentials, and BASE or GEMA unlocks.
+        </p>
+      </div>
+      <div className="gg-admin-directory__head">
         <p className="gg-admin-count" aria-live="polite">
           {countLabel}
           {directory.source === "preview" ? " · preview" : ""}

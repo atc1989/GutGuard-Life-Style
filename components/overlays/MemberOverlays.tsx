@@ -22,6 +22,7 @@ import { RequirementTimeline } from "@/components/ui/RequirementTimeline";
 import { Switch } from "@/components/ui/Switch";
 import { InvitePicker } from "@/components/overlays/InvitePicker";
 import { StoryShare } from "@/components/overlays/StoryShare";
+import { queueOrder } from "@/lib/actions/orders";
 import {
   persistBaseStep,
   persistPointEvent,
@@ -53,7 +54,8 @@ export function MemberOverlays() {
     <>
       <Drawer title="Order now" open={overlay === "order"} onClose={close}>
         <p className="gg-lede gg-sheet-lede">
-          Mock checkout only — no payment in this pass. No card is charged.
+          Queue bottles here. Maya or the bank confirms later. Nothing is charged
+          in this browser.
         </p>
         <Card>
           <p className="gg-eyebrow">Your Gutguard</p>
@@ -77,17 +79,28 @@ export function MemberOverlays() {
           block
           className="gg-card-action"
           onClick={() => {
-            const note = `${qty} bottle${qty > 1 ? "s" : ""} queued — mock only.`;
-            setOrderNote(note);
-            push({
-              tone: "success",
-              title: "Order queued",
-              body: note,
-            });
-            close();
+            void (async () => {
+              const result = await queueOrder({ quantity: qty });
+              if (!result.ok) {
+                const fail = result.error;
+                setOrderNote(fail);
+                push({ tone: "error", title: "Could not queue", body: fail });
+                return;
+              }
+              const note = result.preview
+                ? `${qty} bottle${qty > 1 ? "s" : ""} queued in preview — webhook will reconcile when live.`
+                : `${qty} bottle${qty > 1 ? "s" : ""} queued as ${result.reference}. Waiting on Maya or the bank.`;
+              setOrderNote(note);
+              push({
+                tone: "success",
+                title: "Order queued",
+                body: note,
+              });
+              close();
+            })();
           }}
         >
-          Place mock order
+          Queue order
         </Button>
         <p className="gg-live" aria-live="polite">
           {orderNote}

@@ -4,7 +4,7 @@ Apply in order on the **dev** Supabase project:
 
 1. `20260822000000_lifestyle_member.sql` — profiles, invites, dose logs, BASE, points, stories, RLS, dose-proofs bucket.
 2. `20260824000000_unique_invites.sql` — unique invite names per member.
-3. `20260824010000_admin_rbac.sql` — `profiles.role`, role-protect trigger, `lifestyle_is_admin()`.
+4. `20260824020000_orders_stories_moderation.sql` — `orders`, `payment_events`, story moderation status, protect-status triggers.
 
 Then optionally load `../seed.sql` on development only.
 

@@ -75,7 +75,7 @@ Product surface:
 1. **Ginhawa funnel** — `/` · `/welcome` · `/register` · `/card` · `/nearly`
 2. **Member app** — `/app/health` · `/app/team` · `/app/story`
 3. **Sheets** — Order · Settings · BASE · GEMA · GG-VERSE · Story share · QR
-4. **Operator desk** — `/admin/users` (RBAC via `profiles.role`)
+4. **Operator desk** — `/admin/users` · `/admin/orders` · `/admin/stories`
 
 Auth (current): **name + mobile + password** cookie session via `supabase.auth.signUp()` when env is set; **dev cookie + localStorage UI fallback** when it is not. Mobile is stored on the profile. SMS OTP is later.
 
@@ -134,7 +134,7 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 - [x] Invite create + pending points under RLS (stage updates when they show / buy)
 - [x] Dose log + camera proof to Storage (bucket + policies)
 - [x] BASE Activation steps + GEMA lock gate server-side (`lifestyle_base_complete()`)
-- [x] Order sheet: keep mock until Maya (or approved) payments land
+- [x] Order sheet: queue a pending order on the server; Maya/bank webhook reconciles. No browser payments.
 - [x] Settings: notifications + capsules/day persisted to profile
 
 ### Phase 5 — Design System skin (ongoing)
@@ -163,6 +163,8 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 - [x] GEMA stays locked until BASE complete (client + `lifestyle_base_complete()`)
 - [x] No Tailwind / no service role on client
 - [x] `/admin/users` lists members through the server-only admin client when env is set
+- [x] `/admin/orders` tracks pending / reconciled / failed via server webhooks
+- [x] `/admin/stories` approves or flags before `/app/story`
 - [ ] Deployed on Vercel (owner)
 - [x] This note still matches the running app
 
@@ -172,10 +174,10 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 
 | Item | Where it belongs |
 |---|---|
-| Lifestyle operator desk `/admin/users` (member lifecycle) | **this repo** — Epic 5 / 6 |
+| Lifestyle operator desk `/admin/users` · `/admin/orders` · `/admin/stories` | **this repo** — Epics 5–8 |
 | Academy CMS, tickets, staff check-in `/staff`, trainer `/trainer` | gentrep-academy |
 | Real GEMA training UI | Academy |
-| Maya checkout / webhooks | Later Lifestyle pass (optional) |
+| Live Maya Checkout session (hosted pay page) | Later — webhook + queue are in this pass |
 
 ---
 
