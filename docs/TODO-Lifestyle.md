@@ -64,16 +64,18 @@ Local path: `d:\GutGuard\GutGuard Design System\`
 | Register | Editorial booth |
 | Door card | Editorial ceremonial |
 | Nearly free + member app + sheets | Commerce |
+| Admin `/admin/*` | Admin (square, dense) |
 
 ---
 
 ## Work on the board: Gutguard Lifestyle (member app)
 
-Product surface (not Academy admin):
+Product surface:
 
 1. **Ginhawa funnel** — `/` · `/welcome` · `/register` · `/card` · `/nearly`
 2. **Member app** — `/app/health` · `/app/team` · `/app/story`
 3. **Sheets** — Order · Settings · BASE · GEMA · GG-VERSE · Story share · QR
+4. **Operator desk** — `/admin/users` (RBAC via `profiles.role`)
 
 Auth (current): **name + mobile + password** cookie session via `supabase.auth.signUp()` when env is set; **dev cookie + localStorage UI fallback** when it is not. Mobile is stored on the profile. SMS OTP is later.
 
@@ -119,9 +121,10 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 
 - [x] Choose auth pattern and document in README (`email OTP` + mobile on profile; mock fallback)
 - [ ] Create Supabase **dev** project (owner — needs dashboard login)
-- [x] Migrations under `supabase/migrations/` (profiles, invites, dose_logs, BASE, points, stories, proofs)
+- [x] Migrations under `supabase/migrations/` (profiles, invites, dose_logs, BASE, points, stories, proofs, admin RBAC)
 - [x] RLS on every user-facing table (default deny)
 - [x] Middleware cookie session refresh (`@supabase/ssr`)
+- [x] `/admin/*` refused unless `lifestyle_is_admin()` is true
 - [x] Register creates a cookie session via `signUp` when env is set; mock cookie + localStorage UI fallback when env is empty
 - [x] Seed data for **development only** (optional, commented `supabase/seed.sql`)
 
@@ -148,7 +151,7 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 - [x] `vercel.json` + `.env.example` ready for a Vercel Next.js project
 - [ ] Vercel project linked to this repo (owner)
 - [ ] Env: `NEXT_PUBLIC_SUPABASE_URL` · `NEXT_PUBLIC_SUPABASE_ANON_KEY` · `NEXT_PUBLIC_SITE_URL`
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` in Vercel **server only**
+- [x] `SUPABASE_SERVICE_ROLE_KEY` documented as Vercel **server only**; used by `/admin/users` via `lib/supabase/admin.ts`
 - [ ] Auth redirect URLs include production + preview hosts
 - [ ] Preview deploys on PR
 - [ ] RLS verified with a non-admin user
@@ -159,6 +162,7 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 - [x] My Health / Team / Story write through server actions when env is set
 - [x] GEMA stays locked until BASE complete (client + `lifestyle_base_complete()`)
 - [x] No Tailwind / no service role on client
+- [x] `/admin/users` lists members through the server-only admin client when env is set
 - [ ] Deployed on Vercel (owner)
 - [x] This note still matches the running app
 
@@ -168,9 +172,8 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 
 | Item | Where it belongs |
 |---|---|
-| Admin portal `/admin`, RBAC, CMS, tickets | gentrep-academy |
-| Staff check-in `/staff` | gentrep-academy |
-| Trainer queue `/trainer` | gentrep-academy |
+| Lifestyle operator desk `/admin/users` (member lifecycle) | **this repo** — Epic 5 / 6 |
+| Academy CMS, tickets, staff check-in `/staff`, trainer `/trainer` | gentrep-academy |
 | Real GEMA training UI | Academy |
 | Maya checkout / webhooks | Later Lifestyle pass (optional) |
 
@@ -178,7 +181,7 @@ From `Systems/GutGuard-Lifestyle.md` product-specific list + harvest gaps:
 
 ## Suggested next session
 
-1. Create the Supabase **dev** project and apply `supabase/migrations/20260822000000_lifestyle_member.sql`
+1. Create the Supabase **dev** project and apply migrations in `supabase/migrations/`
 2. Fill `.env.local` and Vercel env (anon public, service role server-only)
-3. Visual QA against Design System Showcase + Playbook
-4. Do not start Academy admin work in this repo
+3. Grant the first admin in the SQL editor (`update public.profiles set role = 'admin' where …`)
+4. Visual QA against Design System Showcase + Playbook

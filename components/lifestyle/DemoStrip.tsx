@@ -42,6 +42,14 @@ export function DemoStrip() {
           {id === "member" && pathname.startsWith("/app") ? " •" : ""}
         </button>
       ))}
+      <button
+        type="button"
+        className={cx(pathname.startsWith("/admin") && "is-active")}
+        onClick={() => router.push("/admin/users")}
+      >
+        Admin
+        {pathname.startsWith("/admin") ? " •" : ""}
+      </button>
     </div>
   );
 }

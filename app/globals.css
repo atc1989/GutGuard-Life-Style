@@ -353,7 +353,10 @@ a.gg-button {
 .gg-switch-row:focus-visible,
 .gg-stepper button:focus-visible,
 .gg-file__zone:focus-visible,
-.gg-check input:focus-visible {
+.gg-check input:focus-visible,
+.gg-admin-nav a:focus-visible,
+.gg-admin-chip:focus-visible,
+.gg-denied a:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
@@ -1677,6 +1680,232 @@ body.has-demo .gg-frame {
   background: var(--gg-blue);
 }
 
+/* Admin dialect — square, dense, operator-first. Do not mix commerce radii. */
+.gg-admin {
+  --gg-r-sm: 0px;
+  --gg-r-md: 0px;
+  --gg-r-lg: 0px;
+  --gg-r-pill: 0px;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 16px 72px;
+  min-height: 100vh;
+}
+
+.gg-admin__mast {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.gg-admin__title {
+  margin: 0;
+  color: var(--gg-ink);
+  font-family: var(--gg-serif);
+  font-size: clamp(32px, 5vw, 44px);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.gg-admin__lede {
+  color: var(--gg-ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 52ch;
+}
+
+.gg-admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.gg-admin-nav a,
+.gg-admin-chip {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid var(--gg-rule);
+  background: var(--gg-paper);
+  color: var(--gg-ink);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gg-admin-nav a[aria-current="page"],
+.gg-admin-chip.is-active,
+.gg-admin-chip[aria-current="true"] {
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  border-color: var(--gg-blue);
+}
+
+.gg-admin-nav a:hover:not([aria-current="page"]),
+.gg-admin-chip:hover:not(.is-active) {
+  border-color: var(--gg-blue);
+  color: var(--gg-blue);
+}
+
+.gg-admin-directory {
+  display: grid;
+  gap: 16px;
+}
+
+.gg-admin-directory__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gg-admin-count {
+  color: var(--gg-ink-3);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gg-admin-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.gg-admin-search__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.gg-admin-search .gg-field {
+  margin: 0;
+}
+
+.gg-admin-search .gg-field__control,
+.gg-admin .gg-button,
+.gg-admin .gg-alert,
+.gg-empty--admin {
+  border-radius: 0;
+}
+
+.gg-admin-search .gg-button {
+  min-height: 44px;
+}
+
+.gg-admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gg-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--gg-rule);
+  background: var(--gg-paper);
+  -webkit-overflow-scrolling: touch;
+}
+
+.gg-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.gg-table th,
+.gg-table td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gg-rule-soft);
+  white-space: nowrap;
+}
+
+.gg-table thead th {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gg-ink-3);
+  background: var(--gg-bone);
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.gg-table tbody th {
+  font-weight: 700;
+}
+
+.gg-table tbody tr:hover {
+  background: var(--gg-bone);
+}
+
+.gg-table tbody tr:last-child th,
+.gg-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.gg-table__name {
+  display: block;
+}
+
+.gg-table__meta,
+.gg-table__mono {
+  display: block;
+  color: var(--gg-ink-3);
+  font-family: var(--gg-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.gg-table td .gg-table__mono {
+  color: var(--gg-ink);
+}
+
+.gg-status {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gg-status--open {
+  color: var(--gg-blue);
+}
+
+.gg-status--locked {
+  color: var(--gg-ink-3);
+}
+
+.gg-status--admin {
+  color: var(--gg-gold);
+}
+
+.gg-denied {
+  width: min(520px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 16px 72px;
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+
+.gg-denied__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 @media (min-width: 900px) {
   .gg-sidebar {
     display: flex;
@@ -1811,6 +2040,15 @@ body.has-demo .gg-frame {
   .gg-demo button {
     font-size: 10px;
     letter-spacing: 0.06em;
+  }
+
+  .gg-admin {
+    padding: 36px 40px 80px;
+  }
+
+  .gg-admin-search__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
   }
 }
 

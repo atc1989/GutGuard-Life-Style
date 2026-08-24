@@ -12,7 +12,7 @@ tags:
 
 A guest walks four rooms. Tasks live on the epic notes so checkboxes stay in one place.
 
-Related: [[Bien To Do]] · [[00 - Locks]] · [[Epic 1 Landing]] · [[Epic 2 Register]] · [[Epic 3 Door Card]] · [[Epic 4 Member Hub]]
+Related: [[Bien To Do]] · [[00 - Locks]] · [[Epic 1 Landing]] · [[Epic 2 Register]] · [[Epic 3 Door Card]] · [[Epic 4 Member Hub]] · [[Epic 5 Admin RBAC]] · [[Epic 6 User Lifecycle]]
 
 ```mermaid
 flowchart LR

@@ -1,6 +1,15 @@
+import "server-only";
+
 import { createClient } from "@supabase/supabase-js";
 
-/** Service-role client. Server only. Unused until privileged writes exist. */
+export function isServiceRoleConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+  );
+}
+
+/** Service-role client. Server only — never import from a Client Component. */
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

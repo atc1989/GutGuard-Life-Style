@@ -25,6 +25,8 @@ flowchart LR
   R --> C["[[Epic 3 Door Card|Epic 3 /card]]"]
   C --> N["/nearly"]
   N --> H["[[Epic 4 Member Hub|Epic 4 /app]]"]
+  H --> A["[[Epic 5 Admin RBAC|Epic 5 /admin]]"]
+  A --> U["[[Epic 6 User Lifecycle|Epic 6 /admin/users]]"]
 ```
 
 ## Notes in this folder
@@ -35,6 +37,8 @@ flowchart LR
 - [[Epic 2 Register]] — `/register` Auth & Zod
 - [[Epic 3 Door Card]] — `/card` door interaction
 - [[Epic 4 Member Hub]] — `/app/*` + BASE gating
+- [[Epic 5 Admin RBAC]] — `/admin/*` cookie + `lifestyle_is_admin()`
+- [[Epic 6 User Lifecycle]] — `/admin/users` member directory
 
 ## Vaults (read only)
 
