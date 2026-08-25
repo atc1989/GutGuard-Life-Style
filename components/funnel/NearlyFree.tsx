@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 import { PointsLedger } from "@/components/lifestyle/PointsLedger";
 import { POINTS } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
@@ -44,29 +45,30 @@ export function NearlyFree() {
               first order.
             </p>
           </Card>
-          {empty ? (
-            <Button
-              variant="ghost"
-              style={{ marginTop: 22 }}
-              onClick={() => {
-                setPhase("claimed");
-                router.push("/card?claimed=1");
-              }}
-            >
-              Back to my card
-            </Button>
-          ) : (
-            <Button
-              variant="commerce"
-              style={{ marginTop: 22 }}
-              onClick={() => {
-                setPhase("member");
-                router.push("/app/health");
-              }}
-            >
-              Start my Lifestyle Protocol
-            </Button>
-          )}
+          <div className="gg-stack" style={{ marginTop: 22 }}>
+            {empty ? (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setPhase("claimed");
+                  router.push("/card?claimed=1");
+                }}
+              >
+                Back to my card
+              </Button>
+            ) : (
+              <Button
+                variant="commerce"
+                onClick={() => {
+                  setPhase("member");
+                  router.push("/app/health");
+                }}
+              >
+                Start my Lifestyle Protocol
+              </Button>
+            )}
+            <SignOutButton />
+          </div>
         </div>
         <div className="gg-stack">
           <p className="gg-eyebrow">Your invites</p>

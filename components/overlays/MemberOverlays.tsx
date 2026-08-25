@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 import { EventRow } from "@/components/ui/RequirementTimeline";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { QRBlock } from "@/components/ui/QRBlock";
@@ -110,6 +111,7 @@ export function MemberOverlays() {
           <Button variant="secondary" onClick={() => open("qr")}>
             Show my QR code full size
           </Button>
+          <SignOutButton />
         </div>
       </Drawer>
 

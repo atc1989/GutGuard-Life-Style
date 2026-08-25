@@ -2,6 +2,8 @@
 
 Member lifestyle app: Ginhawa funnel → door card → My Health / My Team / My Story.
 
+After register, the first session is the door card — not the full member OS. See [docs/first-session.md](./docs/first-session.md).
+
 **Stack:** Next.js App Router + TypeScript + Design System portable CSS + Supabase + Vercel-ready npm.
 
 **UI:** Gutguard Design System (bone, ultramarine, Fraunces, Inter Tight). No Tailwind.

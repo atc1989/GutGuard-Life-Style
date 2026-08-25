@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 import { CardBack, CardFace, FlipCard } from "@/components/lifestyle/FlipCard";
 import { Confetti } from "@/components/lifestyle/Confetti";
 import { useSession } from "@/lib/session";
@@ -41,28 +42,31 @@ export function DoorCard({ memberName }: { memberName?: string }) {
               ? "It becomes your Lifestyle Member card at the door and in the centers."
               : "Staff scan the back. Your name is already on the front."}
           </p>
-          {!claimed ? (
-            <Button
-              variant="editorial"
-              onClick={() => {
-                update({ claimed: true });
-                setPhase("claimed");
-                router.push("/card?claimed=1");
-              }}
-            >
-              Continue
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setPhase("nearly");
-                router.push("/nearly");
-              }}
-            >
-              How points work
-            </Button>
-          )}
+          <div className="gg-stack">
+            {!claimed ? (
+              <Button
+                variant="editorial"
+                onClick={() => {
+                  update({ claimed: true });
+                  setPhase("claimed");
+                  router.push("/card?claimed=1");
+                }}
+              >
+                Continue
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setPhase("nearly");
+                  router.push("/nearly");
+                }}
+              >
+                How points work
+              </Button>
+            )}
+            <SignOutButton />
+          </div>
         </div>
       </section>
     </main>

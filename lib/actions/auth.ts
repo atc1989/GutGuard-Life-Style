@@ -116,3 +116,11 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
 
   redirect(resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"));
 }
+
+export async function signOut() {
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
+  redirect("/");
+}
