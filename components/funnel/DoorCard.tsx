@@ -25,7 +25,7 @@ export function DoorCard({ memberName }: { memberName?: string }) {
           front={
             <CardFace name={name} claimed={claimed}>
               <p className="gg-help" style={{ color: "var(--gg-gold-soft)", marginTop: 24 }}>
-                Click to flip · Ipakita ito sa pintuan
+                Tap to flip · Ipakita ito sa pintuan
               </p>
             </CardFace>
           }
@@ -43,7 +43,7 @@ export function DoorCard({ memberName }: { memberName?: string }) {
           </p>
           {!claimed ? (
             <Button
-              variant="commerce"
+              variant="editorial"
               onClick={() => {
                 update({ claimed: true });
                 setPhase("claimed");
@@ -54,13 +54,13 @@ export function DoorCard({ memberName }: { memberName?: string }) {
             </Button>
           ) : (
             <Button
-              variant="commerce"
+              variant="ghost"
               onClick={() => {
                 setPhase("nearly");
                 router.push("/nearly");
               }}
             >
-              See how you earned these ›
+              How points work
             </Button>
           )}
         </div>

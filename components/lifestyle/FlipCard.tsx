@@ -20,7 +20,7 @@ export function FlipCard({
       type="button"
       className={cx("gg-flip", flipped && "is-back")}
       onClick={onFlip}
-      aria-label="Flip member card"
+      aria-label="Tap to flip member card"
     >
       <div className="gg-flip__inner">
         <div className="gg-flip__face">{front}</div>

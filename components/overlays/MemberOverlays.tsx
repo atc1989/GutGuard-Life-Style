@@ -72,6 +72,7 @@ export function MemberOverlays() {
           block
           style={{ marginTop: 16 }}
           onClick={() => {
+            update({ daysLeft: 30 * qty, phase: "member" });
             push({
               tone: "success",
               title: "Order queued",

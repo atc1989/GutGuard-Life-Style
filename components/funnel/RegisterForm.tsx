@@ -16,12 +16,13 @@ import {
   type AuthRegisterValues,
   type AuthSignInValues,
 } from "@/lib/schemas/auth";
+import { createNewMemberSession, resumeRoute } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
 
 export function RegisterForm() {
   const router = useRouter();
-  const { session, update, setPhase } = useSession();
+  const { session, update } = useSession();
   const { push } = useToast();
   const [mode, setMode] = useState<"register" | "signin">("register");
   const [loading, setLoading] = useState(false);
@@ -47,14 +48,15 @@ export function RegisterForm() {
     else registerForm.setValue("email", email);
   }
 
-  async function finishMock(values: { name: string; mobile: string; email: string }) {
-    update({
-      name: values.name,
-      mobile: values.mobile,
-      email: values.email,
-      phase: "invited",
-    });
-    setPhase("invited");
+  async function finishRegister(values: { name: string; mobile: string; email: string }) {
+    update(
+      createNewMemberSession({
+        name: values.name,
+        mobile: values.mobile,
+        email: values.email,
+        phase: "invited",
+      }),
+    );
     router.push("/card");
   }
 
@@ -118,13 +120,7 @@ export function RegisterForm() {
                 try {
                   const result = await signUp(values);
                   if (!result) return;
-                  await handleAuthResult(result, () =>
-                    finishMock({
-                      name: values.name,
-                      mobile: values.mobile,
-                      email: values.email,
-                    }),
-                  );
+                  await handleAuthResult(result, () => finishRegister(values));
                 } finally {
                   setLoading(false);
                 }
@@ -190,13 +186,9 @@ export function RegisterForm() {
                 try {
                   const result = await signIn(values);
                   if (!result) return;
-                  await handleAuthResult(result, () =>
-                    finishMock({
-                      name: session.name || "Member",
-                      mobile: session.mobile || "",
-                      email: values.email,
-                    }),
-                  );
+                  await handleAuthResult(result, async () => {
+                    router.push(resumeRoute(session.phase));
+                  });
                 } finally {
                   setLoading(false);
                 }

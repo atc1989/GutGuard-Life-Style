@@ -223,7 +223,12 @@ export const FUNNEL_STEPS = [
   },
 ] as const;
 
+export function hasSupply(daysLeft: number) {
+  return daysLeft >= 0;
+}
+
 export function refillCopy(daysLeft: number): { en: string; tl: string } | null {
+  if (!hasSupply(daysLeft)) return null;
   if (daysLeft <= 0) {
     return {
       en: "Last day of supply! Reorder today to keep your streak.",
@@ -311,24 +316,47 @@ export type MockSession = {
   ledger: LedgerEntry[];
 };
 
-export function createDefaultSession(
+export function createNewMemberSession(
   overrides: Partial<MockSession> = {},
 ): MockSession {
   return {
-    name: "Maria Santos",
-    mobile: "09175550100",
+    name: "",
+    mobile: "",
     email: "",
     sponsor: "Ate Marites",
     team: "GenSan",
     cardNo: CARD_NUMBER,
     phase: "landing",
     claimed: false,
+    points: 0,
+    pending: 0,
+    banked: 0,
+    // ponytail: -1 = no bottle yet. Nullable column when orders are real.
+    daysLeft: -1,
+    capsulesPerDay: 2,
+    doseLog: {},
+    invites: [],
+    baseDone: [false, false, false, false, false],
+    telegram: false,
+    facebook: false,
+    notifications: true,
+    welcomeSeen: false,
+    contactInvited: {},
+    ledger: [],
+    ...overrides,
+  };
+}
+
+export function createDefaultSession(
+  overrides: Partial<MockSession> = {},
+): MockSession {
+  return createNewMemberSession({
+    name: "Maria Santos",
+    mobile: "09175550100",
     points: 125,
     pending: 5,
     banked: 500,
     daysLeft: 10,
-    capsulesPerDay: 2,
-    doseLog: {},
     invites: [
       { name: "Nene R.", stage: "bought" },
       { name: "Boy Tapang", stage: "showed" },
@@ -336,10 +364,6 @@ export function createDefaultSession(
       { name: "Aling Puring", stage: "registered" },
     ],
     baseDone: [true, true, false, false, false],
-    telegram: false,
-    facebook: false,
-    notifications: true,
-    welcomeSeen: false,
     contactInvited: { c1: true, c2: true },
     ledger: [
       { id: "l1", kind: "bought", amount: 25, pending: false, label: "Nene R. bought" },
@@ -347,7 +371,7 @@ export function createDefaultSession(
       { id: "l3", kind: "registered", amount: 5, pending: true, label: "Aling Puring registered" },
     ],
     ...overrides,
-  };
+  });
 }
 
 export const PHASE_ROUTES: Record<FunnelPhase, string> = {
@@ -359,3 +383,15 @@ export const PHASE_ROUTES: Record<FunnelPhase, string> = {
   nearly: "/nearly",
   member: "/app/health",
 };
+
+export function resumeRoute(phase: string) {
+  if (
+    phase === "member" ||
+    phase === "nearly" ||
+    phase === "claimed" ||
+    phase === "invited"
+  ) {
+    return PHASE_ROUTES[phase];
+  }
+  return PHASE_ROUTES.invited;
+}

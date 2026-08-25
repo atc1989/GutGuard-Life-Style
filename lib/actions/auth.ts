@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { CARD_NUMBER } from "@/lib/mock/seed";
+import { CARD_NUMBER, resumeRoute } from "@/lib/mock/seed";
 import {
   authRegisterSchema,
   authSignInSchema,
@@ -108,5 +108,11 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
     };
   }
 
-  redirect("/card");
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("phase")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  redirect(resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"));
 }

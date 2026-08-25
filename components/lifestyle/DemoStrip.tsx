@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { PHASE_ROUTES, type FunnelPhase } from "@/lib/mock/seed";
+import { createDefaultSession, PHASE_ROUTES, type FunnelPhase } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
 import { useEffect } from "react";
 import { cx } from "@/lib/cx";
@@ -16,8 +16,10 @@ const PHASES: Array<[FunnelPhase, string]> = [
   ["member", "Member app"],
 ];
 
+const PREVIEW: FunnelPhase[] = ["invited", "claimed", "nearly", "member"];
+
 export function DemoStrip() {
-  const { session, setPhase } = useSession();
+  const { session, setPhase, update } = useSession();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -34,7 +36,16 @@ export function DemoStrip() {
           type="button"
           className={cx(session.phase === id && "is-active")}
           onClick={() => {
-            setPhase(id);
+            if (PREVIEW.includes(id)) {
+              update(
+                createDefaultSession({
+                  phase: id,
+                  claimed: id !== "invited",
+                }),
+              );
+            } else {
+              setPhase(id);
+            }
             router.push(PHASE_ROUTES[id]);
           }}
         >

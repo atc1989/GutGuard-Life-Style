@@ -3,10 +3,11 @@
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { DoseCalendar } from "@/components/lifestyle/DoseCalendar";
 import { PointsLedger } from "@/components/lifestyle/PointsLedger";
 import { persistDose, uploadDoseProof } from "@/lib/actions/member";
-import { BASE_STEPS, refillCopy } from "@/lib/mock/seed";
+import { BASE_STEPS, hasSupply, refillCopy } from "@/lib/mock/seed";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -18,6 +19,7 @@ export function HealthPage() {
   const { push } = useToast();
   const refill = refillCopy(session.daysLeft);
   const baseCount = session.baseDone.filter(Boolean).length;
+  const supplied = hasSupply(session.daysLeft);
 
   return (
     <div className="gg-stack">
@@ -27,9 +29,17 @@ export function HealthPage() {
           <p className="gg-lede">Simple daily habits that support your mood and energy.</p>
         </div>
         <Button variant="commerce" onClick={() => open("order")}>
-          {session.daysLeft <= 0 ? "Order now" : "Order more"}
+          {supplied && session.daysLeft > 0 ? "Order more" : "Order now"}
         </Button>
       </div>
+
+      {!supplied ? (
+        <EmptyState
+          title="Your protocol starts with a bottle"
+          copy="Show your card at the door. Ate Marites will reach you. Nothing to log until Gutguard is in the house."
+          action={{ label: "Order now", onClick: () => open("order") }}
+        />
+      ) : null}
 
       {refill ? (
         <Alert>
@@ -37,6 +47,7 @@ export function HealthPage() {
         </Alert>
       ) : null}
 
+      {supplied ? (
       <div className="gg-split">
         <Card>
           <DoseCalendar
@@ -104,6 +115,7 @@ export function HealthPage() {
           />
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
 } from "react";
 import { persistProfile } from "@/lib/actions/member";
 import {
-  createDefaultSession,
+  createNewMemberSession,
   type FunnelPhase,
   type MockSession,
 } from "@/lib/mock/seed";
@@ -30,11 +30,11 @@ type SessionContextValue = {
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 function parseSession(raw: string | null): MockSession {
-  if (!raw) return createDefaultSession();
+  if (!raw) return createNewMemberSession();
   try {
-    return { ...createDefaultSession(), ...JSON.parse(raw) } as MockSession;
+    return { ...createNewMemberSession(), ...JSON.parse(raw) } as MockSession;
   } catch {
-    return createDefaultSession();
+    return createNewMemberSession();
   }
 }
 

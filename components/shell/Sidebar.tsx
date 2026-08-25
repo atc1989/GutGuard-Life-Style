@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
-import { BASE_STEPS } from "@/lib/mock/seed";
+import { BASE_STEPS, hasSupply } from "@/lib/mock/seed";
 import { cx } from "@/lib/cx";
 
 const NAV = [
@@ -55,7 +55,7 @@ export function Sidebar() {
           className="gg-nav-btn gg-nav-btn--quiet"
           onClick={() => open(baseComplete ? "gema" : "base")}
         >
-          {baseComplete ? "GEMA" : "GEMA 🔒"}
+          {baseComplete ? "GEMA" : "GEMA · locked"}
         </button>
         <button
           type="button"
@@ -77,7 +77,9 @@ export function Sidebar() {
           Order now
         </Button>
         <p className="gg-help" style={{ marginTop: 8 }}>
-          {session.daysLeft} days of supply left
+          {hasSupply(session.daysLeft)
+            ? `${session.daysLeft} days of supply left`
+            : "No bottle yet"}
         </p>
         <Badge>{session.team}</Badge>
       </div>
