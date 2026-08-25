@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   title: "Gutguard Lifestyle",
   description:
     "Gutguard Lifestyle — Ginhawa funnel, member card, and daily protocol.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FCFAF5",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

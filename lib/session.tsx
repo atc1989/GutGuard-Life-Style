@@ -55,6 +55,18 @@ function getServerSnapshot() {
   return null;
 }
 
+function subscribeNever() {
+  return () => {};
+}
+
+function getClientTrue() {
+  return true;
+}
+
+function getServerFalse() {
+  return false;
+}
+
 function writeSession(next: MockSession) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   window.dispatchEvent(new Event(EVENT_KEY));
@@ -62,8 +74,12 @@ function writeSession(next: MockSession) {
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const ready = useSyncExternalStore(
+    subscribeNever,
+    getClientTrue,
+    getServerFalse,
+  );
   const session = parseSession(raw);
-  const ready = raw !== null || typeof window !== "undefined";
 
   const update = useCallback((patch: Partial<MockSession>) => {
     const next = { ...parseSession(getSnapshot()), ...patch };

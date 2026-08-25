@@ -40,14 +40,19 @@
   margin: 0;
 }
 
+html {
+  background-color: #fcfaf5;
+  color-scheme: light;
+}
+
 html,
 body {
   min-height: 100%;
+  background-color: var(--gg-paper);
 }
 
 body {
   color: var(--gg-ink);
-  background-color: var(--gg-bone);
   font-family: var(--gg-sans);
 }
 
@@ -66,7 +71,7 @@ a {
 
 .gg-surface {
   color: var(--gg-ink);
-  background-color: var(--gg-bone);
+  background-color: var(--gg-paper);
   background-image: radial-gradient(
     circle at 1px 1px,
     rgba(15, 15, 24, 0.025) 1px,
@@ -79,6 +84,60 @@ a {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition {
+  pointer-events: none;
+  background-color: var(--gg-paper);
+}
+
+::view-transition-old(root) {
+  animation: 180ms var(--gg-ease-out) both gg-page-out;
+}
+
+::view-transition-new(root) {
+  animation: 280ms var(--gg-ease-out) both gg-page-in;
+}
+
+.gg-page {
+  animation: 280ms var(--gg-ease-out) both gg-page-in;
+}
+
+.gg-page-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background-color: var(--gg-paper);
+}
+
+.gg-page-loading .gg-spinner {
+  width: 20px;
+  height: 20px;
+  color: var(--gg-gold);
+}
+
+@keyframes gg-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gg-page-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .gg-display {
@@ -1414,8 +1473,16 @@ body.has-demo .gg-frame {
   .gg-flip__inner,
   .gg-confetti i,
   .gg-spinner,
-  .gg-welcome__panel {
+  .gg-welcome__panel,
+  .gg-page {
     transition-duration: 0.01ms;
     animation: none;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

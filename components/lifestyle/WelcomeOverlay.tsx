@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { useSession } from "@/lib/session";
 
 export function WelcomeOverlay() {
-  const { session, update } = useSession();
-  if (session.welcomeSeen) return null;
+  const { session, ready, update } = useSession();
+  if (!ready || session.welcomeSeen) return null;
 
   return (
     <div className="gg-welcome" role="dialog" aria-modal="true" aria-labelledby="gg-welcome-title">
