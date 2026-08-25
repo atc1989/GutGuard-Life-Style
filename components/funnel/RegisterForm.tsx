@@ -60,12 +60,30 @@ export function RegisterForm() {
     router.push("/card");
   }
 
+  function applyFieldErrors(fieldErrors?: Record<string, string>) {
+    if (!fieldErrors) return;
+    if (mode === "register") {
+      for (const [key, message] of Object.entries(fieldErrors)) {
+        if (key === "name" || key === "mobile" || key === "email" || key === "password") {
+          registerForm.setError(key, { type: "server", message });
+        }
+      }
+      return;
+    }
+    for (const [key, message] of Object.entries(fieldErrors)) {
+      if (key === "email" || key === "password") {
+        signInForm.setError(key, { type: "server", message });
+      }
+    }
+  }
+
   async function handleAuthResult(
     result: AuthActionResult,
     mockFinish: () => Promise<void>,
   ) {
     if (!result.ok) {
       setFormError(result.error);
+      applyFieldErrors(result.fieldErrors);
       return;
     }
     if (result.mode === "mock") {

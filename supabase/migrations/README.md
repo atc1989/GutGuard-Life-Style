@@ -3,6 +3,7 @@
 Apply in order on the **dev** Supabase project:
 
 1. `20260822000000_lifestyle_member.sql` — profiles, invites, dose logs, BASE, points, stories, RLS, dose-proofs bucket.
+2. `20260825000000_identity_unique.sql` — unique email/mobile, day-zero `days_left` default, `lifestyle_identity_taken()` for register.
 
 Then optionally load `../seed.sql` on development only.
 

@@ -8,7 +8,8 @@ type Variant =
   | "editorial"
   | "commerce"
   | "pill"
-  | "ghost";
+  | "ghost"
+  | "signout";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;

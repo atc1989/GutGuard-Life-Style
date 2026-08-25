@@ -20,7 +20,7 @@ export function NearlyFree() {
       <section className="gg-split">
         <div>
           <p className="gg-eyebrow">Nearly free</p>
-          <h1 className="gg-display" style={{ marginTop: 10 }}>
+          <h1 className="gg-display gg-funnel-display">
             {empty ? (
               <>Points pay for your own first order.</>
             ) : (
@@ -29,7 +29,7 @@ export function NearlyFree() {
               </>
             )}
           </h1>
-          <div style={{ marginTop: 28 }}>
+          <div className="gg-funnel-ledger">
             <PointsLedger
               points={session.points}
               pending={session.pending}
@@ -37,36 +37,35 @@ export function NearlyFree() {
               ledger={session.ledger}
             />
           </div>
-          <Card style={{ marginTop: 18 }}>
+          <Card className="gg-funnel-card">
             <p className="gg-eyebrow">Two ways to earn</p>
-            <p style={{ marginTop: 8 }}>
+            <p className="gg-funnel-card-copy">
               Register +{POINTS.register}. First attend +{POINTS.firstAttend}. Repeat +
               {POINTS.repeatAttend}. Points are not cash. They only pay for your own
               first order.
             </p>
           </Card>
-          <div className="gg-stack" style={{ marginTop: 22 }}>
-            {empty ? (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setPhase("claimed");
-                  router.push("/card?claimed=1");
-                }}
-              >
-                Back to my card
-              </Button>
-            ) : (
-              <Button
-                variant="commerce"
-                onClick={() => {
-                  setPhase("member");
-                  router.push("/app/health");
-                }}
-              >
-                Start my Lifestyle Protocol
-              </Button>
-            )}
+          <div className="gg-stack gg-funnel-actions">
+            <Button
+              variant="commerce"
+              block
+              onClick={() => {
+                setPhase("member");
+                router.push("/app/health");
+              }}
+            >
+              Start my Lifestyle Protocol
+            </Button>
+            <Button
+              variant="secondary"
+              block
+              onClick={() => {
+                setPhase("claimed");
+                router.push("/card?claimed=1");
+              }}
+            >
+              Back to my card
+            </Button>
             <SignOutButton />
           </div>
         </div>
@@ -84,7 +83,7 @@ export function NearlyFree() {
                   <strong>{invite.name}</strong>
                   <Badge active={invite.stage !== "registered"}>{invite.stage}</Badge>
                 </div>
-                <p className="gg-help" style={{ marginTop: 6 }}>
+                <p className="gg-help gg-invite-note">
                   {invite.stage === "registered"
                     ? `+${POINTS.register} points, waiting. They have to come to an event first.`
                     : invite.stage === "showed"

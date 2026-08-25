@@ -16,6 +16,10 @@ export function DoorCard({ memberName }: { memberName?: string }) {
   const router = useRouter();
   const name = memberName?.trim() || session.name;
 
+  function claimCard() {
+    update({ claimed: true });
+  }
+
   return (
     <main className="gg-funnel">
       <Confetti fire={claimed} />
@@ -25,7 +29,7 @@ export function DoorCard({ memberName }: { memberName?: string }) {
           onFlip={() => setFlipped((value) => !value)}
           front={
             <CardFace name={name} claimed={claimed}>
-              <p className="gg-help" style={{ color: "var(--gg-gold-soft)", marginTop: 24 }}>
+              <p className="gg-help gg-card-hint">
                 Tap to flip · Ipakita ito sa pintuan
               </p>
             </CardFace>
@@ -34,37 +38,37 @@ export function DoorCard({ memberName }: { memberName?: string }) {
         />
         <div>
           <p className="gg-eyebrow">{claimed ? "Already yours" : "Before the door"}</p>
-          <h1 className="gg-heading" style={{ margin: "10px 0 16px" }}>
+          <h1 className="gg-heading gg-funnel-title">
             {claimed ? "Sa iyo na ’yan." : "Show this at the door"}
           </h1>
-          <p className="gg-lede" style={{ marginBottom: 24 }}>
+          <p className="gg-lede gg-funnel-lede">
             {claimed
               ? "It becomes your Lifestyle Member card at the door and in the centers."
               : "Staff scan the back. Your name is already on the front."}
           </p>
           <div className="gg-stack">
-            {!claimed ? (
-              <Button
-                variant="editorial"
-                onClick={() => {
-                  update({ claimed: true });
-                  setPhase("claimed");
-                  router.push("/card?claimed=1");
-                }}
-              >
-                Continue
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setPhase("nearly");
-                  router.push("/nearly");
-                }}
-              >
-                How points work
-              </Button>
-            )}
+            <Button
+              variant="editorial"
+              block
+              onClick={() => {
+                claimCard();
+                setPhase("member");
+                router.push("/app/health");
+              }}
+            >
+              Go to my dashboard
+            </Button>
+            <Button
+              variant="secondary"
+              block
+              onClick={() => {
+                claimCard();
+                setPhase("nearly");
+                router.push("/nearly");
+              }}
+            >
+              How points work
+            </Button>
             <SignOutButton />
           </div>
         </div>

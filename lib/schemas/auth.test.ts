@@ -38,3 +38,21 @@ test("auth sign-in requires email and password", () => {
   });
   assert.equal(ok.success, true);
 });
+
+test("duplicate identity names the taken field", async () => {
+  const { duplicateIdentityResult, mobileAliases } = await import("./auth.ts");
+  assert.deepEqual(mobileAliases("+639171234567"), [
+    "+639171234567",
+    "09171234567",
+  ]);
+
+  const emailOnly = duplicateIdentityResult(true, false);
+  assert.equal(emailOnly?.ok, false);
+  assert.equal(emailOnly?.fieldErrors.email?.includes("email"), true);
+  assert.equal(emailOnly?.fieldErrors.mobile, undefined);
+
+  const both = duplicateIdentityResult(true, true);
+  assert.equal(both?.fieldErrors.email && both.fieldErrors.mobile !== undefined, true);
+
+  assert.equal(duplicateIdentityResult(false, false), null);
+});

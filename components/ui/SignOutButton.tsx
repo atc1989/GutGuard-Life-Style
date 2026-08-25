@@ -13,7 +13,8 @@ export function SignOutButton() {
 
   return (
     <Button
-      variant="ghost"
+      variant="signout"
+      block
       loading={loading}
       onClick={async () => {
         setLoading(true);

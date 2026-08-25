@@ -29,10 +29,16 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+const PAPER = "#FCFAF5";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${interTight.variable}`}>
-      <body className="gg-surface">
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${interTight.variable}`}
+      style={{ backgroundColor: PAPER, colorScheme: "light" }}
+    >
+      <body className="gg-surface" style={{ backgroundColor: PAPER }}>
         <Providers>{children}</Providers>
       </body>
     </html>

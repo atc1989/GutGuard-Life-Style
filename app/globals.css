@@ -1,17 +1,23 @@
 :root {
   color-scheme: light;
 
-  --gg-bone: #f4f1ea;
+  --bone: #f4f1ea;
+  --paper: #fcfaf5;
+  --blue: #0608a9;
+  --gold: #b08d5b;
+  --ink: #0f0f18;
+
+  --gg-bone: var(--bone);
   --gg-bone-soft: #ebe7de;
   --gg-bone-deep: #ddd7c8;
-  --gg-paper: #fcfaf5;
+  --gg-paper: var(--paper);
 
-  --gg-blue: #0608a9;
+  --gg-blue: var(--blue);
   --gg-blue-press: #04067a;
-  --gg-gold: #b08d5b;
+  --gg-gold: var(--gold);
   --gg-gold-soft: #c9ac7e;
 
-  --gg-ink: #0f0f18;
+  --gg-ink: var(--ink);
   --gg-ink-2: #3a3a48;
   --gg-ink-3: #6b6b7a;
   --gg-ink-4: #a0a0ae;
@@ -41,19 +47,26 @@
 }
 
 html {
-  background-color: #fcfaf5;
+  background-color: var(--paper);
   color-scheme: light;
+  overflow-x: hidden;
 }
 
 html,
 body {
   min-height: 100%;
-  background-color: var(--gg-paper);
+  background-color: var(--paper);
 }
 
 body {
-  color: var(--gg-ink);
+  min-height: 100dvh;
+  color: var(--ink);
   font-family: var(--gg-sans);
+  overflow-x: hidden;
+}
+
+body:has(.gg-backdrop) {
+  overflow: hidden;
 }
 
 button,
@@ -70,8 +83,8 @@ a {
 }
 
 .gg-surface {
-  color: var(--gg-ink);
-  background-color: var(--gg-paper);
+  color: var(--ink);
+  background-color: var(--paper);
   background-image: radial-gradient(
     circle at 1px 1px,
     rgba(15, 15, 24, 0.025) 1px,
@@ -83,7 +96,8 @@ a {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 @view-transition {
@@ -92,7 +106,7 @@ a {
 
 ::view-transition {
   pointer-events: none;
-  background-color: var(--gg-paper);
+  background-color: var(--paper);
 }
 
 ::view-transition-old(root) {
@@ -108,10 +122,10 @@ a {
 }
 
 .gg-page-loading {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
-  background-color: var(--gg-paper);
+  background-color: var(--paper);
 }
 
 .gg-page-loading .gg-spinner {
@@ -123,11 +137,9 @@ a {
 @keyframes gg-page-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -315,6 +327,20 @@ a {
   font-size: 13px;
   font-weight: 700;
   min-height: 44px;
+}
+
+.gg-button--signout {
+  min-height: 44px;
+  border: 1px solid var(--gg-ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.gg-button--signout:hover:not(:disabled) {
+  border-color: var(--gg-blue);
+  color: var(--gg-blue);
 }
 
 .gg-button--block {
@@ -980,7 +1006,7 @@ a {
   width: 262px;
   flex: 0 0 262px;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 26px 0 30px;
   border-right: 1px solid var(--gg-rule);
   background: var(--gg-bone);
@@ -1090,6 +1116,43 @@ a {
   padding-top: 48px;
 }
 
+.gg-funnel-title {
+  margin: 10px 0 16px;
+}
+
+.gg-funnel-lede {
+  margin-bottom: 24px;
+}
+
+.gg-funnel-display {
+  margin-top: 10px;
+}
+
+.gg-funnel-ledger {
+  margin-top: 28px;
+}
+
+.gg-funnel-card {
+  margin-top: 18px;
+}
+
+.gg-funnel-card-copy {
+  margin-top: 8px;
+}
+
+.gg-funnel-actions {
+  margin-top: 22px;
+}
+
+.gg-card-hint {
+  color: var(--gg-gold-soft);
+  margin-top: 24px;
+}
+
+.gg-invite-note {
+  margin-top: 6px;
+}
+
 .gg-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1114,10 +1177,24 @@ a {
 }
 
 .gg-flip {
-  perspective: 900px;
+  display: block;
   width: 100%;
   max-width: 380px;
   margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  perspective: 900px;
+}
+
+.gg-flip:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
 }
 
 .gg-flip__inner {
@@ -1178,7 +1255,7 @@ body.has-demo {
 
 body.has-demo .gg-sidebar,
 body.has-demo .gg-frame {
-  min-height: calc(100vh - 48px);
+  min-height: calc(100dvh - 48px);
 }
 
 .gg-confetti {
@@ -1246,34 +1323,6 @@ body.has-demo .gg-frame {
   background: var(--gg-rule);
 }
 
-.gg-welcome {
-  position: fixed;
-  inset: 0;
-  z-index: 88;
-  display: grid;
-  place-items: end center;
-  padding: 28px 20px 40px;
-  background:
-    linear-gradient(180deg, rgba(15, 15, 24, 0.88), rgba(4, 6, 122, 0.92)),
-    var(--gg-ink);
-}
-
-.gg-welcome__panel {
-  width: min(520px, 100%);
-  animation: gg-welcome-in 0.45s var(--gg-ease-out);
-}
-
-@keyframes gg-welcome-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 .gg-cal {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1322,7 +1371,7 @@ body.has-demo .gg-frame {
     display: flex;
     width: 280px;
     flex: 0 0 280px;
-    min-height: 100vh;
+    min-height: 100dvh;
     padding: 32px 12px 32px;
   }
 
@@ -1336,7 +1385,7 @@ body.has-demo .gg-frame {
     margin: 0 auto;
     padding: 0 40px;
     align-items: stretch;
-    min-height: 100vh;
+    min-height: 100dvh;
     gap: 8px;
   }
 
@@ -1423,8 +1472,8 @@ body.has-demo .gg-frame {
     grid-template-columns: repeat(10, minmax(0, 1fr));
   }
 
-  .gg-welcome {
-    place-items: center;
+  .gg-cal {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
   }
 
   .gg-dialog-body {
@@ -1473,7 +1522,6 @@ body.has-demo .gg-frame {
   .gg-flip__inner,
   .gg-confetti i,
   .gg-spinner,
-  .gg-welcome__panel,
   .gg-page {
     transition-duration: 0.01ms;
     animation: none;

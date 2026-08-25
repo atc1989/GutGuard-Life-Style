@@ -54,3 +54,36 @@ export const authSignInSchema = z.object({
 export type AuthRegisterValues = z.input<typeof authRegisterSchema>;
 export type AuthRegisterParsed = z.output<typeof authRegisterSchema>;
 export type AuthSignInValues = z.input<typeof authSignInSchema>;
+
+export const EMAIL_TAKEN = "This email already has a card. Sign in instead.";
+export const MOBILE_TAKEN =
+  "This mobile number already has a card. Sign in instead.";
+export const IDENTITY_TAKEN =
+  "This email and mobile already have a card. Sign in instead.";
+
+/** 09… and +63… forms so a stored local number still matches E.164 input. */
+export function mobileAliases(mobile: string): string[] {
+  const compact = mobile.replace(/[\s()-]/g, "");
+  const aliases = new Set([compact]);
+  if (compact.startsWith("+63") && compact.length === 13) {
+    aliases.add(`0${compact.slice(3)}`);
+  } else if (compact.startsWith("09") && compact.length === 11) {
+    aliases.add(`+63${compact.slice(1)}`);
+  }
+  return [...aliases];
+}
+
+export function duplicateIdentityResult(
+  emailTaken: boolean,
+  mobileTaken: boolean,
+): { ok: false; error: string; fieldErrors: Record<string, string> } | null {
+  if (!emailTaken && !mobileTaken) return null;
+  const fieldErrors: Record<string, string> = {};
+  if (emailTaken) fieldErrors.email = EMAIL_TAKEN;
+  if (mobileTaken) fieldErrors.mobile = MOBILE_TAKEN;
+  return {
+    ok: false,
+    error: emailTaken && mobileTaken ? IDENTITY_TAKEN : emailTaken ? EMAIL_TAKEN : MOBILE_TAKEN,
+    fieldErrors,
+  };
+}

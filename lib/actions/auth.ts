@@ -6,6 +6,7 @@ import { CARD_NUMBER, resumeRoute } from "@/lib/mock/seed";
 import {
   authRegisterSchema,
   authSignInSchema,
+  duplicateIdentityResult,
 } from "@/lib/schemas/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +38,26 @@ function calmAuthError(message: string) {
   return "Could not complete that just now. Try again.";
 }
 
+type TakenRow = { email_taken?: boolean; mobile_taken?: boolean };
+
+function parseTaken(data: unknown): TakenRow | null {
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || typeof row !== "object") return null;
+  return row as TakenRow;
+}
+
+async function existingIdentity(email: string, mobile: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("lifestyle_identity_taken", {
+    p_email: email,
+    p_mobile: mobile,
+  });
+  if (error) return null;
+  const row = parseTaken(data);
+  if (!row) return null;
+  return duplicateIdentityResult(Boolean(row.email_taken), Boolean(row.mobile_taken));
+}
+
 export async function signUp(input: unknown): Promise<AuthActionResult> {
   const parsed = authRegisterSchema.safeParse(input);
   if (!parsed.success) {
@@ -52,6 +73,9 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
   }
 
   const { name, mobile, email, password } = parsed.data;
+  const taken = await existingIdentity(email, mobile);
+  if (taken) return taken;
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -59,6 +83,9 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
     options: { data: { name, mobile } },
   });
   if (error) return { ok: false, error: calmAuthError(error.message) };
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    return duplicateIdentityResult(true, false)!;
+  }
   if (!data.session || !data.user) {
     return { ok: true, mode: "confirm" };
   }
@@ -71,8 +98,22 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
     card_no: CARD_NUMBER,
     phase: "invited",
     claimed: false,
+    points: 0,
+    pending: 0,
+    banked: 0,
+    days_left: -1,
   });
   if (profileError) {
+    if (profileError.code === "23505") {
+      return {
+        ok: false,
+        error: "This email or mobile already has a card. Sign in instead.",
+        fieldErrors: {
+          email: "This email already has a card. Sign in instead.",
+          mobile: "This mobile number already has a card. Sign in instead.",
+        },
+      };
+    }
     return {
       ok: false,
       error: "Your card was created, but the profile could not be saved. Try signing in.",
