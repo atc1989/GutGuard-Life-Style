@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { EMAIL_CODE_LENGTH, normalizeEmailCode } from "@/lib/auth/email-code";
 
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_HINT =
@@ -57,12 +56,8 @@ export const authConfirmSchema = z.object({
   code: z
     .string()
     .trim()
-    .transform(normalizeEmailCode)
-    .pipe(
-      z
-        .string()
-        .length(EMAIL_CODE_LENGTH, "Enter the 6-digit code from your email"),
-    ),
+    .transform((value) => value.replace(/\D/g, ""))
+    .pipe(z.string().length(6, "Enter the 6-digit code from your email")),
 });
 
 export type AuthRegisterValues = z.input<typeof authRegisterSchema>;
