@@ -54,6 +54,6 @@ flowchart LR
 - [[00 - GutGuard Design System]] · [[01 - Visual Foundations]] · [[Foundations/Dialects]]
 - [[00 - GutGuard Tech Stack]] · [[01 - Canonical Stack]] · [[02 - Supabase Conventions]]
 
-Shared identity (all three apps): [[One Account]] — `C:\Users\najee\Documents\One Account\` on Najee’s machine. Do not skip that board when the work is login, profiles, or Auth.
+Shared identity (all three apps): [[One Account]] — `C:\Users\najee\OneDrive\Documents\GutGuard\One Account\` on Najee’s machine. Do not skip that board when the work is login, profiles, or Auth.
 
 House spelling in UI: **Gutguard**.

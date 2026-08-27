@@ -28,15 +28,21 @@ test("auth register requires name, mobile, email, and a strong password", () => 
   if (ok.success) assert.equal(ok.data.mobile, "+639171234567");
 });
 
-test("auth sign-in requires email and password", () => {
-  const missing = authSignInSchema.safeParse({ email: "ana@example.com" });
+test("auth sign-in requires username or email and password", () => {
+  const missing = authSignInSchema.safeParse({ identifier: "ana@example.com" });
   assert.equal(missing.success, false);
 
-  const ok = authSignInSchema.safeParse({
-    email: "ana@example.com",
+  const email = authSignInSchema.safeParse({
+    identifier: "ana@example.com",
     password: "Gutguard1",
   });
-  assert.equal(ok.success, true);
+  assert.equal(email.success, true);
+
+  const username = authSignInSchema.safeParse({
+    identifier: "johndoe",
+    password: "x",
+  });
+  assert.equal(username.success, true);
 });
 
 test("auth confirm accepts a spaced 6-digit email code", () => {

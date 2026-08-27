@@ -1,13 +1,28 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import {
   EMAIL_CODE_COPY,
   isEmailUnconfirmedMessage,
   siteOrigin,
 } from "@/lib/auth/email-code";
+import {
+  provisionOneGrindersLogin,
+  syncExternalLoginInBackground,
+} from "@/lib/integrations/onegrinders-login";
 import { CARD_NUMBER, resumeRoute } from "@/lib/mock/seed";
+import {
+  looksLikeEmail,
+  passwordSignInError,
+  resolveSharedLogin,
+} from "@/lib/one-account/login-engine";
+import {
+  isSharedLoginThrottled,
+  lookupEmailByUsername,
+  recordSharedLoginFailure,
+} from "@/lib/one-account/shared-login-ports";
 import {
   authConfirmSchema,
   authRegisterSchema,
@@ -47,7 +62,7 @@ function calmAuthError(message: string) {
     return "This email already has a card. Sign in instead.";
   }
   if (lower.includes("invalid login") || lower.includes("invalid credentials")) {
-    return "Email or password does not match.";
+    return "Username, email, or password does not match.";
   }
   if (isEmailUnconfirmedMessage(message)) {
     return EMAIL_CODE_COPY;
@@ -250,26 +265,75 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
-    password: parsed.data.password,
+  const identifier = parsed.data.identifier;
+  const resolved = await resolveSharedLogin(identifier, parsed.data.password, {
+    isThrottled: isSharedLoginThrottled,
+    recordFailedLogin: recordSharedLoginFailure,
+    lookupEmailByUsername,
+    signInWithPassword: async (email, password) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return !error;
+    },
+    provisionOneGrinders: provisionOneGrindersLogin,
   });
-  if (error || !data.user) {
-    const message = error?.message ?? "Invalid credentials";
-    return {
-      ok: false,
-      error: calmAuthError(message),
-      needsConfirm: isEmailUnconfirmedMessage(message),
-    };
+
+  if (!resolved.ok) {
+    return { ok: false, error: resolved.error };
   }
 
-  const profileError = await ensureLifestyleProfile(supabase, data.user);
-  if (profileError) return profileError;
+  if (resolved.backgroundSync) {
+    after(() =>
+      syncExternalLoginInBackground(
+        resolved.backgroundSync!.username,
+        resolved.backgroundSync!.password,
+      ),
+    );
+  }
+
+  let user: AuthUser | null = null;
+
+  if (resolved.phase === "password") {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: resolved.email,
+      password: resolved.password,
+    });
+    if (error || !data.user) {
+      const message = error?.message ?? "Invalid credentials";
+      await recordSharedLoginFailure(identifier.trim().toLowerCase());
+      if (isEmailUnconfirmedMessage(message) && looksLikeEmail(identifier)) {
+        return {
+          ok: false,
+          error: calmAuthError(message),
+          needsConfirm: true,
+        };
+      }
+      return {
+        ok: false,
+        error: looksLikeEmail(identifier)
+          ? calmAuthError(message)
+          : passwordSignInError(resolved.backupLogin),
+      };
+    }
+    user = data.user;
+  } else {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  }
+
+  if (!user) {
+    return { ok: false, error: "Could not complete that just now. Try again." };
+  }
+
+  // Email (Ginhawa) still gets a Lifestyle card. Username is Change 4 — do not mint one here.
+  if (looksLikeEmail(identifier)) {
+    const profileError = await ensureLifestyleProfile(supabase, user);
+    if (profileError) return profileError;
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("phase")
-    .eq("id", data.user.id)
+    .eq("id", user.id)
     .maybeSingle();
 
   redirect(resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"));

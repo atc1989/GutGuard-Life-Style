@@ -44,7 +44,11 @@ export const authRegisterSchema = z.object({
 });
 
 export const authSignInSchema = z.object({
-  email: emailSchema,
+  identifier: z
+    .string()
+    .trim()
+    .min(1, "Enter your username or email")
+    .max(120, "That username or email is too long"),
   password: z
     .string()
     .min(1, "Enter your password")
