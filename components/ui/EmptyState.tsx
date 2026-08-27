@@ -15,11 +15,7 @@ export function EmptyState({
       <strong>{title}</strong>
       <p>{copy}</p>
       {action ? (
-        <Button
-          variant="secondary"
-          onClick={action.onClick}
-          style={{ marginTop: 12 }}
-        >
+        <Button variant="secondary" onClick={action.onClick}>
           {action.label}
         </Button>
       ) : null}
