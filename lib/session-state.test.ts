@@ -4,7 +4,7 @@ import {
   createGuestSession,
   parseLifestyleSession,
   shouldPersistMockSession,
-} from "./session-state.ts";
+} from "./mock/seed.ts";
 
 test("configured env never treats localStorage as a member", () => {
   const leftover = JSON.stringify({

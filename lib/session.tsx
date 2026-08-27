@@ -9,12 +9,13 @@ import {
   type ReactNode,
 } from "react";
 import { persistProfile } from "@/lib/actions/member";
-import { type FunnelPhase, type MockSession } from "@/lib/mock/seed";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   parseLifestyleSession,
   shouldPersistMockSession,
-} from "@/lib/session-state";
+  type FunnelPhase,
+  type MockSession,
+} from "@/lib/mock/seed";
 
 const STORAGE_KEY = "gg-lifestyle-session";
 const EVENT_KEY = "gg-lifestyle-session";
