@@ -10,9 +10,9 @@ After register, the first session is the door card — not the full member OS. S
 
 ## Auth
 
-**Email OTP** when Supabase env is set. Register collects name, mobile, and email. The one-time code goes to email. Mobile is stored on the member profile (SMS OTP later, when a provider is configured).
+**Email and password** when Supabase env is set (cookie session via `@supabase/ssr`). Register collects name, mobile, email, and a password. `localStorage` is **not** authorization in that mode.
 
-**Mock fallback** when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are empty: the same register form writes a `localStorage` session and skips the code step. Use this for UI work.
+**Mock fallback** only when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are empty: the same register form writes a `localStorage` session. Use this for UI work.
 
 One Account (this app is the hub; GEMA Auth + OneGrinders for all systems): [docs/obsidian/One Account](./docs/obsidian/One%20Account/One%20Account.md). Drop that folder at `C:\Users\najee\Documents\One Account\`.
 
@@ -30,11 +30,10 @@ Open [http://localhost:3000](http://localhost:3000). In development, a phase jum
 
 To persist members for real:
 
-1. Create a Supabase **dev** project.
-2. Put the URL and anon key in `.env.local`.
-3. Apply `supabase/migrations/20260822000000_lifestyle_member.sql`.
-4. Add the same env vars on Vercel (service role: server only).
-5. Add the production and preview URLs to Supabase Auth redirect allow-list.
+1. Point **local / Preview** at GutGuard Staging (`https://fxdsnacuonfvutdquogb.supabase.co`) — same Auth as GEMA Staging. Do not point Production at Staging.
+2. Put the Staging URL and anon/publishable key in `.env.local`. Service role is server-only.
+3. Add the same names on Vercel **Preview** (not Production).
+4. Add the preview URL to the Staging Auth redirect allow-list.
 
 ## Scripts
 
