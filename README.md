@@ -14,6 +14,8 @@ After register, the first session is the door card — not the full member OS. S
 
 **Mock fallback** when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are empty: the same register form writes a `localStorage` session and skips the code step. Use this for UI work.
 
+One Account (this app is the hub; GEMA Auth + OneGrinders for all systems): [docs/obsidian/One Account](./docs/obsidian/One%20Account/One%20Account.md). Drop that folder at `C:\Users\najee\Documents\One Account\`.
+
 GEMA stays locked until all five BASE steps are done. With Supabase on, `lifestyle_base_complete()` enforces that server-side.
 
 ## Setup

@@ -77,6 +77,8 @@ Product surface (not Academy admin):
 
 Auth (current): **email OTP** when Supabase env is set; **localStorage mock** when it is not. Mobile is stored on the profile. SMS OTP is later.
 
+One Account board (Lifestyle hub, GEMA Auth + OneGrinders for all apps): [obsidian/One Account/One Account.md](./obsidian/One%20Account/One%20Account.md). **Current change: Change 1.** Read `00 - Session gate` before the next identity move. Drop the folder at `C:\Users\najee\Documents\One Account\`.
+
 ---
 
 ## Phased to-do (Lifestyle)
