@@ -6,7 +6,7 @@ import { signOut } from "@/lib/actions/auth";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 
-export function SignOutButton() {
+export function SignOutButton({ block = true }: { block?: boolean }) {
   const { reset } = useSession();
   const { close } = useOverlay();
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ export function SignOutButton() {
   return (
     <Button
       variant="signout"
-      block
+      block={block}
       loading={loading}
       onClick={async () => {
         setLoading(true);

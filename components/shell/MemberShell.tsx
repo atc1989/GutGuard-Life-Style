@@ -12,7 +12,7 @@ export function MemberShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="gg-content">
         <Masthead />
-        {children}
+        <div className="gg-content__body">{children}</div>
       </div>
       <BottomBar />
       <MemberOverlays />

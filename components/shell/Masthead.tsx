@@ -1,9 +1,9 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { AccountMenu } from "@/components/shell/AccountChrome";
 import { NotificationBell } from "@/components/shell/NotificationBell";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { useSession } from "@/lib/session";
 
 const TABS = [
   { id: "/app/health", label: "Health" },
@@ -12,7 +12,6 @@ const TABS = [
 ] as const;
 
 export function Masthead() {
-  const { session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
   const current = TABS.some((tab) => tab.id === pathname)
@@ -20,15 +19,14 @@ export function Masthead() {
     : "/app/health";
 
   return (
-    <div>
+    <div className="gg-masthead-wrap">
       <header className="gg-masthead">
-        <div className="gg-masthead__meta">
-          <p className="gg-eyebrow">{session.sponsor}</p>
-          <strong>Gutguard Lifestyle</strong>
+        <div className="gg-mobile-only">
+          <AccountMenu />
         </div>
         <NotificationBell />
       </header>
-      <div className="gg-mobile-only" style={{ marginBottom: 16 }}>
+      <div className="gg-mobile-only gg-masthead-tabs">
         <SegmentedControl
           label="Member sections"
           value={current}

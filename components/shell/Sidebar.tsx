@@ -2,18 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Award,
+  BookOpen,
+  ClipboardCheck,
+  Heart,
+  Lock,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import { AccountCard } from "@/components/shell/AccountChrome";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 import { BASE_STEPS, hasSupply } from "@/lib/mock/seed";
 import { cx } from "@/lib/cx";
+import type { LucideIcon } from "lucide-react";
 
-const NAV = [
-  { href: "/app/health", id: "health", label: "My Health" },
-  { href: "/app/team", id: "team", label: "My Team" },
-  { href: "/app/story", id: "story", label: "My Story" },
-] as const;
+const NAV: Array<{
+  href: "/app/health" | "/app/team" | "/app/story";
+  label: string;
+  icon: LucideIcon;
+}> = [
+  { href: "/app/health", label: "My Health", icon: Heart },
+  { href: "/app/team", label: "My Team", icon: Users },
+  { href: "/app/story", label: "My Story", icon: BookOpen },
+];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -23,31 +38,39 @@ export function Sidebar() {
   const baseComplete = baseCount === BASE_STEPS.length;
 
   return (
-    <aside className="gg-sidebar">
-      <div className="gg-sidebar__brand">
+    <aside className="gg-sidebar" aria-label="Member navigation">
+      <Link href="/app/health" className="gg-sidebar__brand">
         <strong>Gutguard</strong>
         <em>Lifestyle</em>
-      </div>
-      <nav aria-label="Member" style={{ display: "grid", gap: 4, padding: "0 8px" }}>
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cx("gg-nav-btn", pathname === item.href && "is-active")}
-          >
-            {item.label}
-          </Link>
-        ))}
+      </Link>
+      <nav className="gg-sidebar__nav" aria-label="Member">
+        {NAV.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cx("gg-nav-btn", active && "is-active")}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon aria-hidden />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
-      <div style={{ height: 1, background: "var(--gg-rule)", margin: "14px 12px" }} />
-      <div style={{ display: "grid", gap: 4, padding: "0 8px" }}>
+      <hr className="gg-sidebar__rule" />
+      <p className="gg-sidebar__label gg-eyebrow">Protocol</p>
+      <div className="gg-sidebar__tools">
         <button
           type="button"
           className="gg-nav-btn gg-nav-btn--quiet"
           onClick={() => open("base")}
         >
+          <ClipboardCheck aria-hidden />
           {baseComplete
-            ? "BASE Activation ✓"
+            ? "BASE Activation"
             : `BASE Activation · ${baseCount}/${BASE_STEPS.length}`}
         </button>
         <button
@@ -55,6 +78,7 @@ export function Sidebar() {
           className="gg-nav-btn gg-nav-btn--quiet"
           onClick={() => open(baseComplete ? "gema" : "base")}
         >
+          {baseComplete ? <Award aria-hidden /> : <Lock aria-hidden />}
           {baseComplete ? "GEMA" : "GEMA · locked"}
         </button>
         <button
@@ -62,26 +86,25 @@ export function Sidebar() {
           className="gg-nav-btn gg-nav-btn--quiet"
           onClick={() => open("ggverse")}
         >
+          <Sparkles aria-hidden />
           GG-VERSE
         </button>
-        <button
-          type="button"
-          className="gg-nav-btn gg-nav-btn--quiet"
-          onClick={() => open("settings")}
-        >
-          Settings
-        </button>
       </div>
-      <div style={{ marginTop: "auto", padding: "18px 12px 0" }}>
-        <Button variant="commerce" block onClick={() => open("order")}>
-          Order now
-        </Button>
-        <p className="gg-help" style={{ marginTop: 8 }}>
-          {hasSupply(session.daysLeft)
-            ? `${session.daysLeft} days of supply left`
-            : "No bottle yet"}
-        </p>
-        <Badge>{session.team}</Badge>
+      <div className="gg-sidebar__foot">
+        <div className="gg-sidebar__order">
+          <Button variant="commerce" block onClick={() => open("order")}>
+            Order now
+          </Button>
+          <div className="gg-sidebar__supply">
+            <p className="gg-help">
+              {hasSupply(session.daysLeft)
+                ? `${session.daysLeft} days of supply left`
+                : "No bottle yet"}
+            </p>
+            <Badge>{session.team}</Badge>
+          </div>
+        </div>
+        <AccountCard />
       </div>
     </aside>
   );
