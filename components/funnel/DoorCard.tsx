@@ -8,13 +8,20 @@ import { CardBack, CardFace, FlipCard } from "@/components/lifestyle/FlipCard";
 import { Confetti } from "@/components/lifestyle/Confetti";
 import { useSession } from "@/lib/session";
 
-export function DoorCard({ memberName }: { memberName?: string }) {
+export function DoorCard({
+  memberName,
+  cardNo,
+}: {
+  memberName?: string;
+  cardNo?: string;
+}) {
   const { session, setPhase, update } = useSession();
   const params = useSearchParams();
   const claimed = params.get("claimed") === "1" || session.claimed;
   const [flipped, setFlipped] = useState(false);
   const router = useRouter();
   const name = memberName?.trim() || session.name;
+  const doorCardNo = cardNo?.trim() || session.cardNo;
 
   function claimCard() {
     update({ claimed: true });
@@ -34,7 +41,7 @@ export function DoorCard({ memberName }: { memberName?: string }) {
               </p>
             </CardFace>
           }
-          back={<CardBack seed={session.cardNo} cardNo={session.cardNo} />}
+          back={<CardBack seed={doorCardNo} cardNo={doorCardNo} />}
         />
         <div>
           <p className="gg-eyebrow">{claimed ? "Already yours" : "Before the door"}</p>

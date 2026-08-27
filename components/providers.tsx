@@ -6,6 +6,7 @@ import { SessionProvider } from "@/lib/session";
 import { ToastProvider } from "@/lib/toast";
 import { DemoStrip } from "@/components/lifestyle/DemoStrip";
 import { ToastViewport } from "@/components/ui/Toast";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { ReactNode } from "react";
 
 function PageFade({ children }: { children: ReactNode }) {
@@ -24,7 +25,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <ToastProvider>
           <PageFade>{children}</PageFade>
           <ToastViewport />
-          {process.env.NODE_ENV === "development" ? <DemoStrip /> : null}
+          {process.env.NODE_ENV === "development" && !isSupabaseConfigured() ? (
+            <DemoStrip />
+          ) : null}
         </ToastProvider>
       </OverlayProvider>
     </SessionProvider>

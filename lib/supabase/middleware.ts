@@ -1,9 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-function isMemberShell(pathname: string) {
-  return pathname === "/app" || pathname.startsWith("/app/");
-}
+import {
+  requiresLifestyleAuth,
+  unauthenticatedLifestylePath,
+} from "@/lib/supabase/protected-paths";
 
 /** Cookie client used by root middleware to refresh the Auth token. */
 export async function updateSession(request: NextRequest) {
@@ -43,9 +43,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && isMemberShell(request.nextUrl.pathname)) {
+  if (!user && requiresLifestyleAuth(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = unauthenticatedLifestylePath(request.nextUrl.pathname);
+    url.search = "";
     const redirectResponse = NextResponse.redirect(url);
     supabaseResponse.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie);
