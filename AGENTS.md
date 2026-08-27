@@ -20,7 +20,7 @@ This repo is the **hub**. GEMA and Academy are spokes. One login: GEMA Auth + On
 4. Then the Tech Stack / Design System gates below
 5. Do not skip Changes. Do not touch production Auth until Change 1 is done on Staging.
 
-Canonical Obsidian drop: `C:\Users\najee\OneDrive\Documents\GutGuard\One Account\`  
+Canonical Obsidian drop: `C:\Users\najee\Documents\One Account\`  
 Do **not** edit `GutGuard Tech Stack/` or `GutGuard Design System/`.
 
 # GutGuard — Tech Stack gate
