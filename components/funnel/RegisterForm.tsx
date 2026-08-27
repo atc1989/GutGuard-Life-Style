@@ -4,15 +4,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { signIn, signUp, type AuthActionResult } from "@/lib/actions/auth";
+import {
+  confirmEmailCode,
+  resendEmailCode,
+  signIn,
+  signUp,
+  type AuthActionResult,
+} from "@/lib/actions/auth";
+import { EMAIL_CODE_COPY, EMAIL_CODE_HINT } from "@/lib/auth/email-code";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
 import {
+  authConfirmSchema,
   authRegisterSchema,
   authSignInSchema,
   PASSWORD_HINT,
   PASSWORD_MIN_LENGTH,
+  type AuthConfirmValues,
   type AuthRegisterValues,
   type AuthSignInValues,
 } from "@/lib/schemas/auth";
@@ -20,11 +29,13 @@ import { createNewMemberSession, resumeRoute } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
 
+type Mode = "register" | "signin" | "confirm";
+
 export function RegisterForm() {
   const router = useRouter();
   const { session, update } = useSession();
   const { push } = useToast();
-  const [mode, setMode] = useState<"register" | "signin">("register");
+  const [mode, setMode] = useState<Mode>("register");
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -36,16 +47,34 @@ export function RegisterForm() {
     resolver: zodResolver(authSignInSchema),
     defaultValues: { email: "", password: "" },
   });
+  const confirmForm = useForm<AuthConfirmValues>({
+    resolver: zodResolver(authConfirmSchema),
+    defaultValues: { email: "", code: "" },
+  });
 
-  function switchMode(next: "register" | "signin") {
-    const email =
-      mode === "register"
-        ? registerForm.getValues("email")
-        : signInForm.getValues("email");
+  function currentEmail() {
+    if (mode === "register") return registerForm.getValues("email");
+    if (mode === "signin") return signInForm.getValues("email");
+    return confirmForm.getValues("email");
+  }
+
+  function switchMode(next: Exclude<Mode, "confirm">) {
+    const email = currentEmail();
     setFormError(null);
     setMode(next);
     if (next === "signin") signInForm.setValue("email", email);
     else registerForm.setValue("email", email);
+  }
+
+  function goConfirm(email: string) {
+    setMode("confirm");
+    confirmForm.reset({ email, code: "" });
+    setFormError(EMAIL_CODE_COPY);
+    push({
+      tone: "success",
+      title: "Enter your code",
+      body: EMAIL_CODE_HINT,
+    });
   }
 
   async function finishRegister(values: { name: string; mobile: string; email: string }) {
@@ -70,6 +99,14 @@ export function RegisterForm() {
       }
       return;
     }
+    if (mode === "confirm") {
+      for (const [key, message] of Object.entries(fieldErrors)) {
+        if (key === "email" || key === "code") {
+          confirmForm.setError(key, { type: "server", message });
+        }
+      }
+      return;
+    }
     for (const [key, message] of Object.entries(fieldErrors)) {
       if (key === "email" || key === "password") {
         signInForm.setError(key, { type: "server", message });
@@ -80,8 +117,15 @@ export function RegisterForm() {
   async function handleAuthResult(
     result: AuthActionResult,
     mockFinish: () => Promise<void>,
+    email: string,
   ) {
     if (!result.ok) {
+      if (result.needsConfirm) {
+        goConfirm(email);
+        setFormError(result.error);
+        applyFieldErrors(result.fieldErrors);
+        return;
+      }
       setFormError(result.error);
       applyFieldErrors(result.fieldErrors);
       return;
@@ -90,35 +134,43 @@ export function RegisterForm() {
       await mockFinish();
       return;
     }
-    switchMode("signin");
-    setFormError("Check your email to confirm your card, then sign in.");
-    push({
-      tone: "success",
-      title: "Confirm your email",
-      body: "Open the link we sent, then sign in with your password.",
-    });
+    goConfirm(email);
   }
+
+  const heading =
+    mode === "register" ? (
+      <>
+        Enter your <em>name</em>
+      </>
+    ) : mode === "confirm" ? (
+      <>
+        Confirm your <em>email</em>
+      </>
+    ) : (
+      <>
+        Welcome <em>back</em>
+      </>
+    );
+
+  const lede =
+    mode === "register"
+      ? "Name, mobile, email, and a password. Your session is a cookie when connected."
+      : mode === "confirm"
+        ? EMAIL_CODE_HINT
+        : "Email and password. Same card, same door. If you already confirmed, skip the code.";
 
   return (
     <main className="gg-funnel gg-funnel--editorial">
       <div className="gg-split gg-split--form">
         <div>
-          <p className="gg-eyebrow">{mode === "register" ? "Sign up" : "Sign in"}</p>
+          <p className="gg-eyebrow">
+            {mode === "register" ? "Sign up" : mode === "confirm" ? "Confirm" : "Sign in"}
+          </p>
           <h1 className="gg-display" style={{ marginTop: 12 }}>
-            {mode === "register" ? (
-              <>
-                Enter your <em>name</em>
-              </>
-            ) : (
-              <>
-                Welcome <em>back</em>
-              </>
-            )}
+            {heading}
           </h1>
           <p className="gg-lede" style={{ marginTop: 14 }}>
-            {mode === "register"
-              ? "Name, mobile, email, and a password. Your session is a cookie when Supabase is connected."
-              : "Email and password. Same card, same door."}
+            {lede}
           </p>
         </div>
         <Card variant="editorial" className="gg-stack">
@@ -138,7 +190,7 @@ export function RegisterForm() {
                 try {
                   const result = await signUp(values);
                   if (!result) return;
-                  await handleAuthResult(result, () => finishRegister(values));
+                  await handleAuthResult(result, () => finishRegister(values), values.email);
                 } finally {
                   setLoading(false);
                 }
@@ -193,6 +245,83 @@ export function RegisterForm() {
                 Already have a card? Sign in
               </Button>
             </form>
+          ) : mode === "confirm" ? (
+            <form
+              className="gg-stack"
+              noValidate
+              aria-busy={loading || undefined}
+              onSubmit={confirmForm.handleSubmit(async (values) => {
+                setFormError(null);
+                setLoading(true);
+                try {
+                  const result = await confirmEmailCode(values);
+                  if (!result) return;
+                  await handleAuthResult(result, async () => undefined, values.email);
+                } finally {
+                  setLoading(false);
+                }
+              })}
+            >
+              <FormField
+                variant="ruled"
+                label="Email"
+                type="email"
+                autoComplete="email"
+                readOnly
+                {...confirmForm.register("email")}
+                error={confirmForm.formState.errors.email?.message}
+              />
+              <FormField
+                variant="ruled"
+                label="Email code"
+                placeholder="6-digit code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                spellCheck={false}
+                hint="Paste the number even if it has spaces."
+                {...confirmForm.register("code")}
+                error={confirmForm.formState.errors.code?.message}
+              />
+              <Button type="submit" variant="editorial" block loading={loading}>
+                Confirm email
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                block
+                disabled={loading}
+                onClick={async () => {
+                  setFormError(null);
+                  setLoading(true);
+                  try {
+                    const result = await resendEmailCode({
+                      email: confirmForm.getValues("email"),
+                    });
+                    if (!result.ok) {
+                      setFormError(result.error);
+                      return;
+                    }
+                    push({
+                      tone: "success",
+                      title: "Code sent",
+                      body: "Check your inbox for a new 6-digit code.",
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
+                Send a new code
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                block
+                onClick={() => switchMode("signin")}
+              >
+                Already confirmed? Sign in
+              </Button>
+            </form>
           ) : (
             <form
               className="gg-stack"
@@ -206,7 +335,7 @@ export function RegisterForm() {
                   if (!result) return;
                   await handleAuthResult(result, async () => {
                     router.push(resumeRoute(session.phase));
-                  });
+                  }, values.email);
                 } finally {
                   setLoading(false);
                 }

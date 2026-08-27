@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EMAIL_CODE_LENGTH, normalizeEmailCode } from "@/lib/auth/email-code";
 
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_HINT =
@@ -51,9 +52,23 @@ export const authSignInSchema = z.object({
     .max(72, "Password is too long"),
 });
 
+export const authConfirmSchema = z.object({
+  email: emailSchema,
+  code: z
+    .string()
+    .trim()
+    .transform(normalizeEmailCode)
+    .pipe(
+      z
+        .string()
+        .length(EMAIL_CODE_LENGTH, "Enter the 6-digit code from your email"),
+    ),
+});
+
 export type AuthRegisterValues = z.input<typeof authRegisterSchema>;
 export type AuthRegisterParsed = z.output<typeof authRegisterSchema>;
 export type AuthSignInValues = z.input<typeof authSignInSchema>;
+export type AuthConfirmValues = z.input<typeof authConfirmSchema>;
 
 export const EMAIL_TAKEN = "This email already has a card. Sign in instead.";
 export const MOBILE_TAKEN =

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { authRegisterSchema, authSignInSchema } from "./auth.ts";
+import { authConfirmSchema, authRegisterSchema, authSignInSchema } from "./auth.ts";
 
 test("auth register requires name, mobile, email, and a strong password", () => {
   const missingEmail = authRegisterSchema.safeParse({
@@ -37,6 +37,21 @@ test("auth sign-in requires email and password", () => {
     password: "Gutguard1",
   });
   assert.equal(ok.success, true);
+});
+
+test("auth confirm accepts a spaced 6-digit email code", () => {
+  const ok = authConfirmSchema.safeParse({
+    email: "ana@example.com",
+    code: "9 5 8 8 8 9",
+  });
+  assert.equal(ok.success, true);
+  if (ok.success) assert.equal(ok.data.code, "958889");
+
+  const short = authConfirmSchema.safeParse({
+    email: "ana@example.com",
+    code: "123",
+  });
+  assert.equal(short.success, false);
 });
 
 test("duplicate identity names the taken field", async () => {
