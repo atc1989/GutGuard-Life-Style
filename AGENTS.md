@@ -12,13 +12,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 This repo is the **hub**. GEMA and Academy are spokes. One login: GEMA Auth + OneGrinders.
 
-**Every session, and every time you start the next Change:**
+**Every session, before every task, and after every task:**
 
 1. Read `docs/obsidian/One Account/00 - Session gate.md`
 2. Read `docs/obsidian/One Account/One Account.md` and confirm **Current change**
 3. Read that Change note only
 4. Then the Tech Stack / Design System gates below
-5. Do not skip Changes. Do not touch production Auth until Change 1 is done on Staging.
+5. After the task: re-read the board. Do not invent the next step. Do not skip Changes. Do not touch production Auth until Change 1 is done on Staging.
 
 Canonical Obsidian drop: `C:\Users\najee\Documents\One Account\`  
 Do **not** edit `GutGuard Tech Stack/` or `GutGuard Design System/`.
