@@ -77,6 +77,8 @@ Product surface (not Academy admin):
 
 Auth (current): **email OTP** when Supabase env is set; **localStorage mock** when it is not. Mobile is stored on the profile. SMS OTP is later.
 
+Shared identity with GEMA and Academy (planned): [docs/unified-profile.md](./unified-profile.md). One Auth user, one person row; card/points/phase stay in this product.
+
 ---
 
 ## Phased to-do (Lifestyle)

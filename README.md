@@ -14,6 +14,8 @@ After register, the first session is the door card — not the full member OS. S
 
 **Mock fallback** when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are empty: the same register form writes a `localStorage` session and skips the code step. Use this for UI work.
 
+Planned shared identity with GEMA and Academy: [docs/unified-profile.md](./docs/unified-profile.md).
+
 GEMA stays locked until all five BASE steps are done. With Supabase on, `lifestyle_base_complete()` enforces that server-side.
 
 ## Setup
