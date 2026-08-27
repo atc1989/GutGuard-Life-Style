@@ -9,12 +9,12 @@ import {
   type ReactNode,
 } from "react";
 import { persistProfile } from "@/lib/actions/member";
-import {
-  createNewMemberSession,
-  type FunnelPhase,
-  type MockSession,
-} from "@/lib/mock/seed";
+import { type FunnelPhase, type MockSession } from "@/lib/mock/seed";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import {
+  parseLifestyleSession,
+  shouldPersistMockSession,
+} from "@/lib/session-state";
 
 const STORAGE_KEY = "gg-lifestyle-session";
 const EVENT_KEY = "gg-lifestyle-session";
@@ -29,15 +29,6 @@ type SessionContextValue = {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-function parseSession(raw: string | null): MockSession {
-  if (!raw) return createNewMemberSession();
-  try {
-    return { ...createNewMemberSession(), ...JSON.parse(raw) } as MockSession;
-  } catch {
-    return createNewMemberSession();
-  }
-}
-
 function subscribe(onStoreChange: () => void) {
   window.addEventListener(EVENT_KEY, onStoreChange);
   window.addEventListener("storage", onStoreChange);
@@ -48,6 +39,7 @@ function subscribe(onStoreChange: () => void) {
 }
 
 function getSnapshot() {
+  if (isSupabaseConfigured()) return null;
   return window.localStorage.getItem(STORAGE_KEY);
 }
 
@@ -68,6 +60,7 @@ function getServerFalse() {
 }
 
 function writeSession(next: MockSession) {
+  if (!shouldPersistMockSession(isSupabaseConfigured())) return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   window.dispatchEvent(new Event(EVENT_KEY));
 }
@@ -79,10 +72,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     getClientTrue,
     getServerFalse,
   );
-  const session = parseSession(raw);
+  const session = parseLifestyleSession(raw, isSupabaseConfigured());
 
   const update = useCallback((patch: Partial<MockSession>) => {
-    const next = { ...parseSession(getSnapshot()), ...patch };
+    const next = { ...parseLifestyleSession(getSnapshot(), isSupabaseConfigured()), ...patch };
     writeSession(next);
     if (isSupabaseConfigured()) {
       void persistProfile({
@@ -105,7 +98,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setPhase = useCallback((phase: FunnelPhase) => {
-    const current = parseSession(getSnapshot());
+    const current = parseLifestyleSession(getSnapshot(), isSupabaseConfigured());
     const claimed =
       phase === "claimed" || phase === "nearly" || phase === "member"
         ? true
