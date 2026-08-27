@@ -76,6 +76,7 @@ export function AccountMenu() {
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         aria-controls={menuId}
+        aria-label={`${name}, account menu`}
         onClick={() => setMenuOpen((value) => !value)}
       >
         <Avatar name={name} />

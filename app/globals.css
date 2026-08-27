@@ -1207,6 +1207,17 @@ a {
   border-top: 1px solid var(--gg-rule);
 }
 
+.gg-account-card__row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.gg-account-card__row .gg-icon-btn {
+  margin-left: auto;
+}
+
 .gg-account-card__row .gg-account__meta {
   flex: 1;
   min-width: 0;
@@ -1231,24 +1242,25 @@ a {
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-.gg-masthead-wrap {
-  margin-bottom: 8px;
+.gg-masthead {
+  display: grid;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  padding: 12px 0 14px;
+  background: var(--gg-paper);
 }
 
-.gg-masthead {
+.gg-masthead__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 15;
-  padding: 12px 0;
-  background: var(--gg-paper);
 }
 
 .gg-masthead-tabs {
-  margin-bottom: 8px;
+  min-height: 44px;
 }
 
 .gg-masthead__meta {
@@ -1630,8 +1642,11 @@ body.has-demo .gg-masthead {
   }
 
   .gg-masthead {
-    justify-content: flex-end;
     padding: 18px 0 16px;
+  }
+
+  .gg-masthead__bar {
+    justify-content: flex-end;
   }
 
   .gg-backdrop {

@@ -19,13 +19,13 @@ export function Masthead() {
     : "/app/health";
 
   return (
-    <div className="gg-masthead-wrap">
-      <header className="gg-masthead">
+    <header className="gg-masthead">
+      <div className="gg-masthead__bar">
         <div className="gg-mobile-only">
           <AccountMenu />
         </div>
         <NotificationBell />
-      </header>
+      </div>
       <div className="gg-mobile-only gg-masthead-tabs">
         <SegmentedControl
           label="Member sections"
@@ -34,6 +34,6 @@ export function Masthead() {
           onChange={(href) => router.push(href)}
         />
       </div>
-    </div>
+    </header>
   );
 }
