@@ -8,6 +8,21 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+# One Account — read before every identity / auth / profile move
+
+This repo is the **hub**. GEMA and Academy are spokes. One login: GEMA Auth + OneGrinders.
+
+**Every session, and every time you start the next Change:**
+
+1. Read `docs/obsidian/One Account/00 - Session gate.md`
+2. Read `docs/obsidian/One Account/One Account.md` and confirm **Current change**
+3. Read that Change note only
+4. Then the Tech Stack / Design System gates below
+5. Do not skip Changes. Do not touch production Auth until Change 1 is done on Staging.
+
+Canonical Obsidian drop: `C:\Users\najee\OneDrive\Documents\GutGuard\One Account\`  
+Do **not** edit `GutGuard Tech Stack/` or `GutGuard Design System/`.
+
 # GutGuard — Tech Stack gate
 
 Before scaffolding or changing app architecture, data, auth, deploy, or dependencies:
@@ -33,7 +48,7 @@ Before scaffolding or changing app architecture, data, auth, deploy, or dependen
 Local Tech Stack path:
 `d:\GutGuard\GutGuard Tech Stack\`
 
-Auth for this product (current pass): **UI-first mock session** in `localStorage`. Real Supabase Auth is not wired yet. Scaffolded clients live in `lib/supabase/`.
+Auth for this product: email/password when Supabase env is set; `localStorage` mock only when env is empty. One Account plan: share GEMA Auth + OneGrinders and stop using mock as authorization. See `docs/obsidian/One Account/`.
 
 Workflow: vault notes `07 - Using the Tech Stack with Cursor.md` and `05 - Playbook.md`.
 
