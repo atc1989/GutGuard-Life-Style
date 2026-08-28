@@ -10,7 +10,7 @@ tags:
 
 # Change 2 — Shared login engine
 
-**Status:** blocked on [[Change 1 - Staging identity freeze]]
+**Status:** open · **Current change** on [[One Account]]. [[Change 1 - Staging identity freeze]] closed on Staging 2026-08-28.
 
 Read [[00 - Session gate]] before this Change.
 
