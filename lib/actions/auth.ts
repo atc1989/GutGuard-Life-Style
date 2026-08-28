@@ -1,8 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { CARD_NUMBER, resumeRoute } from "@/lib/mock/seed";
+import { createLoginEngine } from "@/lib/one-account";
 import {
   authRegisterSchema,
   authSignInSchema,
@@ -123,6 +125,16 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
   redirect("/card");
 }
 
+/**
+ * Sign-in behaviour is the shared One Account engine (Change 2), so the same
+ * Gutguard credentials open Lifestyle, GEMA, and Academy. Lifestyle keeps only
+ * its own landing: the door card until it is claimed, then the member app.
+ */
+const loginEngine = createLoginEngine({
+  getSessionClient: createClient,
+  runAfterResponse: after,
+});
+
 export async function signIn(input: unknown): Promise<AuthActionResult> {
   const parsed = authSignInSchema.safeParse(input);
   if (!parsed.success) {
@@ -137,25 +149,26 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
     return { ok: true, mode: "mock" };
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
-    password: parsed.data.password,
-  });
-  if (error || !data.user) {
-    return {
-      ok: false,
-      error: calmAuthError(error?.message ?? "Invalid credentials"),
-    };
+  const outcome = await loginEngine.signIn(parsed.data);
+  if (!outcome.ok) {
+    // The engine's copy is the same on every origin — do not re-word it here.
+    return { ok: false, error: outcome.error };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("phase")
-    .eq("id", data.user.id)
-    .maybeSingle();
+  // A guild member signing in here for the first time has no Lifestyle row yet.
+  // That is Change 4, not this one: land them on the door card, do not mint one.
+  let phase = "invited";
+  if (outcome.userId) {
+    const supabase = await createClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("phase")
+      .eq("id", outcome.userId)
+      .maybeSingle();
+    if (typeof profile?.phase === "string") phase = profile.phase;
+  }
 
-  redirect(resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"));
+  redirect(resumeRoute(phase));
 }
 
 export async function signOut() {

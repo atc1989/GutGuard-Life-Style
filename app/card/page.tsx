@@ -11,8 +11,12 @@ export default async function CardPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (typeof user?.user_metadata?.name === "string") {
-      memberName = user.user_metadata.name;
+    // `name` is set by Lifestyle register; `full_name` by the shared One
+    // Account provisioner, so a guild member sees their name on first visit.
+    const metadataName =
+      user?.user_metadata?.name ?? user?.user_metadata?.full_name;
+    if (typeof metadataName === "string") {
+      memberName = metadataName;
     }
     if (user) {
       const { data: profile } = await supabase
