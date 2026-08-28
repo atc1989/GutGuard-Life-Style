@@ -43,8 +43,16 @@ export const authRegisterSchema = z.object({
   password: passwordSchema,
 });
 
+/**
+ * One field, two credentials (One Account, Change 2): a OneGrinders username or
+ * an email. Register still asks for an email — a card needs a real address.
+ */
 export const authSignInSchema = z.object({
-  email: emailSchema,
+  identifier: z
+    .string()
+    .trim()
+    .min(1, "Enter your username or email")
+    .max(255, "That is too long"),
   password: z
     .string()
     .min(1, "Enter your password")

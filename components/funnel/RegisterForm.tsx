@@ -34,18 +34,20 @@ export function RegisterForm() {
   });
   const signInForm = useForm<AuthSignInValues>({
     resolver: zodResolver(authSignInSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
 
   function switchMode(next: "register" | "signin") {
-    const email =
-      mode === "register"
-        ? registerForm.getValues("email")
-        : signInForm.getValues("email");
+    // Carry what they already typed across the toggle. Sign-in also takes a
+    // OneGrinders username, so only an email can travel back to register.
     setFormError(null);
     setMode(next);
-    if (next === "signin") signInForm.setValue("email", email);
-    else registerForm.setValue("email", email);
+    if (next === "signin") {
+      signInForm.setValue("identifier", registerForm.getValues("email"));
+      return;
+    }
+    const identifier = signInForm.getValues("identifier");
+    if (identifier.includes("@")) registerForm.setValue("email", identifier);
   }
 
   async function finishRegister(values: { name: string; mobile: string; email: string }) {
@@ -71,7 +73,7 @@ export function RegisterForm() {
       return;
     }
     for (const [key, message] of Object.entries(fieldErrors)) {
-      if (key === "email" || key === "password") {
+      if (key === "identifier" || key === "password") {
         signInForm.setError(key, { type: "server", message });
       }
     }
@@ -118,7 +120,7 @@ export function RegisterForm() {
           <p className="gg-lede" style={{ marginTop: 14 }}>
             {mode === "register"
               ? "Name, mobile, email, and a password. Your session is a cookie when Supabase is connected."
-              : "Email and password. Same card, same door."}
+              : "Your Gutguard username or email, and your password. Same card, same door."}
           </p>
         </div>
         <Card variant="editorial" className="gg-stack">
@@ -214,12 +216,13 @@ export function RegisterForm() {
             >
               <FormField
                 variant="ruled"
-                label="Email"
-                placeholder="you@email.com"
-                type="email"
-                autoComplete="email"
-                {...signInForm.register("email")}
-                error={signInForm.formState.errors.email?.message}
+                label="Username or email"
+                placeholder="yourname or you@email.com"
+                type="text"
+                autoComplete="username"
+                spellCheck={false}
+                {...signInForm.register("identifier")}
+                error={signInForm.formState.errors.identifier?.message}
               />
               <FormField
                 variant="ruled"

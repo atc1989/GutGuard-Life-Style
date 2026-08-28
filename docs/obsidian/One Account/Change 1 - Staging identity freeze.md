@@ -10,7 +10,7 @@ tags:
 
 # Change 1 — Staging identity freeze
 
-**Status:** open · **Current change** on [[One Account]]
+**Status:** done · proven on Staging 2026-08-28. Production Auth untouched.
 
 Read [[00 - Session gate]] again before writing any SQL or env.
 
@@ -32,12 +32,12 @@ GutGuard Staging: `fxdsnacuonfvutdquogb`.
 ## Work
 
 - [x] Academy: rewrite `academy.handle_new_user` so it only ensures a person row. No `user_roles.member`, no BASE progress on Auth insert. Forward migration only. Keep `supabase/migrations/20260813120000_init.sql` immutable.
-- [ ] Point Academy and Lifestyle **Preview / local** at the same Staging URL and anon key as GEMA Staging. Service role server-only. *(repo `.env.example` now names Staging; Vercel Preview env is still owner)*
+- [x] Point Academy and Lifestyle **Preview / local** at the same Staging URL and anon key as GEMA Staging. Service role server-only. *(repo `.env.example` names Staging; owner set Vercel Preview env)*
 - [x] Lifestyle: when those env vars are set, do not use `localStorage` as authorization.
 - [x] Prove with fictional users only:
   - [x] GEMA-style Auth insert → person exists, **zero** Academy BASE / `member_rank_progress` rows
   - [x] Lifestyle register → same `auth.users.id`, Lifestyle-only data if any, no Academy trainee
-  - [ ] Same account can sign into Academy afterwards (trainee row is Change 4; for this Change, login must not 500) — in-repo: empty roles and missing catalog no longer 500. Live Preview sign-in waits on the owner Vercel env step.
+  - [x] Same account can sign into Academy afterwards (trainee row is Change 4; for this Change, login must not 500) — one Gutguard login opened the Lifestyle door card and signed into Academy with an empty training screen. Empty is the pass; the trainee row is Change 4.
 
 ## Repos
 
@@ -58,6 +58,15 @@ GutGuard Staging: `fxdsnacuonfvutdquogb`.
 ## Done when
 
 On Staging, a new Auth user is a person only. Production Auth is untouched. Academy directory is not flooded with GEMA signups.
+
+## Proof — 2026-08-28
+
+One Gutguard login on Staging (`fxdsnacuonfvutdquogb`) opened both spokes:
+
+- Lifestyle: door card.
+- Academy: signed in, training not enrolled — an empty training screen, which is the pass for this Change.
+
+Production Auth (`rvwseybgimmewuoccecu`) was not touched. Change closed; the board moves to [[Change 2 - Shared login engine]].
 
 ## Next
 

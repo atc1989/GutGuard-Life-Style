@@ -28,15 +28,25 @@ test("auth register requires name, mobile, email, and a strong password", () => 
   if (ok.success) assert.equal(ok.data.mobile, "+639171234567");
 });
 
-test("auth sign-in requires email and password", () => {
-  const missing = authSignInSchema.safeParse({ email: "ana@example.com" });
+test("auth sign-in takes a username or an email, plus a password", () => {
+  const missing = authSignInSchema.safeParse({ identifier: "ana@example.com" });
   assert.equal(missing.success, false);
 
-  const ok = authSignInSchema.safeParse({
-    email: "ana@example.com",
+  const byEmail = authSignInSchema.safeParse({
+    identifier: "ana@example.com",
     password: "Gutguard1",
   });
-  assert.equal(ok.success, true);
+  assert.equal(byEmail.success, true);
+
+  // A OneGrinders username is not an email and must still pass.
+  const byUsername = authSignInSchema.safeParse({
+    identifier: "anacruz",
+    password: "Gutguard1",
+  });
+  assert.equal(byUsername.success, true);
+
+  const blank = authSignInSchema.safeParse({ identifier: "  ", password: "x" });
+  assert.equal(blank.success, false);
 });
 
 test("duplicate identity names the taken field", async () => {
