@@ -59,6 +59,19 @@ export const authSignInSchema = z.object({
     .max(72, "Password is too long"),
 });
 
+/**
+ * Staging's Confirm signup emails a 6-digit code, not a link. The address is
+ * carried alongside it because `verifyOtp` needs both.
+ */
+export const authConfirmSchema = z.object({
+  email: emailSchema,
+  code: z
+    .string()
+    .trim()
+    .transform((value) => value.replace(/\D/g, ""))
+    .pipe(z.string().length(6, "Enter the 6-digit code from your email")),
+});
+
 export type AuthRegisterValues = z.input<typeof authRegisterSchema>;
 export type AuthRegisterParsed = z.output<typeof authRegisterSchema>;
 export type AuthSignInValues = z.input<typeof authSignInSchema>;

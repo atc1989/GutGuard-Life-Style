@@ -4,7 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { signIn, signUp, type AuthActionResult } from "@/lib/actions/auth";
+import {
+  confirmEmailCode,
+  resendEmailCode,
+  signIn,
+  signUp,
+  type AuthActionResult,
+} from "@/lib/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
@@ -16,6 +22,11 @@ import {
   type AuthRegisterValues,
   type AuthSignInValues,
 } from "@/lib/schemas/auth";
+import {
+  EMAIL_CODE_HINT,
+  EMAIL_CODE_LENGTH,
+  normalizeEmailCode,
+} from "@/lib/one-account/client";
 import { createNewMemberSession, resumeRoute } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
@@ -27,6 +38,10 @@ export function RegisterForm() {
   const [mode, setMode] = useState<"register" | "signin">("register");
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  // Set when Staging says the address exists but was never confirmed. Holding
+  // the email here is what lets the code step call verifyOtp.
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [code, setCode] = useState("");
 
   const registerForm = useForm<AuthRegisterValues>({
     resolver: zodResolver(authRegisterSchema),
@@ -86,19 +101,127 @@ export function RegisterForm() {
     if (!result.ok) {
       setFormError(result.error);
       applyFieldErrors(result.fieldErrors);
+      if (result.needsConfirm) {
+        const typed = signInForm.getValues("identifier").trim();
+        if (typed.includes("@")) setConfirmEmail(typed);
+      }
       return;
     }
     if (result.mode === "mock") {
       await mockFinish();
       return;
     }
-    switchMode("signin");
-    setFormError("Check your email to confirm your card, then sign in.");
+    // Staging emails a 6-digit code rather than a link, so the card step is a
+    // code box here instead of "go and check your inbox for a link".
+    setConfirmEmail(registerForm.getValues("email").trim());
+    setFormError(null);
     push({
       tone: "success",
       title: "Confirm your email",
-      body: "Open the link we sent, then sign in with your password.",
+      body: "Enter the 6-digit code we sent to open your card.",
     });
+  }
+
+  async function submitCode() {
+    setFormError(null);
+    setLoading(true);
+    try {
+      const result = await confirmEmailCode({ email: confirmEmail, code });
+      if (!result) return;
+      if (result.ok && result.mode === "mock") {
+        router.push(resumeRoute(session.phase));
+        return;
+      }
+      if (!result.ok) setFormError(result.error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function requestNewCode() {
+    setFormError(null);
+    setLoading(true);
+    try {
+      const result = await resendEmailCode({ email: confirmEmail });
+      if (!result) return;
+      if (result.ok) {
+        push({ tone: "success", title: "Code sent", body: result.message ?? "" });
+      } else {
+        setFormError(result.error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (confirmEmail) {
+    return (
+      <main className="gg-funnel gg-funnel--editorial">
+        <div className="gg-split gg-split--form">
+          <div>
+            <p className="gg-eyebrow">Confirm</p>
+            <h1 className="gg-display" style={{ marginTop: 12 }}>
+              Check your <em>email</em>
+            </h1>
+            <p className="gg-lede" style={{ marginTop: 14 }}>
+              We sent a {EMAIL_CODE_LENGTH}-digit code to {confirmEmail}. {EMAIL_CODE_HINT}
+            </p>
+          </div>
+          <Card variant="editorial" className="gg-stack">
+            {formError ? (
+              <p className="gg-field__error" role="alert" aria-live="polite">
+                {formError}
+              </p>
+            ) : null}
+            <form
+              className="gg-stack"
+              noValidate
+              aria-busy={loading || undefined}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitCode();
+              }}
+            >
+              <FormField
+                variant="ruled"
+                label="Confirmation code"
+                placeholder="000000"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={EMAIL_CODE_LENGTH}
+                spellCheck={false}
+                value={code}
+                onChange={(event) => setCode(normalizeEmailCode(event.target.value))}
+              />
+              <Button
+                type="submit"
+                variant="editorial"
+                block
+                loading={loading}
+                disabled={code.length !== EMAIL_CODE_LENGTH}
+              >
+                Confirm and open my card
+              </Button>
+              <Button type="button" variant="ghost" block onClick={() => void requestNewCode()}>
+                Send a new code
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                block
+                onClick={() => {
+                  setConfirmEmail("");
+                  setCode("");
+                  setFormError(null);
+                }}
+              >
+                Back
+              </Button>
+            </form>
+          </Card>
+        </div>
+      </main>
+    );
   }
 
   return (

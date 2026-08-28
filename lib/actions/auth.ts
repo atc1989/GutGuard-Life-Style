@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
 import { CARD_NUMBER, resumeRoute } from "@/lib/mock/seed";
-import { createLoginEngine } from "@/lib/one-account";
+import { createLoginEngine, EMAIL_CODE_RESENT } from "@/lib/one-account";
 import {
+  authConfirmSchema,
   authRegisterSchema,
   authSignInSchema,
   duplicateIdentityResult,
@@ -14,8 +15,14 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthActionResult =
-  | { ok: true; mode: "mock" | "confirm" }
-  | { ok: false; error: string; fieldErrors?: Record<string, string> };
+  | { ok: true; mode: "mock" | "confirm"; message?: string }
+  | {
+      ok: false;
+      error: string;
+      fieldErrors?: Record<string, string>;
+      /** Staging emails a 6-digit code; the form offers that step. */
+      needsConfirm?: boolean;
+    };
 
 function fieldErrorsFromZod(error: z.ZodError): Record<string, string> {
   const fieldErrors: Record<string, string> = {};
@@ -152,7 +159,7 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
   const outcome = await loginEngine.signIn(parsed.data);
   if (!outcome.ok) {
     // The engine's copy is the same on every origin — do not re-word it here.
-    return { ok: false, error: outcome.error };
+    return { ok: false, error: outcome.error, needsConfirm: outcome.needsEmailConfirm };
   }
 
   // A guild member signing in here for the first time has no Lifestyle row yet.
@@ -169,6 +176,73 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
   }
 
   redirect(resumeRoute(phase));
+}
+
+function loginRedirectTo() {
+  const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  return origin ? `${origin}/register` : undefined;
+}
+
+/** Staging emails a 6-digit code instead of a confirmation link. */
+export async function confirmEmailCode(input: unknown): Promise<AuthActionResult> {
+  if (!isSupabaseConfigured()) {
+    return { ok: true, mode: "mock" };
+  }
+
+  const parsed = authConfirmSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: "Enter the 6-digit code from your email.",
+      fieldErrors: fieldErrorsFromZod(parsed.error),
+      needsConfirm: true,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: parsed.data.email,
+    token: parsed.data.code,
+    type: "signup",
+  });
+  if (error || !data.user) {
+    return {
+      ok: false,
+      error: "That code did not work. Ask for a new one.",
+      needsConfirm: true,
+    };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("phase")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  redirect(resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"));
+}
+
+export async function resendEmailCode(input: unknown): Promise<AuthActionResult> {
+  if (!isSupabaseConfigured()) {
+    return { ok: true, mode: "mock" };
+  }
+
+  const parsed = authConfirmSchema.pick({ email: true }).safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Enter a valid email.", needsConfirm: true };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: parsed.data.email,
+    options: { emailRedirectTo: loginRedirectTo() },
+  });
+  if (error) {
+    return { ok: false, error: "Could not send a new code just now.", needsConfirm: true };
+  }
+
+  return { ok: true, mode: "confirm", message: EMAIL_CODE_RESENT };
 }
 
 export async function signOut() {
