@@ -100,32 +100,14 @@ a {
   overflow-x: hidden;
 }
 
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition {
-  pointer-events: none;
-  background-color: var(--paper);
-}
-
-::view-transition-old(root) {
-  animation: 180ms var(--gg-ease-out) both gg-page-out;
-}
-
-::view-transition-new(root) {
-  animation: 280ms var(--gg-ease-out) both gg-page-in;
-}
-
 .gg-page {
   animation: 280ms var(--gg-ease-out) both gg-page-in;
 }
 
 .gg-page-loading {
-  min-height: 100dvh;
+  min-height: 50dvh;
   display: grid;
   place-items: center;
-  background-color: var(--paper);
 }
 
 .gg-page-loading .gg-spinner {
@@ -140,15 +122,6 @@ a {
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes gg-page-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
   }
 }
 
@@ -512,8 +485,11 @@ a {
 }
 
 .gg-segment__button {
+  display: grid;
+  place-items: center;
   min-height: 44px;
   border: 0;
+  text-decoration: none;
   border-radius: var(--gg-r-sm);
   background: transparent;
   padding: 8px 14px;
@@ -526,7 +502,6 @@ a {
   cursor: pointer;
 }
 
-.gg-segment__button[aria-selected="true"],
 .gg-segment__button.is-active {
   background: var(--gg-paper);
   color: var(--gg-ink);
@@ -999,6 +974,7 @@ a {
   top: calc(100% + 8px);
   width: min(320px, calc(100vw - 32px));
   z-index: 30;
+  outline: none;
 }
 
 .gg-sidebar {
@@ -1102,6 +1078,15 @@ a {
   stroke-linejoin: round;
 }
 
+.gg-nav-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
 .gg-nav-btn.is-active {
   background: rgba(6, 8, 169, 0.07);
   color: var(--gg-blue);
@@ -1200,6 +1185,10 @@ a {
   box-shadow: var(--gg-shadow-card);
 }
 
+.gg-account.is-open .gg-account__trigger {
+  background: rgba(6, 8, 169, 0.07);
+}
+
 .gg-account-card {
   display: grid;
   gap: 10px;
@@ -1253,6 +1242,7 @@ a {
 }
 
 .gg-masthead__bar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1276,11 +1266,52 @@ a {
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
-  padding: 0 16px 108px;
+  padding: 0 16px calc(108px + env(safe-area-inset-bottom, 0px));
 }
 
 .gg-content__body {
   width: 100%;
+}
+
+.gg-story-disclaimer {
+  margin: 0;
+  color: var(--gg-ink-3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 899px) {
+  .gg-account {
+    position: static;
+  }
+
+  .gg-masthead__bar:has(.gg-account.is-open) {
+    margin-bottom: 132px;
+  }
+
+  .gg-masthead__bar:has(.gg-bell.is-open) {
+    margin-bottom: 164px;
+  }
+
+  .gg-account__menu {
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 100%;
+  }
+
+  .gg-bell {
+    position: static;
+  }
+
+  .gg-bell__panel {
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 100%;
+    max-height: 156px;
+    overflow-y: auto;
+  }
 }
 
 .gg-funnel {
@@ -1580,6 +1611,7 @@ body.has-demo .gg-masthead {
   }
 
   .gg-content {
+    width: auto;
     max-width: none;
     margin-left: 280px;
     min-width: 0;
@@ -1588,6 +1620,7 @@ body.has-demo .gg-masthead {
 
   .gg-content__body {
     max-width: 1040px;
+    margin-inline: auto;
   }
 
   .gg-funnel {
@@ -1613,11 +1646,6 @@ body.has-demo .gg-masthead {
   .gg-split--form {
     grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
     align-items: start;
-  }
-
-  .gg-grid-2 {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
   }
 
   .gg-grid-3 {
@@ -1670,10 +1698,6 @@ body.has-demo .gg-masthead {
     grid-template-columns: repeat(10, minmax(0, 1fr));
   }
 
-  .gg-cal {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-  }
-
   .gg-dialog-body {
     flex: 1;
     max-height: none;
@@ -1701,6 +1725,13 @@ body.has-demo .gg-masthead {
   }
 }
 
+@media (min-width: 1200px) {
+  .gg-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
 @media (max-width: 899px) {
   .gg-toast-viewport {
     bottom: 96px;
@@ -1723,12 +1754,5 @@ body.has-demo .gg-masthead {
   .gg-page {
     transition-duration: 0.01ms;
     animation: none;
-  }
-
-  ::view-transition-old(*),
-  ::view-transition-new(*),
-  ::view-transition-group(*) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
   }
 }

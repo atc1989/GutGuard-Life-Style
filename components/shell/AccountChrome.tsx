@@ -2,6 +2,7 @@
 
 import { Settings } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { cx } from "@/lib/cx";
 import { Avatar } from "@/components/ui/Avatar";
 import { IconButton } from "@/components/ui/IconButton";
 import { SignOutButton } from "@/components/ui/SignOutButton";
@@ -45,6 +46,7 @@ export function AccountMenu() {
   const name = memberDisplayName(session.name);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -56,8 +58,25 @@ export function AccountMenu() {
       }
     }
 
+    const menuItems = () =>
+      Array.from(
+        rootRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [],
+      );
+    requestAnimationFrame(() => menuItems()[0]?.focus());
+
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMenuOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      event.preventDefault();
+      const items = menuItems();
+      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      const direction = event.key === "ArrowDown" ? 1 : -1;
+      items[(current + direction + items.length) % items.length]?.focus();
     }
 
     document.addEventListener("mousedown", onPointer);
@@ -69,8 +88,9 @@ export function AccountMenu() {
   }, [menuOpen]);
 
   return (
-    <div className="gg-account" ref={rootRef}>
+    <div className={cx("gg-account", menuOpen && "is-open")} ref={rootRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="gg-account__trigger"
         aria-haspopup="menu"
@@ -96,9 +116,10 @@ export function AccountMenu() {
             <Settings aria-hidden />
             Settings
           </button>
-          <div role="none">
-            <SignOutButton />
-          </div>
+          <SignOutButton
+            role="menuitem"
+            block
+          />
         </div>
       ) : null}
     </div>

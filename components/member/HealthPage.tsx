@@ -28,16 +28,12 @@ export function HealthPage() {
           <h1 className="gg-heading">My Health</h1>
           <p className="gg-lede">Simple daily habits that support your mood and energy.</p>
         </div>
-        <Button variant="commerce" onClick={() => open("order")}>
-          {supplied && session.daysLeft > 0 ? "Order more" : "Order now"}
-        </Button>
       </div>
 
       {!supplied ? (
         <EmptyState
           title="Your protocol starts with a bottle"
           copy="Show your card at the door. Ate Marites will reach you. Nothing to log until Gutguard is in the house."
-          action={{ label: "Order now", onClick: () => open("order") }}
         />
       ) : null}
 

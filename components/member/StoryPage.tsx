@@ -21,6 +21,9 @@ export function StoryPage() {
           Share my story
         </Button>
       </div>
+      <p className="gg-alert gg-story-disclaimer">
+        Gutguard is a food supplement with no approved therapeutic claims — results vary.
+      </p>
       <div className="gg-grid-2">
         {STORIES.map((story) => (
           <Card key={story.id}>

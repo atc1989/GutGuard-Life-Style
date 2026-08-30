@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ButtonHTMLAttributes } from "react";
 import { Button } from "@/components/ui/Button";
 import { signOut } from "@/lib/actions/auth";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 
-export function SignOutButton({ block = true }: { block?: boolean }) {
+type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "onClick"> & {
+  block?: boolean;
+};
+
+export function SignOutButton({ block = true, ...props }: Props) {
   const { reset } = useSession();
   const { close } = useOverlay();
   const [loading, setLoading] = useState(false);
@@ -16,6 +20,7 @@ export function SignOutButton({ block = true }: { block?: boolean }) {
       variant="signout"
       block={block}
       loading={loading}
+      {...props}
       onClick={async () => {
         setLoading(true);
         close();

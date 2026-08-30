@@ -26,6 +26,7 @@ import { StoryShare } from "@/components/overlays/StoryShare";
 import { persistBaseStep, persistPointEvent, gemaUnlocked } from "@/lib/actions/member";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
+import { formatIdentityDetails } from "@/lib/member-display";
 
 export function MemberOverlays() {
   const { overlay, close, open } = useOverlay();
@@ -37,6 +38,7 @@ export function MemberOverlays() {
   const baseComplete = isSupabaseConfigured()
     ? Boolean(serverGema)
     : localComplete;
+  const identityDetails = formatIdentityDetails(session);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -105,9 +107,9 @@ export function MemberOverlays() {
             />
           </div>
           <p className="gg-help">The protocol needs at least 2 capsules a day.</p>
-          <p className="gg-help">
-            {session.name} · {session.mobile} · sponsor {session.sponsor}
-          </p>
+          {identityDetails.length ? (
+            <p className="gg-help">{identityDetails.join(" · ")}</p>
+          ) : null}
           <Button variant="secondary" onClick={() => open("qr")}>
             Show my QR code full size
           </Button>
@@ -182,7 +184,6 @@ export function MemberOverlays() {
           <EmptyState
             title="GEMA is locked"
             copy={`Opens when BASE Activation is complete — ${BASE_STEPS.length - session.baseDone.filter(Boolean).length} to go.`}
-            action={{ label: "Continue BASE", onClick: () => open("base") }}
           />
         )}
       </Drawer>

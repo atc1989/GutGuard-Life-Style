@@ -22,7 +22,6 @@ const EVENT_KEY = "gg-lifestyle-session";
 
 type SessionContextValue = {
   session: MockSession;
-  ready: boolean;
   update: (patch: Partial<MockSession>) => void;
   setPhase: (phase: FunnelPhase) => void;
   reset: () => void;
@@ -48,18 +47,6 @@ function getServerSnapshot() {
   return null;
 }
 
-function subscribeNever() {
-  return () => {};
-}
-
-function getClientTrue() {
-  return true;
-}
-
-function getServerFalse() {
-  return false;
-}
-
 function writeSession(next: MockSession) {
   if (!shouldPersistMockSession(isSupabaseConfigured())) return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -68,11 +55,6 @@ function writeSession(next: MockSession) {
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const ready = useSyncExternalStore(
-    subscribeNever,
-    getClientTrue,
-    getServerFalse,
-  );
   const session = parseLifestyleSession(raw, isSupabaseConfigured());
 
   const update = useCallback((patch: Partial<MockSession>) => {
@@ -116,8 +98,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ session, ready, update, setPhase, reset }),
-    [session, ready, update, setPhase, reset],
+    () => ({ session, update, setPhase, reset }),
+    [session, update, setPhase, reset],
   );
 
   return (

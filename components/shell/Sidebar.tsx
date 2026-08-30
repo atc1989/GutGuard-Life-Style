@@ -19,6 +19,8 @@ import { useSession } from "@/lib/session";
 import { BASE_STEPS, hasSupply } from "@/lib/mock/seed";
 import { cx } from "@/lib/cx";
 import type { LucideIcon } from "lucide-react";
+import { useLinkStatus } from "next/link";
+import { Spinner } from "@/components/ui/Spinner";
 
 const NAV: Array<{
   href: "/app/health" | "/app/team" | "/app/story";
@@ -29,6 +31,16 @@ const NAV: Array<{
   { href: "/app/team", label: "My Team", icon: Users },
   { href: "/app/story", label: "My Story", icon: BookOpen },
 ];
+
+function NavLabel({ children }: { children: string }) {
+  const { pending } = useLinkStatus();
+  return (
+    <span className="gg-nav-label">
+      {children}
+      {pending ? <Spinner label={`Loading ${children}`} /> : null}
+    </span>
+  );
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -55,7 +67,7 @@ export function Sidebar() {
               aria-current={active ? "page" : undefined}
             >
               <Icon aria-hidden />
-              {item.label}
+              <NavLabel>{item.label}</NavLabel>
             </Link>
           );
         })}
@@ -76,7 +88,7 @@ export function Sidebar() {
         <button
           type="button"
           className="gg-nav-btn gg-nav-btn--quiet"
-          onClick={() => open(baseComplete ? "gema" : "base")}
+          onClick={() => open("gema")}
         >
           {baseComplete ? <Award aria-hidden /> : <Lock aria-hidden />}
           {baseComplete ? "GEMA" : "GEMA · locked"}

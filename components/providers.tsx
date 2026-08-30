@@ -11,8 +11,12 @@ import type { ReactNode } from "react";
 
 function PageFade({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // Key on the route group, not the full path. /app/* shares one MemberShell
+  // (sidebar, masthead, bottom bar) that must survive tab switches — keying on
+  // pathname here remounted the entire member chrome on every navigation.
+  const group = pathname.startsWith("/app") ? "/app" : pathname;
   return (
-    <div className="gg-page" key={pathname}>
+    <div className="gg-page" key={group}>
       {children}
     </div>
   );
