@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { cx } from "@/lib/cx";
 import { Avatar } from "@/components/ui/Avatar";
@@ -9,6 +9,7 @@ import { SignOutButton } from "@/components/ui/SignOutButton";
 import { memberDisplayName } from "@/lib/initials";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
+import { memberNotifications } from "@/lib/member-notifications";
 
 function AccountMeta({ name, sponsor }: { name: string; sponsor: string }) {
   return (
@@ -44,6 +45,7 @@ export function AccountMenu() {
   const { session } = useSession();
   const { open } = useOverlay();
   const name = memberDisplayName(session.name);
+  const notifications = memberNotifications(session);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -91,6 +93,7 @@ export function AccountMenu() {
     <div className={cx("gg-account", menuOpen && "is-open")} ref={rootRef}>
       <button
         ref={triggerRef}
+        id="gg-account-trigger"
         type="button"
         className="gg-account__trigger"
         aria-haspopup="menu"
@@ -100,10 +103,28 @@ export function AccountMenu() {
         onClick={() => setMenuOpen((value) => !value)}
       >
         <Avatar name={name} />
-        <AccountMeta name={name} sponsor={session.sponsor} />
       </button>
       {menuOpen ? (
         <div className="gg-account__menu" id={menuId} role="menu">
+          <div className="gg-account__menu-head" role="none">
+            <Avatar name={name} />
+            <AccountMeta name={name} sponsor={session.sponsor} />
+          </div>
+          <button
+            type="button"
+            className="gg-nav-btn"
+            role="menuitem"
+            onClick={() => {
+              setMenuOpen(false);
+              open("notifications");
+            }}
+          >
+            <Bell aria-hidden />
+            <span>Notifications</span>
+            {notifications.length ? (
+              <span className="gg-account__badge">{notifications.length}</span>
+            ) : null}
+          </button>
           <button
             type="button"
             className="gg-nav-btn"
@@ -116,10 +137,7 @@ export function AccountMenu() {
             <Settings aria-hidden />
             Settings
           </button>
-          <SignOutButton
-            role="menuitem"
-            block
-          />
+          <SignOutButton role="menuitem" block />
         </div>
       ) : null}
     </div>

@@ -551,6 +551,11 @@ a {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  animation: gg-backdrop-in 180ms var(--gg-ease-out) both;
+}
+
+.gg-backdrop.is-closing {
+  animation: gg-backdrop-out 220ms var(--gg-ease-out) both;
 }
 
 .gg-file {
@@ -669,6 +674,11 @@ a {
   background: var(--gg-paper);
   box-shadow: var(--gg-shadow-modal);
   overflow: hidden;
+  animation: gg-sheet-in 260ms var(--gg-ease-out) both;
+}
+
+.gg-dialog.is-closing {
+  animation: gg-sheet-out 220ms var(--gg-ease-out) both;
 }
 
 .gg-dialog-header {
@@ -702,8 +712,35 @@ a {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 20px;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--gg-rule);
+  background: var(--gg-paper);
+  box-shadow: 0 -10px 24px rgba(15, 15, 24, 0.06);
+}
+
+.gg-dialog-footer > .gg-button {
+  width: 100%;
+  min-height: 52px;
+}
+
+@keyframes gg-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gg-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes gg-sheet-in {
+  from { transform: translateY(28px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes gg-sheet-out {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(28px); opacity: 0; }
 }
 
 .gg-switch {
@@ -1131,10 +1168,13 @@ a {
 .gg-account__trigger {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 0;
+  width: 44px;
+  height: 44px;
   min-height: 44px;
   max-width: 100%;
-  padding: 4px 10px 4px 4px;
+  padding: 0;
   border: 0;
   border-radius: var(--gg-r-md);
   background: transparent;
@@ -1172,17 +1212,43 @@ a {
 
 .gg-account__menu {
   position: absolute;
-  left: 0;
+  right: 0;
   top: calc(100% + 8px);
   z-index: 30;
   display: grid;
   gap: 8px;
-  width: min(260px, calc(100vw - 32px));
-  padding: 10px;
+  width: min(300px, calc(100vw - 32px));
+  padding: 12px;
   border: 1px solid var(--gg-rule);
   border-radius: var(--gg-r-md);
   background: var(--gg-paper);
   box-shadow: var(--gg-shadow-card);
+}
+
+.gg-account__menu-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 12px;
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.gg-account__menu .gg-nav-btn {
+  justify-content: flex-start;
+}
+
+.gg-account__badge {
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .gg-account.is-open .gg-account__trigger {
@@ -1226,19 +1292,63 @@ a {
   max-width: 440px;
   margin: 0 auto;
   pointer-events: auto;
-  background: var(--gg-paper);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  background: rgba(252, 250, 245, 0.97);
   border-top: 1px solid var(--gg-rule);
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 28px rgba(15, 15, 24, 0.08);
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+}
+
+.gg-bottom-nav__item {
+  min-width: 0;
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: var(--gg-r-md);
+  background: transparent;
+  color: var(--gg-ink-3);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.gg-bottom-nav__item svg {
+  width: 20px;
+  height: 20px;
+}
+
+.gg-bottom-nav__item.is-active {
+  background: rgba(6, 8, 169, 0.08);
+  color: var(--gg-blue);
+}
+
+.gg-bottom-nav__item--order {
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+}
+
+.gg-bottom-nav__item:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 2px;
 }
 
 .gg-masthead {
-  display: grid;
-  gap: 10px;
+  display: block;
   position: sticky;
   top: 0;
   z-index: 15;
-  padding: 12px 0 14px;
-  background: var(--gg-paper);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gg-rule-soft);
+  background: rgba(252, 250, 245, 0.97);
+  backdrop-filter: blur(14px);
 }
 
 .gg-masthead__bar {
@@ -1249,13 +1359,22 @@ a {
   gap: 12px;
 }
 
-.gg-masthead-tabs {
-  min-height: 44px;
+.gg-masthead__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
 }
 
-.gg-masthead__meta {
-  display: grid;
-  gap: 2px;
+.gg-masthead__brand strong {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.gg-masthead__brand em {
+  color: var(--gg-blue);
+  font-family: var(--gg-serif);
+  font-size: 19px;
+  font-style: italic;
 }
 
 .gg-frame {
@@ -1271,6 +1390,7 @@ a {
 
 .gg-content__body {
   width: 100%;
+  padding-top: 18px;
 }
 
 .gg-story-disclaimer {
@@ -1281,37 +1401,30 @@ a {
 }
 
 @media (max-width: 899px) {
-  .gg-account {
-    position: static;
-  }
-
-  .gg-masthead__bar:has(.gg-account.is-open) {
-    margin-bottom: 132px;
-  }
-
-  .gg-masthead__bar:has(.gg-bell.is-open) {
-    margin-bottom: 164px;
-  }
-
   .gg-account__menu {
-    left: 0;
     right: 0;
     top: calc(100% + 8px);
-    width: 100%;
+    width: min(300px, calc(100vw - 32px));
   }
+}
 
-  .gg-bell {
-    position: static;
-  }
+.gg-notification-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
-  .gg-bell__panel {
-    left: 0;
-    right: 0;
-    top: calc(100% + 8px);
-    width: 100%;
-    max-height: 156px;
-    overflow-y: auto;
-  }
+.gg-notification-list li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gg-rule);
+  color: var(--gg-ink);
+  font-weight: 650;
+}
+
+.gg-notification-list li:last-child {
+  border-bottom: 0;
 }
 
 .gg-funnel {
@@ -1615,12 +1728,13 @@ body.has-demo .gg-masthead {
     max-width: none;
     margin-left: 280px;
     min-width: 0;
-    padding: 8px 40px 56px;
+    padding: 32px 40px 56px;
   }
 
   .gg-content__body {
     max-width: 1040px;
     margin-inline: auto;
+    padding-top: 0;
   }
 
   .gg-funnel {
@@ -1670,11 +1784,7 @@ body.has-demo .gg-masthead {
   }
 
   .gg-masthead {
-    padding: 18px 0 16px;
-  }
-
-  .gg-masthead__bar {
-    justify-content: flex-end;
+    display: none;
   }
 
   .gg-backdrop {
@@ -1688,6 +1798,11 @@ body.has-demo .gg-masthead {
     max-height: none;
     border-radius: var(--gg-r-lg) 0 0 var(--gg-r-lg);
     box-shadow: -22px 0 70px rgba(15, 15, 24, 0.22);
+    animation-name: gg-drawer-in;
+  }
+
+  .gg-dialog.is-closing {
+    animation-name: gg-drawer-out;
   }
 
   .gg-dialog-grab {
@@ -1725,6 +1840,16 @@ body.has-demo .gg-masthead {
   }
 }
 
+@keyframes gg-drawer-in {
+  from { transform: translateX(42px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes gg-drawer-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(42px); opacity: 0; }
+}
+
 @media (min-width: 1200px) {
   .gg-grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1751,6 +1876,8 @@ body.has-demo .gg-masthead {
   .gg-flip__inner,
   .gg-confetti i,
   .gg-spinner,
+  .gg-backdrop,
+  .gg-dialog,
   .gg-page {
     transition-duration: 0.01ms;
     animation: none;

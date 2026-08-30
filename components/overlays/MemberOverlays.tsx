@@ -27,6 +27,7 @@ import { persistBaseStep, persistPointEvent, gemaUnlocked } from "@/lib/actions/
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
 import { formatIdentityDetails } from "@/lib/member-display";
+import { memberNotifications } from "@/lib/member-notifications";
 
 export function MemberOverlays() {
   const { overlay, close, open } = useOverlay();
@@ -39,6 +40,7 @@ export function MemberOverlays() {
     ? Boolean(serverGema)
     : localComplete;
   const identityDetails = formatIdentityDetails(session);
+  const notifications = memberNotifications(session);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -115,6 +117,22 @@ export function MemberOverlays() {
           </Button>
           <SignOutButton />
         </div>
+      </Drawer>
+
+      <Drawer
+        title="Notifications"
+        open={overlay === "notifications"}
+        onClose={close}
+      >
+        {notifications.length ? (
+          <ul className="gg-notification-list">
+            {notifications.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState title="No alerts" copy="You’re all caught up." />
+        )}
       </Drawer>
 
       <Drawer title="BASE Activation" open={overlay === "base"} onClose={close}>

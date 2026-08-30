@@ -265,6 +265,7 @@ export type DoseLog = Record<
 
 export type OverlayId =
   | "order"
+  | "notifications"
   | "settings"
   | "base"
   | "gema"

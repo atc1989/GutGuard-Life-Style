@@ -2,8 +2,9 @@
 
 import { X } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
+import { cx } from "@/lib/cx";
 import type { ReactNode } from "react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 type Props = {
   title: string;
@@ -17,6 +18,18 @@ export function Dialog({ title, open, onClose, children, footer }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
+  const [rendered, setRendered] = useState(open);
+  const closing = rendered && !open;
+
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(() => {
+      setRendered(false);
+    }, 220);
+    return () => window.clearTimeout(timer);
+  }, [closing]);
+
+  if (open && !rendered) setRendered(true);
 
   useEffect(() => {
     if (!open) return;
@@ -89,16 +102,26 @@ export function Dialog({ title, open, onClose, children, footer }: Props) {
         if (ariaHidden === null) node.removeAttribute("aria-hidden");
         else node.setAttribute("aria-hidden", ariaHidden);
       });
-      openerRef.current?.focus();
+      if (
+        openerRef.current?.isConnected &&
+        openerRef.current !== document.body
+      ) {
+        openerRef.current.focus();
+      } else {
+        document.getElementById("gg-account-trigger")?.focus();
+      }
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!rendered) return null;
 
   return (
-    <div className="gg-backdrop" onClick={onClose}>
+    <div
+      className={cx("gg-backdrop", closing && "is-closing")}
+      onClick={onClose}
+    >
       <div
-        className="gg-dialog"
+        className={cx("gg-dialog", closing && "is-closing")}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
