@@ -1,53 +1,20 @@
-# Design QA — Member shell navigation and overlays
+# Design QA — Desktop shell consolidation
 
-- Source visual truth: `C:\Users\najee\AppData\Local\Temp\codex-clipboard-f3ecd98e-45fa-4ed2-a78b-4fe7e7829dbb.png` and the three companion screenshots supplied in the same request.
-- Implementation evidence: `design-qa-mobile.png`, `design-qa-account-menu.png`, `design-qa-notifications-sheet.png`, and `design-qa-desktop-drawer.png`.
-- Viewports: mobile 375×812 CSS px; desktop 1200×900 CSS px.
-- Pixels/density: primary source 483×901 px; implementation mobile full-page capture 360×1395 px and interaction captures 360×780 px; desktop capture 1200×900 px. Comparisons used the app-content region rather than the source browser/device surround.
-- State: Story selected; account menu open; Notifications sheet open; locked GEMA drawer open.
+- Source evidence: `C:\Users\najee\AppData\Local\Temp\codex-clipboard-db57d416-f5a2-49f7-abb9-3a6ca78ffebf.png`
+- Target state: one desktop brand in the sidebar; one desktop account trigger in the sidebar footer; Notifications, Settings, QR, and Sign out consolidated in its popup; mobile masthead and account sheet retained.
+- Code checks: ESLint passed; 52 tests passed; production Next.js build passed; `git diff --check` passed.
 
-## Full-view comparison evidence
+## Implemented corrections
 
-- Typography retains Fraunces display text and Inter Tight UI text, with the same hierarchy and wrapping behavior as the supplied Story reference.
-- Spacing follows the reference card rhythm while intentionally replacing the segmented control and large Order bar with the requested fixed four-item icon dock.
-- Bone, paper, ultramarine, ink, gold focus, rules, radii, and elevation remain on the established Gutguard tokens.
-- No raster imagery was required; all visible symbols use the existing Lucide icon dependency.
-- Story copy and disclaimer are unchanged.
+- Desktop masthead is hidden at the canonical 900px sidebar breakpoint, removing the duplicate brand, avatar, and separate notification bell.
+- Sidebar identity row is now the sole desktop account trigger.
+- Persistent sidebar Settings and Sign out controls were removed.
+- Desktop account menu opens inward from the sidebar and contains Notifications, Settings, My QR code, and Sign out.
+- Mobile masthead keeps one brand and one account avatar; notifications are available inside the mobile account sheet.
+- Account notification counts have accessible labels, and menu focus/arrow/Escape behavior remains intact.
 
-## Focused-region evidence
+## Verification limitation
 
-- Account menu: verified as an anchored pop-up; opening it leaves the page-body top unchanged. Notifications, Settings, and Sign out remain at least 44px high and support arrow keys/Escape.
-- Notifications: verified as a mobile bottom sheet with scrim, grab handle, title, close control, focus trap, and focus restoration to the avatar.
-- Desktop drawer: verified at 480px wide with one full-width sticky footer action and no duplicate Continue BASE control.
-- Desktop shell: empty masthead removed; page title begins at 32px and the fixed sidebar remains the navigation/identity owner.
+The in-app browser blocked the local `http://localhost:3000/app/story` page under its URL security policy, so a fresh same-viewport implementation screenshot and pixel comparison could not be captured in this run. No alternate browser or indirect browser-control workaround was used.
 
-## Comparison history
-
-1. Initial implementation showed insufficient space between the compact masthead and page title. Added 18px mobile body-top spacing and recaptured the production build.
-2. Initial overlay-close check could restore focus to `body` after launching from a menu item that unmounted. Added a stable account-trigger fallback and verified focus returns to `#gg-account-trigger`.
-
-## Findings
-
-- No actionable P0, P1, or P2 issues remain.
-- P3: the four-item bottom dock is intentionally denser and less purchase-dominant than the former full-width Order CTA; this is the requested navigation trade-off.
-
-## Primary interactions tested
-
-- Health/Team/Story links and active `aria-current` state.
-- Order overlay trigger.
-- Account menu open/close, outside dismissal, arrows, and Escape.
-- Notifications bottom sheet open/close, focus trap, inert background, and trigger restoration.
-- Desktop locked-GEMA right drawer and footer action.
-- Browser console: no errors or warnings.
-
-## Implementation checklist
-
-- [x] Mobile bottom navigation with icons.
-- [x] Compact brand/avatar masthead.
-- [x] Floating account pop-up with Notifications.
-- [x] Notifications bottom sheet/right drawer.
-- [x] Animated scrim, bottom sheet, and right drawer.
-- [x] Stronger safe-area-aware drawer footer.
-- [x] Responsive overflow and accessibility verification.
-
-final result: passed
+final result: blocked

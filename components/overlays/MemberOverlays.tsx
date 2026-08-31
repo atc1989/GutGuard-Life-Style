@@ -30,6 +30,7 @@ import { formatIdentityDetails } from "@/lib/member-display";
 import { memberNotifications } from "@/lib/member-notifications";
 import { Avatar } from "@/components/ui/Avatar";
 import { memberDisplayName } from "@/lib/initials";
+import { Bell, QrCode, Settings } from "lucide-react";
 
 export function MemberOverlays() {
   const { overlay, close, open } = useOverlay();
@@ -68,11 +69,20 @@ export function MemberOverlays() {
               ) : null}
             </div>
           </div>
+          <Button variant="secondary" block onClick={() => open("notifications")}>
+            <Bell aria-hidden />
+            Notifications
+            {notifications.length ? (
+              <span className="gg-account__badge">{notifications.length}</span>
+            ) : null}
+          </Button>
           <Button variant="secondary" block onClick={() => open("settings")}>
+            <Settings aria-hidden />
             Settings
           </Button>
           <Button variant="secondary" block onClick={() => open("qr")}>
-            Show my QR code
+            <QrCode aria-hidden />
+            My QR code
           </Button>
           <SignOutButton />
         </div>

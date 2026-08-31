@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { AccountMenu, NotificationMenu } from "@/components/shell/AccountChrome";
+import { AccountMenu } from "@/components/shell/AccountChrome";
 import { Spinner } from "@/components/ui/Spinner";
 import { MEMBER_SECTIONS, isMemberSectionActive } from "@/lib/member-shell";
 
@@ -22,7 +22,6 @@ export function Masthead() {
           <em>Lifestyle</em>
         </Link>
         <div className="gg-masthead__actions">
-          <NotificationMenu />
           <AccountMenu />
         </div>
       </div>
