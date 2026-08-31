@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 
 type Props = {
+  id?: string;
   title: string;
   open: boolean;
   onClose: () => void;
@@ -14,12 +15,18 @@ type Props = {
   footer?: ReactNode;
 };
 
-export function Dialog({ title, open, onClose, children, footer }: Props) {
+export function Dialog({ id, title, open, onClose, children, footer }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const [rendered, setRendered] = useState(open);
   const closing = rendered && !open;
+
+  useEffect(() => {
+    if (!open || rendered) return;
+    const frame = window.requestAnimationFrame(() => setRendered(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, rendered]);
 
   useEffect(() => {
     if (!closing) return;
@@ -28,8 +35,6 @@ export function Dialog({ title, open, onClose, children, footer }: Props) {
     }, 220);
     return () => window.clearTimeout(timer);
   }, [closing]);
-
-  if (open && !rendered) setRendered(true);
 
   useEffect(() => {
     if (!open) return;
@@ -121,6 +126,7 @@ export function Dialog({ title, open, onClose, children, footer }: Props) {
       onClick={onClose}
     >
       <div
+        id={id}
         className={cx("gg-dialog", closing && "is-closing")}
         role="dialog"
         aria-modal="true"

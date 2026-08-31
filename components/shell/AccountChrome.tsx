@@ -1,7 +1,7 @@
 "use client";
 
-import { Bell, Settings } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { Bell, QrCode, Settings, X } from "lucide-react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { cx } from "@/lib/cx";
 import { Avatar } from "@/components/ui/Avatar";
 import { IconButton } from "@/components/ui/IconButton";
@@ -10,6 +10,7 @@ import { memberDisplayName } from "@/lib/initials";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 import { memberNotifications } from "@/lib/member-notifications";
+import { nextMenuIndex } from "@/lib/member-shell";
 
 function AccountMeta({ name, sponsor }: { name: string; sponsor: string }) {
   return (
@@ -40,45 +41,44 @@ export function AccountCard() {
   );
 }
 
-/** Mobile masthead: avatar opens Settings + Sign out. */
-export function AccountMenu() {
-  const { session } = useSession();
-  const { open } = useOverlay();
-  const name = memberDisplayName(session.name);
-  const notifications = memberNotifications(session);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuId = useId();
-
+function useDismissiblePopup({
+  open,
+  setOpen,
+  rootRef,
+  triggerRef,
+  itemSelector,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  rootRef: RefObject<HTMLDivElement | null>;
+  triggerRef: RefObject<HTMLButtonElement | null>;
+  itemSelector: string;
+}) {
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!open) return;
+
+    const items = () =>
+      Array.from(rootRef.current?.querySelectorAll<HTMLElement>(itemSelector) ?? []);
+    requestAnimationFrame(() => items()[0]?.focus());
 
     function onPointer(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     }
-
-    const menuItems = () =>
-      Array.from(
-        rootRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [],
-      );
-    requestAnimationFrame(() => menuItems()[0]?.focus());
 
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
-        setMenuOpen(false);
+        setOpen(false);
         triggerRef.current?.focus();
         return;
       }
       if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      const menuItems = items();
+      if (menuItems.length === 0) return;
       event.preventDefault();
-      const items = menuItems();
-      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      const current = menuItems.indexOf(document.activeElement as HTMLElement);
       const direction = event.key === "ArrowDown" ? 1 : -1;
-      items[(current + direction + items.length) % items.length]?.focus();
+      menuItems[nextMenuIndex(current, direction, menuItems.length)]?.focus();
     }
 
     document.addEventListener("mousedown", onPointer);
@@ -87,7 +87,26 @@ export function AccountMenu() {
       document.removeEventListener("mousedown", onPointer);
       document.removeEventListener("keydown", onKey);
     };
-  }, [menuOpen]);
+  }, [itemSelector, open, rootRef, setOpen, triggerRef]);
+}
+
+/** Masthead avatar: desktop dropdown, mobile account sheet. */
+export function AccountMenu() {
+  const { session } = useSession();
+  const { overlay, open } = useOverlay();
+  const name = memberDisplayName(session.name);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+
+  useDismissiblePopup({
+    open: menuOpen,
+    setOpen: setMenuOpen,
+    rootRef,
+    triggerRef,
+    itemSelector: '[role="menuitem"]',
+  });
 
   return (
     <div className={cx("gg-account", menuOpen && "is-open")} ref={rootRef}>
@@ -95,12 +114,23 @@ export function AccountMenu() {
         ref={triggerRef}
         id="gg-account-trigger"
         type="button"
-        className="gg-account__trigger"
+        className="gg-account__trigger gg-account__trigger--desktop"
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         aria-controls={menuId}
         aria-label={`${name}, account menu`}
         onClick={() => setMenuOpen((value) => !value)}
+      >
+        <Avatar name={name} />
+      </button>
+      <button
+        type="button"
+        className="gg-account__trigger gg-account__trigger--mobile"
+        aria-haspopup="dialog"
+        aria-expanded={overlay === "account"}
+        aria-controls="gg-account-sheet"
+        aria-label={`${name}, account`}
+        onClick={() => open("account")}
       >
         <Avatar name={name} />
       </button>
@@ -116,14 +146,11 @@ export function AccountMenu() {
             role="menuitem"
             onClick={() => {
               setMenuOpen(false);
-              open("notifications");
+              open("settings");
             }}
           >
-            <Bell aria-hidden />
-            <span>Notifications</span>
-            {notifications.length ? (
-              <span className="gg-account__badge">{notifications.length}</span>
-            ) : null}
+            <Settings aria-hidden />
+            Settings
           </button>
           <button
             type="button"
@@ -131,14 +158,97 @@ export function AccountMenu() {
             role="menuitem"
             onClick={() => {
               setMenuOpen(false);
-              open("settings");
+              open("qr");
             }}
           >
-            <Settings aria-hidden />
-            Settings
+            <QrCode aria-hidden />
+            My QR code
           </button>
           <SignOutButton role="menuitem" block />
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Notification Bell: anchored desktop panel, full-width mobile sheet. */
+export function NotificationMenu() {
+  const { session } = useSession();
+  const { overlay, open } = useOverlay();
+  const notifications = memberNotifications(session);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const titleId = useId();
+
+  useDismissiblePopup({
+    open: panelOpen,
+    setOpen: setPanelOpen,
+    rootRef,
+    triggerRef,
+    itemSelector: '[data-notification-control="true"]',
+  });
+
+  return (
+    <div className="gg-bell" ref={rootRef}>
+      <IconButton
+        ref={triggerRef}
+        label="Notifications"
+        className="gg-bell__trigger--desktop"
+        aria-haspopup="dialog"
+        aria-expanded={panelOpen}
+        aria-controls={panelId}
+        onClick={() => setPanelOpen((value) => !value)}
+      >
+        <Bell aria-hidden />
+      </IconButton>
+      <IconButton
+        label="Notifications"
+        className="gg-bell__trigger--mobile"
+        aria-haspopup="dialog"
+        aria-expanded={overlay === "notifications"}
+        aria-controls="gg-notifications-sheet"
+        onClick={() => open("notifications")}
+      >
+        <Bell aria-hidden />
+      </IconButton>
+      {notifications.length ? (
+        <span className="gg-bell__count" aria-hidden>
+          {notifications.length}
+        </span>
+      ) : null}
+      {panelOpen ? (
+        <section
+          className="gg-bell__panel"
+          id={panelId}
+          role="dialog"
+          aria-labelledby={titleId}
+        >
+          <div className="gg-bell__panel-head">
+            <h2 id={titleId}>Notifications</h2>
+            <IconButton
+              label="Close notifications"
+              ghost
+              data-notification-control="true"
+              onClick={() => {
+                setPanelOpen(false);
+                triggerRef.current?.focus();
+              }}
+            >
+              <X aria-hidden />
+            </IconButton>
+          </div>
+          {notifications.length ? (
+            <ul className="gg-notification-list">
+              {notifications.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="gg-help gg-bell__empty">You’re all caught up.</p>
+          )}
+        </section>
       ) : null}
     </div>
   );

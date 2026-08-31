@@ -101,7 +101,7 @@ a {
 }
 
 .gg-page {
-  animation: 280ms var(--gg-ease-out) both gg-page-in;
+  animation: 220ms var(--gg-ease-out) both gg-page-in;
 }
 
 .gg-page-loading {
@@ -119,9 +119,11 @@ a {
 @keyframes gg-page-in {
   from {
     opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -551,7 +553,7 @@ a {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  animation: gg-backdrop-in 180ms var(--gg-ease-out) both;
+  animation: gg-backdrop-in 200ms var(--gg-ease-out) both;
 }
 
 .gg-backdrop.is-closing {
@@ -674,7 +676,7 @@ a {
   background: var(--gg-paper);
   box-shadow: var(--gg-shadow-modal);
   overflow: hidden;
-  animation: gg-sheet-in 260ms var(--gg-ease-out) both;
+  animation: gg-sheet-in 320ms var(--gg-ease-out) both;
 }
 
 .gg-dialog.is-closing {
@@ -1011,7 +1013,34 @@ a {
   top: calc(100% + 8px);
   width: min(320px, calc(100vw - 32px));
   z-index: 30;
+  overflow: hidden;
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-paper);
+  box-shadow: var(--gg-shadow-card);
   outline: none;
+}
+
+.gg-bell__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 10px 16px;
+  border-bottom: 1px solid var(--gg-rule-soft);
+}
+
+.gg-bell__panel-head h2 {
+  margin: 0;
+  color: var(--gg-ink);
+  font-family: var(--gg-serif);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.gg-bell__empty {
+  margin: 0;
+  padding: 18px 16px;
 }
 
 .gg-sidebar {
@@ -1187,6 +1216,11 @@ a {
   background: rgba(6, 8, 169, 0.07);
 }
 
+.gg-account__trigger--desktop,
+.gg-bell__trigger--desktop {
+  display: none;
+}
+
 .gg-account__meta {
   display: grid;
   min-width: 0;
@@ -1223,6 +1257,23 @@ a {
   border-radius: var(--gg-r-md);
   background: var(--gg-paper);
   box-shadow: var(--gg-shadow-card);
+}
+
+.gg-account-sheet__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0 14px;
+  border-bottom: 1px solid var(--gg-rule-soft);
+}
+
+.gg-account-sheet__identity strong {
+  display: block;
+  font-size: 16px;
+}
+
+.gg-account-sheet__identity .gg-help {
+  margin: 2px 0 0;
 }
 
 .gg-account__menu-head {
@@ -1292,52 +1343,20 @@ a {
   max-width: 440px;
   margin: 0 auto;
   pointer-events: auto;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
+  display: block;
   background: rgba(252, 250, 245, 0.97);
   border-top: 1px solid var(--gg-rule);
   box-shadow: 0 -10px 28px rgba(15, 15, 24, 0.08);
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
 }
 
-.gg-bottom-nav__item {
-  min-width: 0;
+.gg-bottom-bar .gg-button {
   min-height: 56px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 3px;
-  padding: 5px 4px;
-  border: 0;
-  border-radius: var(--gg-r-md);
-  background: transparent;
-  color: var(--gg-ink-3);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
 }
 
-.gg-bottom-nav__item svg {
-  width: 20px;
-  height: 20px;
-}
-
-.gg-bottom-nav__item.is-active {
-  background: rgba(6, 8, 169, 0.08);
-  color: var(--gg-blue);
-}
-
-.gg-bottom-nav__item--order {
-  background: var(--gg-blue);
-  color: var(--gg-bone);
-}
-
-.gg-bottom-nav__item:focus-visible {
-  outline: 3px solid var(--gg-gold);
-  outline-offset: 2px;
+.gg-bottom-bar .gg-button svg {
+  width: 19px;
+  height: 19px;
 }
 
 .gg-masthead {
@@ -1359,6 +1378,12 @@ a {
   gap: 12px;
 }
 
+.gg-masthead__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .gg-masthead__brand {
   display: flex;
   align-items: baseline;
@@ -1377,6 +1402,32 @@ a {
   font-style: italic;
 }
 
+.gg-mobile-sections {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 10px;
+}
+
+.gg-mobile-sections .gg-segment__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.gg-mobile-sections .gg-segment__button[data-active="true"] {
+  background: var(--gg-paper);
+  color: var(--gg-ink);
+  box-shadow: 0 2px 7px rgba(15, 15, 24, 0.09);
+}
+
+.gg-mobile-sections .gg-spinner {
+  width: 16px;
+  height: 16px;
+}
+
 .gg-frame {
   display: block;
 }
@@ -1385,7 +1436,7 @@ a {
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
-  padding: 0 16px calc(108px + env(safe-area-inset-bottom, 0px));
+  padding: 0 16px calc(104px + env(safe-area-inset-bottom, 0px));
 }
 
 .gg-content__body {
@@ -1402,9 +1453,11 @@ a {
 
 @media (max-width: 899px) {
   .gg-account__menu {
-    right: 0;
-    top: calc(100% + 8px);
-    width: min(300px, calc(100vw - 32px));
+    display: none;
+  }
+
+  .gg-bell__panel {
+    display: none;
   }
 }
 
@@ -1425,6 +1478,10 @@ a {
 
 .gg-notification-list li:last-child {
   border-bottom: 0;
+}
+
+.gg-bell__panel .gg-notification-list li {
+  padding: 14px 16px;
 }
 
 .gg-funnel {
@@ -1691,6 +1748,19 @@ body.has-demo .gg-masthead {
 }
 
 @media (min-width: 900px) {
+  .gg-account__trigger--desktop {
+    display: flex;
+  }
+
+  .gg-bell__trigger--desktop {
+    display: inline-grid;
+  }
+
+  .gg-account__trigger--mobile,
+  .gg-bell__trigger--mobile {
+    display: none;
+  }
+
   .gg-sidebar {
     display: flex;
     position: fixed;
@@ -1728,13 +1798,13 @@ body.has-demo .gg-masthead {
     max-width: none;
     margin-left: 280px;
     min-width: 0;
-    padding: 32px 40px 56px;
+    padding: 0 40px 56px;
   }
 
   .gg-content__body {
     max-width: 1040px;
     margin-inline: auto;
-    padding-top: 0;
+    padding-top: 24px;
   }
 
   .gg-funnel {
@@ -1784,6 +1854,13 @@ body.has-demo .gg-masthead {
   }
 
   .gg-masthead {
+    max-width: 1040px;
+    margin-inline: auto;
+    padding: 14px 0;
+    background: rgba(252, 250, 245, 0.92);
+  }
+
+  .gg-mobile-sections {
     display: none;
   }
 
@@ -1793,7 +1870,7 @@ body.has-demo .gg-masthead {
   }
 
   .gg-dialog {
-    width: min(480px, 42vw);
+    width: min(360px, calc(100vw - 48px));
     height: 100%;
     max-height: none;
     border-radius: var(--gg-r-lg) 0 0 var(--gg-r-lg);
@@ -1859,7 +1936,7 @@ body.has-demo .gg-masthead {
 
 @media (max-width: 899px) {
   .gg-toast-viewport {
-    bottom: 96px;
+    bottom: 92px;
   }
 
   .gg-desktop-only {

@@ -18,19 +18,15 @@ import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 import { BASE_STEPS, hasSupply } from "@/lib/mock/seed";
 import { cx } from "@/lib/cx";
-import type { LucideIcon } from "lucide-react";
 import { useLinkStatus } from "next/link";
 import { Spinner } from "@/components/ui/Spinner";
+import { MEMBER_SECTIONS, isMemberSectionActive } from "@/lib/member-shell";
 
-const NAV: Array<{
-  href: "/app/health" | "/app/team" | "/app/story";
-  label: string;
-  icon: LucideIcon;
-}> = [
-  { href: "/app/health", label: "My Health", icon: Heart },
-  { href: "/app/team", label: "My Team", icon: Users },
-  { href: "/app/story", label: "My Story", icon: BookOpen },
-];
+const NAV_ICONS = {
+  "/app/health": Heart,
+  "/app/team": Users,
+  "/app/story": BookOpen,
+} as const;
 
 function NavLabel({ children }: { children: string }) {
   const { pending } = useLinkStatus();
@@ -56,9 +52,9 @@ export function Sidebar() {
         <em>Lifestyle</em>
       </Link>
       <nav className="gg-sidebar__nav" aria-label="Member">
-        {NAV.map((item) => {
-          const Icon = item.icon;
-          const active = pathname === item.href;
+        {MEMBER_SECTIONS.map((item) => {
+          const Icon = NAV_ICONS[item.href];
+          const active = isMemberSectionActive(pathname, item.href);
           return (
             <Link
               key={item.href}
@@ -67,7 +63,7 @@ export function Sidebar() {
               aria-current={active ? "page" : undefined}
             >
               <Icon aria-hidden />
-              <NavLabel>{item.label}</NavLabel>
+              <NavLabel>{item.longLabel}</NavLabel>
             </Link>
           );
         })}

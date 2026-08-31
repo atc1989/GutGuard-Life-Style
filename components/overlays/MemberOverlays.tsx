@@ -28,6 +28,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
 import { formatIdentityDetails } from "@/lib/member-display";
 import { memberNotifications } from "@/lib/member-notifications";
+import { Avatar } from "@/components/ui/Avatar";
+import { memberDisplayName } from "@/lib/initials";
 
 export function MemberOverlays() {
   const { overlay, close, open } = useOverlay();
@@ -41,6 +43,7 @@ export function MemberOverlays() {
     : localComplete;
   const identityDetails = formatIdentityDetails(session);
   const notifications = memberNotifications(session);
+  const displayName = memberDisplayName(session.name);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -49,6 +52,31 @@ export function MemberOverlays() {
 
   return (
     <>
+      <Drawer
+        id="gg-account-sheet"
+        title="Account"
+        open={overlay === "account"}
+        onClose={close}
+      >
+        <div className="gg-stack">
+          <div className="gg-account-sheet__identity">
+            <Avatar name={displayName} />
+            <div>
+              <strong>{displayName}</strong>
+              {session.sponsor ? (
+                <p className="gg-help">with {session.sponsor}</p>
+              ) : null}
+            </div>
+          </div>
+          <Button variant="secondary" block onClick={() => open("settings")}>
+            Settings
+          </Button>
+          <Button variant="secondary" block onClick={() => open("qr")}>
+            Show my QR code
+          </Button>
+          <SignOutButton />
+        </div>
+      </Drawer>
       <Drawer title="Order now" open={overlay === "order"} onClose={close}>
         <p className="gg-lede" style={{ marginBottom: 16 }}>
           Mock checkout only — no payment in this pass.
@@ -120,6 +148,7 @@ export function MemberOverlays() {
       </Drawer>
 
       <Drawer
+        id="gg-notifications-sheet"
         title="Notifications"
         open={overlay === "notifications"}
         onClose={close}
