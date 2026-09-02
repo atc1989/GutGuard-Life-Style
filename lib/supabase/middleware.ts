@@ -5,6 +5,10 @@ import {
   unauthenticatedLifestylePath,
 } from "@/lib/supabase/protected-paths";
 
+function isAdminShell(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
 /** Cookie client used by root middleware to refresh the Auth token. */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -43,15 +47,35 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && requiresLifestyleAuth(request.nextUrl.pathname)) {
+  const pathname = request.nextUrl.pathname;
+
+  if (
+    !user &&
+    (requiresLifestyleAuth(pathname) || isAdminShell(pathname))
+  ) {
     const url = request.nextUrl.clone();
-    url.pathname = unauthenticatedLifestylePath(request.nextUrl.pathname);
+    url.pathname = isAdminShell(pathname)
+      ? "/"
+      : unauthenticatedLifestylePath(pathname);
     url.search = "";
     const redirectResponse = NextResponse.redirect(url);
     supabaseResponse.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie);
     });
     return redirectResponse;
+  }
+
+  if (user && isAdminShell(pathname)) {
+    const { data: isAdmin, error } = await supabase.rpc("lifestyle_is_admin");
+    if (error || !isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie);
+      });
+      return redirectResponse;
+    }
   }
 
   return supabaseResponse;
