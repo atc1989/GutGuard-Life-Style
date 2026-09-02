@@ -1,6 +1,7 @@
 "use server";
 
-import { BASE_STEPS, type DoseSlotId, type FunnelPhase, type InviteStage } from "@/lib/mock/seed";
+import { BASE_STEPS, FIRST_ORDER_PESOS, type DoseSlotId, type FunnelPhase, type InviteStage } from "@/lib/mock/seed";
+import { queueOrderSchema } from "@/lib/schemas/order";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,6 +13,21 @@ async function requireUser() {
   } = await supabase.auth.getUser();
   if (!user) return null;
   return { supabase, user };
+}
+
+export async function claimCard() {
+  const ctx = await requireUser();
+  if (!ctx) return { ok: true as const, skipped: true };
+  const { error } = await ctx.supabase
+    .from("profiles")
+    .update({
+      claimed: true,
+      phase: "claimed",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", ctx.user.id);
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
 }
 
 export async function persistProfile(patch: {
@@ -58,6 +74,16 @@ export async function persistProfile(patch: {
 export async function persistInvite(name: string, handle: string, stage: InviteStage) {
   const ctx = await requireUser();
   if (!ctx) return { ok: true as const, skipped: true };
+  const { data: unlocked, error: unlockError } = await ctx.supabase.rpc(
+    "lifestyle_base_complete",
+  );
+  if (unlockError) return { ok: false as const, error: unlockError.message };
+  if (!unlocked) {
+    return {
+      ok: false as const,
+      error: "Finish BASE Activation before inviting friends.",
+    };
+  }
   const { error } = await ctx.supabase.from("invites").insert({
     user_id: ctx.user.id,
     name,
@@ -148,9 +174,33 @@ export async function persistStory(input: {
   if (!ctx) return { ok: true as const, skipped: true };
   const { error } = await ctx.supabase.from("stories").insert({
     user_id: ctx.user.id,
+    status: "pending",
     ...input,
   });
   if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
+}
+
+export async function queueMemberOrder(input: unknown) {
+  const parsed = queueOrderSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: "Invalid order quantity." };
+  }
+  if (!isSupabaseConfigured()) {
+    return { ok: true as const, skipped: true as const };
+  }
+
+  const ctx = await requireUser();
+  if (!ctx) return { ok: false as const, error: "Sign in required." };
+
+  const { error } = await ctx.supabase.from("orders").insert({
+    user_id: ctx.user.id,
+    qty: parsed.data.qty,
+    amount_pesos: parsed.data.amountPesos || FIRST_ORDER_PESOS * parsed.data.qty,
+    status: "pending",
+  });
+
+  if (error) return { ok: false as const, error: "Could not queue order." };
   return { ok: true as const };
 }
 

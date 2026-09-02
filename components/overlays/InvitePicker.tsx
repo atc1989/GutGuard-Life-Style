@@ -33,6 +33,24 @@ export function InvitePicker() {
 
   async function invite(contact: (typeof CONTACTS)[number]) {
     setBusy(contact.id);
+    if (isSupabaseConfigured()) {
+      const result = await persistInvite(contact.name, contact.handle, "registered");
+      if (!result.ok) {
+        push({
+          tone: "error",
+          title: "Invite blocked",
+          body: result.error,
+        });
+        setBusy(null);
+        return;
+      }
+      await persistPointEvent({
+        kind: "register",
+        amount: POINTS.register,
+        pending: true,
+        label: `${contact.name} registered`,
+      });
+    }
     update({
       contactInvited: { ...session.contactInvited, [contact.id]: true },
       pending: session.pending + POINTS.register,
@@ -50,15 +68,6 @@ export function InvitePicker() {
         ...session.ledger,
       ],
     });
-    if (isSupabaseConfigured()) {
-      await persistInvite(contact.name, contact.handle, "registered");
-      await persistPointEvent({
-        kind: "register",
-        amount: POINTS.register,
-        pending: true,
-        label: `${contact.name} registered`,
-      });
-    }
     push({ tone: "success", title: "Invite sent", body: contact.name });
     setBusy(null);
   }
