@@ -23,7 +23,7 @@ import { RequirementTimeline } from "@/components/ui/RequirementTimeline";
 import { Switch } from "@/components/ui/Switch";
 import { InvitePicker } from "@/components/overlays/InvitePicker";
 import { StoryShare } from "@/components/overlays/StoryShare";
-import { persistBaseStep, persistPointEvent, gemaUnlocked } from "@/lib/actions/member";
+import { persistBaseStep, persistPointEvent, gemaUnlocked, queueMemberOrder } from "@/lib/actions/member";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
 import { formatIdentityDetails } from "@/lib/member-display";
@@ -89,7 +89,8 @@ export function MemberOverlays() {
       </Drawer>
       <Drawer title="Order now" open={overlay === "order"} onClose={close}>
         <p className="gg-lede" style={{ marginBottom: 16 }}>
-          Mock checkout only — no payment in this pass.
+          Mock checkout — no card charge in the browser. When Supabase is on, this
+          queues a pending order for webhook reconcile.
         </p>
         <Card>
           <p className="gg-eyebrow">Your Gutguard</p>
@@ -115,13 +116,27 @@ export function MemberOverlays() {
           block
           style={{ marginTop: 16 }}
           onClick={() => {
-            update({ daysLeft: 30 * qty, phase: "member" });
-            push({
-              tone: "success",
-              title: "Order queued",
-              body: `${qty} bottle${qty > 1 ? "s" : ""} — mock only.`,
-            });
-            close();
+            void (async () => {
+              const result = await queueMemberOrder({
+                qty,
+                amountPesos: FIRST_ORDER_PESOS * qty,
+              });
+              if (!result.ok) {
+                push({
+                  tone: "error",
+                  title: "Could not queue",
+                  body: result.error,
+                });
+                return;
+              }
+              update({ daysLeft: 30 * qty, phase: "member" });
+              push({
+                tone: "success",
+                title: "Order queued",
+                body: `${qty} bottle${qty > 1 ? "s" : ""} — mock only, no charge.`,
+              });
+              close();
+            })();
           }}
         >
           Place mock order

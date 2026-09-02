@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 import { CardBack, CardFace, FlipCard } from "@/components/lifestyle/FlipCard";
 import { Confetti } from "@/components/lifestyle/Confetti";
+import { claimCard as persistClaimCard } from "@/lib/actions/member";
 import { useSession } from "@/lib/session";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { useToast } from "@/lib/toast";
 
 export function DoorCard({
   memberName,
@@ -19,12 +22,22 @@ export function DoorCard({
   const params = useSearchParams();
   const claimed = params.get("claimed") === "1" || session.claimed;
   const [flipped, setFlipped] = useState(false);
+  const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const { push } = useToast();
   const name = memberName?.trim() || session.name;
   const doorCardNo = cardNo?.trim() || session.cardNo;
 
-  function claimCard() {
+  async function claimCard() {
+    if (isSupabaseConfigured()) {
+      const result = await persistClaimCard();
+      if (!result.ok) {
+        push({ tone: "error", title: "Could not claim", body: result.error });
+        return false;
+      }
+    }
     update({ claimed: true });
+    return true;
   }
 
   return (
@@ -57,10 +70,16 @@ export function DoorCard({
             <Button
               variant="editorial"
               block
+              loading={busy}
               onClick={() => {
-                claimCard();
-                setPhase("member");
-                router.push("/app/health");
+                void (async () => {
+                  setBusy(true);
+                  const ok = await claimCard();
+                  setBusy(false);
+                  if (!ok) return;
+                  setPhase("member");
+                  router.push("/app/health");
+                })();
               }}
             >
               Go to my dashboard
@@ -68,10 +87,16 @@ export function DoorCard({
             <Button
               variant="secondary"
               block
+              loading={busy}
               onClick={() => {
-                claimCard();
-                setPhase("nearly");
-                router.push("/nearly");
+                void (async () => {
+                  setBusy(true);
+                  const ok = await claimCard();
+                  setBusy(false);
+                  if (!ok) return;
+                  setPhase("nearly");
+                  router.push("/nearly");
+                })();
               }}
             >
               How points work

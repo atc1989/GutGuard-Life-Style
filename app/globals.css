@@ -180,6 +180,13 @@ a {
   text-underline-offset: 3px;
 }
 
+.gg-link--row {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  line-height: 1.35;
+}
+
 .gg-link:hover {
   text-decoration: underline;
 }
@@ -1963,5 +1970,251 @@ body.has-demo .gg-masthead {
   .gg-page {
     transition-duration: 0.01ms;
     animation: none;
+  }
+}
+
+/* Admin dialect — radius 0, dense tables */
+.gg-admin {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+  background: var(--gg-bone);
+}
+
+.gg-admin__hero {
+  border-bottom: 1px solid var(--gg-rule);
+  padding-bottom: 18px;
+  margin-bottom: 16px;
+}
+
+.gg-admin__tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--gg-rule);
+  margin-bottom: 20px;
+  padding-bottom: 0;
+}
+
+.gg-admin__tab {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 0;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  color: var(--gg-ink-3);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gg-admin__tab[aria-current="page"] {
+  color: var(--gg-blue);
+  border-bottom-color: var(--gg-blue);
+}
+
+.gg-admin__tab:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 2px;
+}
+
+.gg-admin__panel {
+  border: 1px solid var(--gg-rule);
+  border-radius: 0;
+  background: var(--gg-paper);
+  padding: 18px 16px;
+}
+
+.gg-admin__modules {
+  display: grid;
+  gap: 12px;
+}
+
+.gg-admin__module {
+  display: block;
+  min-height: 44px;
+  border: 1px solid var(--gg-rule);
+  border-radius: 0;
+  padding: 16px;
+  background: var(--gg-bone);
+}
+
+.gg-admin__module:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 2px;
+}
+
+.gg-admin-filters {
+  display: grid;
+  gap: 12px;
+}
+
+.gg-admin-filters__row {
+  display: grid;
+  gap: 12px;
+}
+
+.gg-admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--gg-rule);
+}
+
+.gg-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.gg-admin-table th,
+.gg-admin-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--gg-rule-soft);
+  text-align: left;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.gg-admin-table th {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gg-ink-3);
+  background: var(--gg-bone);
+}
+
+.gg-admin-table__mono {
+  font-family: var(--gg-mono);
+  font-size: 13px;
+}
+
+.gg-admin-row-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.gg-admin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gg-admin-chip {
+  min-height: 44px;
+  border: 1px solid var(--gg-rule);
+  border-radius: 0;
+  background: var(--gg-bone);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gg-ink-3);
+  cursor: pointer;
+}
+
+.gg-admin-chip[aria-pressed="true"],
+.gg-admin-chip[aria-selected="true"] {
+  border-color: var(--gg-blue);
+  color: var(--gg-blue);
+}
+
+.gg-admin-chip:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 2px;
+}
+
+.gg-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.gg-admin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gg-admin-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--gg-blue);
+}
+
+.gg-admin-dl {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--gg-rule);
+  padding: 14px;
+}
+
+.gg-admin-dl dt {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gg-ink-3);
+}
+
+.gg-admin-dl dd {
+  margin-top: 4px;
+}
+
+.gg-admin-base-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.gg-admin-base-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gg-admin-pace {
+  display: grid;
+  gap: 6px;
+}
+
+.gg-admin-pace dt {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gg-ink-3);
+}
+
+.gg-admin-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .gg-admin {
+    padding: 40px 48px 72px;
+  }
+
+  .gg-admin__panel {
+    padding: 24px;
+  }
+
+  .gg-admin__modules {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gg-admin-filters__row {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
   }
 }

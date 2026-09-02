@@ -1,6 +1,6 @@
 # Gutguard Lifestyle
 
-Member lifestyle app: Ginhawa funnel → door card → My Health / My Team / My Story.
+Member lifestyle app: Ginhawa funnel → door card → My Health / My Team / My Story. Operator tables under `/admin`.
 
 After register, the first session is the door card — not the full member OS. See [docs/first-session.md](./docs/first-session.md).
 
@@ -16,7 +16,15 @@ After register, the first session is the door card — not the full member OS. S
 
 One Account (this app is the hub; GEMA Auth + OneGrinders for all systems): [docs/obsidian/One Account](./docs/obsidian/One%20Account/One%20Account.md). Drop that folder at `C:\Users\najee\Documents\One Account\`.
 
-GEMA stays locked until all five BASE steps are done. With Supabase on, `lifestyle_base_complete()` enforces that server-side.
+GEMA and My Team stay locked until all five BASE steps are done (`lifestyle_base_complete()`).
+
+## Admin
+
+`/admin/*` requires a cookie session **and** a row in `app_roles` (`lifestyle_is_admin()`). Assign admins only via SQL / service role — members cannot self-escalate. `lib/supabase/admin.ts` stays server-only.
+
+- Users: search/filter + `/admin/users/[id]` read-only audit
+- Orders: pending/reconciled/failed + Maya webhook at `POST /api/webhooks/maya`
+- Stories: bulk approve/reject; member feed shows **approved** only
 
 ## Setup
 
@@ -32,8 +40,10 @@ To persist members for real:
 
 1. Point **local / Preview** at GutGuard Staging (`https://fxdsnacuonfvutdquogb.supabase.co`) — same Auth as GEMA Staging. Do not point Production at Staging.
 2. Put the Staging URL and anon/publishable key in `.env.local`. Service role is server-only.
-3. Add the same names on Vercel **Preview** (not Production).
-4. Add the preview URL to the Staging Auth redirect allow-list.
+3. Apply migrations under `supabase/migrations/` in order (member → identity → admin RBAC → orders/stories).
+4. Optionally: `insert into public.app_roles (user_id, role) values ('…', 'admin');`
+5. Add the same names on Vercel **Preview** (not Production). Service role server-only.
+6. Add the preview URL to the Staging Auth redirect allow-list.
 
 ## Scripts
 
@@ -46,3 +56,4 @@ To persist members for real:
 
 - Tech stack: `d:\GutGuard\GutGuard Tech Stack\`
 - Design system: `d:\GutGuard\GutGuard Design System\`
+- Board: `d:\GutGuard\Bien To Do\`
