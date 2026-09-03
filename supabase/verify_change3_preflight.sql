@@ -59,3 +59,30 @@ select t.tgname, n.nspname || '.' || p.proname as function
   join pg_namespace n on n.oid = p.pronamespace
  where t.tgrelid = 'auth.users'::regclass and not t.tgisinternal
  order by t.tgname;
+
+-- 9. The body of every trigger function armed on auth.users, plus any function
+--    named handle_new_user in any schema.
+--
+--    This matters more than it looks. GEMA's supabase/fix_auth_user_triggers.sql
+--    defines public.handle_new_user() inserting first_name/last_name/full_name
+--    into public.profiles. The 2026-09-03 Staging report described a
+--    handle_new_user that writes gema.profiles instead. Both cannot be the same
+--    function. Staging's public.profiles is Lifestyle-shaped and has none of
+--    those columns, so if the GEMA version is what is armed there, creating an
+--    Auth user on Staging should be failing outright — and it is not, because
+--    15 users exist. Read the body rather than guess which one it is.
+select n.nspname as schema, p.proname as name, pg_get_functiondef(p.oid) as body
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where p.proname like '%handle_new_user%'
+    or p.oid in (
+      select tgfoid from pg_trigger
+       where tgrelid = 'auth.users'::regclass and not tgisinternal
+    )
+ order by n.nspname, p.proname;
+
+-- 10. Does gema.profiles exist on Staging at all, and what shape.
+select column_name, data_type, is_nullable
+  from information_schema.columns
+ where table_schema = 'gema' and table_name = 'profiles'
+ order by ordinal_position;
