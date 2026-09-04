@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test lib/points.test.ts lib/schemas/auth.test.ts lib/mock/seed.test.ts lib/initials.test.ts lib/member-display.test.ts lib/member-shell.test.ts lib/session-state.test.ts lib/supabase/protected-paths.test.ts lib/supabase/env.test.ts lib/one-account/support.test.ts lib/one-account/resolve.test.ts lib/one-account/mirror.test.ts"
+    "test": "node --experimental-strip-types --test lib/points.test.ts lib/schemas/auth.test.ts lib/mock/seed.test.ts lib/initials.test.ts lib/member-display.test.ts lib/member-shell.test.ts lib/session-state.test.ts lib/supabase/protected-paths.test.ts lib/supabase/env.test.ts lib/one-account/support.test.ts lib/one-account/resolve.test.ts lib/one-account/person.test.ts lib/one-account/mirror.test.ts lib/lifestyle/card.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
