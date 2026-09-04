@@ -4,6 +4,7 @@ import {
   createIdentityAdminClient,
   ensurePersonRow,
   hasIdentityAdminCredentials,
+  isFrameworkControlFlow,
   PERSON_SCHEMA,
 } from "@/lib/one-account";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -169,6 +170,9 @@ export async function ensureLifestyleCard(input: {
     console.warn("[lifestyle] card number collided on every attempt", { userId });
     return { ok: false, reason: "card-number-exhausted" };
   } catch (error) {
+    // ...but a redirect or the bail-out that marks a route dynamic is Next
+    // talking to itself, not a failure to absorb.
+    if (isFrameworkControlFlow(error)) throw error;
     // First visit must never be the reason a page fails to render.
     console.warn("[lifestyle] card check skipped", {
       userId,
@@ -193,6 +197,7 @@ export async function ensureCardForCurrentUser(): Promise<EnsureCardResult> {
     if (!user) return { ok: false, reason: "no-session" };
     return await ensureLifestyleCard({ userId: user.id, email: user.email ?? null });
   } catch (error) {
+    if (isFrameworkControlFlow(error)) throw error;
     console.warn("[lifestyle] first-visit card check skipped", {
       message: error instanceof Error ? error.message : String(error),
     });

@@ -38,9 +38,13 @@ export function normalizeCardNumber(value: string | null | undefined): string {
  */
 export function mintCardNumber(userId: string, attempt = 0): string {
   const digest = createHash("sha256").update(`gutguard-card:${userId}:${attempt}`).digest("hex");
-  const body = (BigInt(`0x${digest.slice(0, 16)}`) % 1_000_000_000_000n)
-    .toString()
-    .padStart(12, "0");
+  // Three 32-bit slices rather than one big integer: `target` is ES2017 here,
+  // where a BigInt literal does not compile.
+  let body = "";
+  for (let group = 0; group < 3; group += 1) {
+    const slice = parseInt(digest.slice(group * 8, group * 8 + 8), 16);
+    body += String(slice % 10_000).padStart(4, "0");
+  }
   const minted = formatCardNumber(`${CARD_PREFIX}${body}`);
   // Vanishingly unlikely, and still not allowed to happen: the placeholder is
   // read as "no card", so a member holding it would be re-minted every visit.
