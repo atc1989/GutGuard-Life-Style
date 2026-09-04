@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
-import { CARD_NUMBER, resumeRoute } from "@/lib/mock/seed";
+import { ensureLifestyleCard } from "@/lib/lifestyle/ensure-card";
+import { resumeRoute } from "@/lib/mock/seed";
 import { createLoginEngine, EMAIL_CODE_RESENT } from "@/lib/one-account";
 import {
   authConfirmSchema,
@@ -99,21 +100,18 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
     return { ok: true, mode: "confirm" };
   }
 
-  const { error: profileError } = await supabase.from("profiles").upsert({
-    id: data.user.id,
+  // Change 4: the person row and the card are two things. `ensureLifestyleCard`
+  // writes the person first, then fills the card half of it with a card number
+  // of this member's own — the register form no longer hands every member the
+  // same placeholder from `lib/mock/seed.ts`.
+  const card = await ensureLifestyleCard({
+    userId: data.user.id,
     name,
     mobile,
     email,
-    card_no: CARD_NUMBER,
-    phase: "invited",
-    claimed: false,
-    points: 0,
-    pending: 0,
-    banked: 0,
-    days_left: -1,
   });
-  if (profileError) {
-    if (profileError.code === "23505") {
+  if (!card.ok) {
+    if (card.reason === "duplicate") {
       return {
         ok: false,
         error: "This email or mobile already has a card. Sign in instead.",
@@ -125,7 +123,7 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
     }
     return {
       ok: false,
-      error: "Your card was created, but the profile could not be saved. Try signing in.",
+      error: "Your account was created, but your card could not be saved. Try signing in.",
     };
   }
 
@@ -162,10 +160,12 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
     return { ok: false, error: outcome.error, needsConfirm: outcome.needsEmailConfirm };
   }
 
-  // A guild member signing in here for the first time has no Lifestyle row yet.
-  // That is Change 4, not this one: land them on the door card, do not mint one.
+  // Change 4: a guild member signing in here for the first time has no card
+  // yet. Build one from the name the guild already knows, so they land on the
+  // door card without ever meeting the register form (D13).
   let phase = "invited";
   if (outcome.userId) {
+    await ensureLifestyleCard({ userId: outcome.userId, email: outcome.email });
     const supabase = await createClient();
     const { data: profile } = await supabase
       .from("profiles")
@@ -212,6 +212,10 @@ export async function confirmEmailCode(input: unknown): Promise<AuthActionResult
       needsConfirm: true,
     };
   }
+
+  // The code step is where a Staging register actually finishes, so this is the
+  // first authenticated visit for anyone who confirmed by code.
+  await ensureLifestyleCard({ userId: data.user.id, email: data.user.email ?? null });
 
   const { data: profile } = await supabase
     .from("profiles")

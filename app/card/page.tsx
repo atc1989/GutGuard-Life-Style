@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { DoorCard } from "@/components/funnel/DoorCard";
+import { ensureCardForCurrentUser } from "@/lib/lifestyle/ensure-card";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function CardPage() {
@@ -7,6 +8,11 @@ export default async function CardPage() {
   let cardNo: string | undefined;
 
   try {
+    // Change 4: the card is created here, on the first authenticated visit —
+    // not at signup. A OneGrinders member reaches this page straight from the
+    // login form and gets a card built from their guild name (D13).
+    await ensureCardForCurrentUser();
+
     const supabase = await createClient();
     const {
       data: { user },
