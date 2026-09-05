@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
+import { sharedSessionCookieOptions } from "@/lib/one-account";
 import {
   requiresLifestyleAuth,
   unauthenticatedLifestylePath,
@@ -19,6 +21,9 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // Change 6: one session across the three origins. Undefined until
+      // NEXT_PUBLIC_ONE_ACCOUNT_COOKIE_DOMAIN is set, so this is a no-op today.
+      cookieOptions: sharedSessionCookieOptions(),
       cookies: {
         getAll() {
           return request.cookies.getAll();
