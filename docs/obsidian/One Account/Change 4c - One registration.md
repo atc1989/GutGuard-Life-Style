@@ -110,6 +110,20 @@ asserts its contents so a spoke cannot be added in one place and forgotten in
 the other. A missing or malformed value **narrows** the allow-list — the member
 lands on the door card rather than being sent somewhere unchecked.
 
+## Preview points at the Production domains — owner decision, 2026-09-05
+
+Vercel Preview URLs are per-branch (`…-git-<branch>-<team>.vercel.app`), so an
+exact-origin allow-list cannot track them: a `returnTo` from any other branch's
+preview silently falls back to the door card. Rather than weaken the check to
+accommodate that — which is the whole hazard this Change exists to avoid — the
+owner set **the Production domains as the values in both Preview and
+Production**.
+
+The consequence, stated so nobody debugs it twice: **preview-to-preview
+redirects do not work, by design.** Testing the flow means using the
+Production origins. Change 6's custom domains replace these values later; the
+variable names do not change.
+
 ## The gate this Change runs into
 
 `AGENTS.md` requires reading the GutGuard Design System vault before generating
