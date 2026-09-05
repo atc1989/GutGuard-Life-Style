@@ -32,6 +32,15 @@ export const passwordSchema = z
 
 const emailSchema = z.string().trim().email("Enter a valid email");
 
+/**
+ * Change 4c: where a member goes after registering, when they started on a
+ * spoke. Carried as an opaque string and never trusted here —
+ * `lib/lifestyle/return-to.ts` checks it against the origin allow-list at the
+ * moment of the redirect. Validating it in the schema would put a second,
+ * weaker copy of that rule in the codebase.
+ */
+export const returnToSchema = z.string().trim().max(2048).optional();
+
 export const authRegisterSchema = z.object({
   name: z
     .string()
@@ -41,6 +50,7 @@ export const authRegisterSchema = z.object({
   mobile: phMobile,
   email: emailSchema,
   password: passwordSchema,
+  returnTo: returnToSchema,
 });
 
 /**
@@ -57,6 +67,7 @@ export const authSignInSchema = z.object({
     .string()
     .min(1, "Enter your password")
     .max(72, "Password is too long"),
+  returnTo: returnToSchema,
 });
 
 /**
@@ -70,6 +81,7 @@ export const authConfirmSchema = z.object({
     .trim()
     .transform((value) => value.replace(/\D/g, ""))
     .pipe(z.string().length(6, "Enter the 6-digit code from your email")),
+  returnTo: returnToSchema,
 });
 
 export type AuthRegisterValues = z.input<typeof authRegisterSchema>;

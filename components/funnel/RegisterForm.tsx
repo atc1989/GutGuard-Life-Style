@@ -31,7 +31,13 @@ import { createNewMemberSession, resumeRoute } from "@/lib/mock/seed";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
 
-export function RegisterForm() {
+/**
+ * `returnTo` is already checked against the origin allow-list by the page
+ * (Change 4c). It rides along with each submit so the server action can honour
+ * it after the redirect it owns — including the 6-digit confirm step, which is
+ * where a Staging register actually finishes.
+ */
+export function RegisterForm({ returnTo }: { returnTo?: string }) {
   const router = useRouter();
   const { session, update } = useSession();
   const { push } = useToast();
@@ -126,7 +132,7 @@ export function RegisterForm() {
     setFormError(null);
     setLoading(true);
     try {
-      const result = await confirmEmailCode({ email: confirmEmail, code });
+      const result = await confirmEmailCode({ email: confirmEmail, code, returnTo });
       if (!result) return;
       if (result.ok && result.mode === "mock") {
         router.push(resumeRoute(session.phase));
@@ -261,7 +267,7 @@ export function RegisterForm() {
                 setFormError(null);
                 setLoading(true);
                 try {
-                  const result = await signUp(values);
+                  const result = await signUp({ ...values, returnTo });
                   if (!result) return;
                   await handleAuthResult(result, () => finishRegister(values));
                 } finally {
@@ -327,7 +333,7 @@ export function RegisterForm() {
                 setFormError(null);
                 setLoading(true);
                 try {
-                  const result = await signIn(values);
+                  const result = await signIn({ ...values, returnTo });
                   if (!result) return;
                   await handleAuthResult(result, async () => {
                     router.push(resumeRoute(session.phase));
