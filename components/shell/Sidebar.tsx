@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { AccountCard } from "@/components/shell/AccountChrome";
+import { SpokeLinks } from "@/components/shell/SpokeLinks";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useOverlay } from "@/lib/overlay-store";
@@ -98,6 +99,7 @@ export function Sidebar() {
           GG-VERSE
         </button>
       </div>
+      <SpokeLinks variant="sidebar" />
       <div className="gg-sidebar__foot">
         <div className="gg-sidebar__order">
           <Button variant="commerce" block onClick={() => open("order")}>

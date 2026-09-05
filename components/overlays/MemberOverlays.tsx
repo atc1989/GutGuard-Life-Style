@@ -12,6 +12,7 @@ import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
 import { Button } from "@/components/ui/Button";
+import { SpokeLinks } from "@/components/shell/SpokeLinks";
 import { Card } from "@/components/ui/Card";
 import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -76,6 +77,7 @@ export function MemberOverlays() {
               <span className="gg-account__badge">{notifications.length}</span>
             ) : null}
           </Button>
+          <SpokeLinks variant="sheet" />
           <Button variant="secondary" block onClick={() => open("settings")}>
             <Settings aria-hidden />
             Settings
