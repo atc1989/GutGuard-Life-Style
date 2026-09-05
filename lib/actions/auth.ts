@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
 import { ensureLifestyleCard } from "@/lib/lifestyle/ensure-card";
+import { trustedReturnTo } from "@/lib/lifestyle/return-to";
 import { resumeRoute } from "@/lib/mock/seed";
 import { createLoginEngine, EMAIL_CODE_RESENT } from "@/lib/one-account";
 import {
@@ -82,7 +83,7 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
     return { ok: true, mode: "mock" };
   }
 
-  const { name, mobile, email, password } = parsed.data;
+  const { name, mobile, email, password, returnTo } = parsed.data;
   const taken = await existingIdentity(email, mobile);
   if (taken) return taken;
 
@@ -127,7 +128,10 @@ export async function signUp(input: unknown): Promise<AuthActionResult> {
     };
   }
 
-  redirect("/card");
+  // Change 4c: a member who started on Academy or GEMA goes back there. An
+  // origin that is not on the allow-list is not an error to show them — they
+  // land on the door card, exactly as they did before this existed.
+  redirect(trustedReturnTo(returnTo) ?? "/card");
 }
 
 /**
@@ -175,7 +179,7 @@ export async function signIn(input: unknown): Promise<AuthActionResult> {
     if (typeof profile?.phase === "string") phase = profile.phase;
   }
 
-  redirect(resumeRoute(phase));
+  redirect(trustedReturnTo(parsed.data.returnTo) ?? resumeRoute(phase));
 }
 
 function loginRedirectTo() {
@@ -223,7 +227,10 @@ export async function confirmEmailCode(input: unknown): Promise<AuthActionResult
     .eq("id", data.user.id)
     .maybeSingle();
 
-  redirect(resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"));
+  redirect(
+    trustedReturnTo(parsed.data.returnTo) ??
+      resumeRoute(typeof profile?.phase === "string" ? profile.phase : "invited"),
+  );
 }
 
 export async function resendEmailCode(input: unknown): Promise<AuthActionResult> {

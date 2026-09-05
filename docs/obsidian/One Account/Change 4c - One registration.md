@@ -11,7 +11,7 @@ tags:
 
 # Change 4c — One registration
 
-**Status:** planned. Comes after [[Change 4b - Academy on Staging]] and **before**
+**Status:** **in progress** — the hub half is built (2026-09-05). Comes after [[Change 4b - Academy on Staging]] and **before**
 [[Change 5 - Hub chrome]]. Numbered 4c for the same reason 4b was: so Change 5
 and Change 6 keep their numbers and their `[[wikilinks]]`. The number is an
 identifier, not a ranking.
@@ -76,18 +76,54 @@ Rules, and the reason for each:
 
 ## Work
 
-- [ ] Lifestyle: a tested `resolveReturnTo()` — exact-origin allow-list, scheme
+- [x] Lifestyle: a tested `resolveReturnTo()` — exact-origin allow-list, scheme
   check, credentials check, silent fallback to `/card`.
-- [ ] Lifestyle `/register` reads `?returnTo=`, carries it through the 6-digit
-  confirm step, and lands the member there instead of `/card`.
+  `lib/lifestyle/return-to.ts`, 16 tests.
+- [x] Lifestyle `/register` reads `?returnTo=`, carries it through the 6-digit
+  confirm step, and lands the member there instead of `/card`. Also honoured by
+  `signIn`, because the register page already has a sign-in mode.
 - [ ] Lifestyle register: "Already a OneGrinders member? Sign in with your
   username." An identifier with no `@` routes to sign-in — it must never create
   a second account. Note `maxDuration = 60` already on that page: a first-time
   guild username waits on the guild API, which stalls ~30s.
+  **Blocked: visible copy, and the Design System vault is not in the agent's
+  container.** See *The gate this Change runs into*.
 - [ ] Academy `/login`: link to Lifestyle register with `returnTo`. No form.
-- [ ] GEMA `/login`: same link, same rule. No form.
+  Same gate — a visible link is UI.
+- [ ] GEMA `/login`: same link, same rule. No form. Same gate.
 - [ ] Ginhawa `/register/<event>` untouched. It captures a prospect and a
   sponsor `ref`; the Auth user is minted at conversion (D9, D13).
+
+## The env vars the allow-list is built from
+
+There was no existing convention for one app naming another, so this Change
+introduces two, alongside Lifestyle's own `NEXT_PUBLIC_SITE_URL`:
+
+```
+NEXT_PUBLIC_SITE_URL      the hub itself
+NEXT_PUBLIC_ACADEMY_URL   Academy
+NEXT_PUBLIC_GEMA_URL      GEMA
+```
+
+`ORIGIN_ENV_KEYS` in `lib/lifestyle/return-to.ts` is the single list, and a test
+asserts its contents so a spoke cannot be added in one place and forgotten in
+the other. A missing or malformed value **narrows** the allow-list — the member
+lands on the door card rather than being sent somewhere unchecked.
+
+## The gate this Change runs into
+
+`AGENTS.md` requires reading the GutGuard Design System vault before generating
+or changing any frontend, and that vault lives on the owner's machine
+(`d:\GutGuard\GutGuard Design System\`), not in the agent's container.
+
+So this Change splits cleanly in two:
+
+- **Logic and plumbing** — the allow-list, the schemas, the server actions, the
+  page reading `?returnTo=`. No new markup, no styling, nothing a member sees.
+  Done.
+- **Visible copy** — the sign-in prompt on register, the links on the two spoke
+  login pages. Not started, and should not be, until the vault is readable or
+  the owner supplies the dialect and component rules for them.
 
 ## What must prove it
 
@@ -106,6 +142,19 @@ Confirm the public origin for each app per environment (`NEXT_PUBLIC_SITE_URL`
 on Lifestyle, Academy and GEMA, for Preview and Production). The allow-list is
 built from those values, so a wrong or missing one silently disables the
 `returnTo` and members land on the door card instead.
+
+## What is proven so far
+
+```
+lifestyle npm test        91/91 (16 of them on resolveReturnTo)
+tsc --noEmit              clean
+eslint                    clean
+next build                clean; /register is now dynamic
+```
+
+Not yet proven: the end-to-end journey. That needs the spoke links, which are
+gated above, and `NEXT_PUBLIC_ACADEMY_URL` / `NEXT_PUBLIC_GEMA_URL` set on
+Vercel Preview.
 
 ## Done when
 
