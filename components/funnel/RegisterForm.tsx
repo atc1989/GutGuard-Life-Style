@@ -23,6 +23,12 @@ import {
   type AuthSignInValues,
 } from "@/lib/schemas/auth";
 import {
+  GUILD_PROMPT,
+  GUILD_PROMPT_ACTION,
+  GUILD_PROMPT_HELP,
+  looksLikeGuildUsername,
+} from "@/lib/lifestyle/guild-identifier";
+import {
   EMAIL_CODE_HINT,
   EMAIL_CODE_LENGTH,
   normalizeEmailCode,
@@ -58,6 +64,17 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
     defaultValues: { identifier: "", password: "" },
   });
 
+  // Change 4c / D13: a OneGrinders member never registers — the guild username
+  // is the account. Held in state rather than `registerForm.watch()`, which the
+  // React Compiler cannot analyse and which would skip compiling this whole
+  // component; the field's own onChange feeds it, so the prompt still appears
+  // as they type.
+  const [guildMember, setGuildMember] = useState(false);
+
+  // Registered once so the guild check can sit in front of the form's own
+  // onChange without replacing it.
+  const emailField = registerForm.register("email");
+
   function switchMode(next: "register" | "signin") {
     // Carry what they already typed across the toggle. Sign-in also takes a
     // OneGrinders username, so only an email can travel back to register.
@@ -69,6 +86,9 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
     }
     const identifier = signInForm.getValues("identifier");
     if (identifier.includes("@")) registerForm.setValue("email", identifier);
+    // Coming back to register, the prompt has to reflect the field as it now
+    // stands — a stale `true` would accuse a valid address of being a username.
+    setGuildMember(looksLikeGuildUsername(registerForm.getValues("email")));
   }
 
   async function finishRegister(values: { name: string; mobile: string; email: string }) {
@@ -298,7 +318,11 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
                 placeholder="you@email.com"
                 type="email"
                 autoComplete="email"
-                {...registerForm.register("email")}
+                {...emailField}
+                onChange={(event) => {
+                  setGuildMember(looksLikeGuildUsername(event.target.value));
+                  return emailField.onChange(event);
+                }}
                 error={registerForm.formState.errors.email?.message}
               />
               <FormField
@@ -312,6 +336,23 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
                 {...registerForm.register("password")}
                 error={registerForm.formState.errors.password?.message}
               />
+              {guildMember ? (
+                <div className="gg-alert" role="status" aria-live="polite">
+                  <strong>{GUILD_PROMPT}</strong>
+                  <p className="gg-help" style={{ marginTop: 6 }}>
+                    {GUILD_PROMPT_HELP}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    block
+                    style={{ marginTop: 12 }}
+                    onClick={() => switchMode("signin")}
+                  >
+                    {GUILD_PROMPT_ACTION}
+                  </Button>
+                </div>
+              ) : null}
               <Button type="submit" variant="editorial" block loading={loading}>
                 Get your card
               </Button>
@@ -321,7 +362,7 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
                 block
                 onClick={() => switchMode("signin")}
               >
-                Already have a card? Sign in
+                Already have a card, or a OneGrinders username? Sign in
               </Button>
             </form>
           ) : (
