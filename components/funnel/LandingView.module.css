@@ -41,7 +41,9 @@
   position: relative;
   isolation: isolate;
   margin-top: clamp(28px, 5vw, 44px);
-  padding-block: clamp(34px, 7vw, 72px) clamp(56px, 10vw, 104px);
+  /* The bottom padding has to clear the dissolve below, or bone text lands on
+     the pale half of it. */
+  padding-block: clamp(34px, 7vw, 72px) clamp(150px, 22vw, 280px);
   background:
     radial-gradient(118% 88% at 50% 0%, rgba(6, 8, 169, 0.58) 0%, rgba(6, 8, 169, 0) 62%),
     radial-gradient(72% 58% at 50% 42%, rgba(6, 8, 169, 0.36) 0%, rgba(6, 8, 169, 0) 74%),
@@ -49,15 +51,31 @@
   color: var(--gg-bone);
 }
 
+/*
+ * Ink to paper is a long way to travel and a straight ramp spends most of it in
+ * neutral grey — which is what read as a smear. Eased stops hold the dark for
+ * the first half and then move quickly, so it dissolves instead of banding.
+ */
 .stage::after {
   content: "";
   position: absolute;
   inset-inline: 0;
   bottom: 0;
   z-index: 0;
-  height: clamp(56px, 9vw, 112px);
+  height: clamp(130px, 20vw, 250px);
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(252, 250, 245, 0) 0%, var(--gg-paper) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(252, 250, 245, 0) 0%,
+    rgba(252, 250, 245, 0.015) 20%,
+    rgba(252, 250, 245, 0.06) 36%,
+    rgba(252, 250, 245, 0.16) 50%,
+    rgba(252, 250, 245, 0.34) 63%,
+    rgba(252, 250, 245, 0.58) 74%,
+    rgba(252, 250, 245, 0.8) 84%,
+    rgba(252, 250, 245, 0.95) 93%,
+    var(--gg-paper) 100%
+  );
 }
 
 .stageInner {

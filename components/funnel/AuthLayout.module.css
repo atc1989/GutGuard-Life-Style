@@ -104,9 +104,16 @@
 }
 
 @media (min-width: 900px) {
+  /*
+   * Both columns start on the same line. Centring looked balanced on one state
+   * and nowhere else: the sign-up form is four fields tall and sign-in is two,
+   * so a centred grid moved the card every time the mode changed. Anchoring the
+   * top keeps the card, the heading and the first field in exactly the same
+   * place across sign up, sign in and the confirmation code.
+   */
   .grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
+    align-items: start;
   }
 }
 
