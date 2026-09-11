@@ -11,9 +11,11 @@ import {
   signUp,
   type AuthActionResult,
 } from "@/lib/actions/auth";
+import { AuthCard } from "@/components/funnel/AuthCard";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
+import { LifestyleCardPrototype } from "@/components/lifestyle/LifestyleCardPrototype";
+import styles from "./AuthLayout.module.css";
 import {
   authRegisterSchema,
   authSignInSchema,
@@ -182,241 +184,248 @@ export function RegisterForm({ returnTo }: { returnTo?: string }) {
 
   if (confirmEmail) {
     return (
-      <main className="gg-funnel gg-funnel--editorial">
-        <div className="gg-split gg-split--form">
-          <div>
-            <p className="gg-eyebrow">Confirm</p>
-            <h1 className="gg-display" style={{ marginTop: 12 }}>
-              Check your <em>email</em>
-            </h1>
-            <p className="gg-lede" style={{ marginTop: 14 }}>
-              We sent a {EMAIL_CODE_LENGTH}-digit code to {confirmEmail}. {EMAIL_CODE_HINT}
-            </p>
-          </div>
-          <Card variant="editorial" className="gg-stack">
-            {formError ? (
-              <p className="gg-field__error" role="alert" aria-live="polite">
-                {formError}
-              </p>
-            ) : null}
-            <form
-              className="gg-stack"
-              noValidate
-              aria-busy={loading || undefined}
-              onSubmit={(event) => {
-                event.preventDefault();
-                void submitCode();
-              }}
-            >
-              <FormField
-                variant="ruled"
-                label="Confirmation code"
-                placeholder="000000"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={EMAIL_CODE_LENGTH}
-                spellCheck={false}
-                value={code}
-                onChange={(event) => setCode(normalizeEmailCode(event.target.value))}
-              />
-              <Button
-                type="submit"
-                variant="editorial"
-                block
-                loading={loading}
-                disabled={code.length !== EMAIL_CODE_LENGTH}
-              >
-                Confirm and open my card
-              </Button>
-              <Button type="button" variant="ghost" block onClick={() => void requestNewCode()}>
-                Send a new code
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                block
-                onClick={() => {
-                  setConfirmEmail("");
-                  setCode("");
-                  setFormError(null);
+      <main className={styles.page}>
+        <div className={styles.shell}>
+          <div className={styles.grid}>
+            <div className={styles.aside}>
+              <LifestyleCardPrototype interactive={false} />
+              <div className={styles.asideCopy}>
+                <p className="gg-eyebrow">Confirm</p>
+                <h1 className={`gg-display ${styles.title}`}>
+                  Check your <em>email</em>
+                </h1>
+                <p className={`gg-lede ${styles.lede}`}>
+                  We sent a {EMAIL_CODE_LENGTH}-digit code to {confirmEmail}.{" "}
+                  {EMAIL_CODE_HINT}
+                </p>
+              </div>
+            </div>
+            <AuthCard>
+              {formError ? (
+                <p className="gg-alert gg-alert--error" role="alert" aria-live="polite">
+                  {formError}
+                </p>
+              ) : null}
+              <form
+                className={styles.form}
+                noValidate
+                aria-busy={loading || undefined}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void submitCode();
                 }}
               >
-                Back
-              </Button>
-            </form>
-          </Card>
+                <FormField
+                  className={styles.codeField}
+                  label="Confirmation code"
+                  placeholder="000000"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={EMAIL_CODE_LENGTH}
+                  spellCheck={false}
+                  value={code}
+                  onChange={(event) => setCode(normalizeEmailCode(event.target.value))}
+                />
+                <Button
+                  type="submit"
+                  variant="commerce"
+                  block
+                  loading={loading}
+                  disabled={code.length !== EMAIL_CODE_LENGTH}
+                >
+                  Confirm and open my card
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  block
+                  onClick={() => void requestNewCode()}
+                >
+                  Send a new code
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  block
+                  onClick={() => {
+                    setConfirmEmail("");
+                    setCode("");
+                    setFormError(null);
+                  }}
+                >
+                  Back
+                </Button>
+              </form>
+            </AuthCard>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="gg-funnel gg-funnel--editorial">
-      <div className="gg-split gg-split--form">
-        <div>
-          <p className="gg-eyebrow">{mode === "register" ? "Sign up" : "Sign in"}</p>
-          <h1 className="gg-display" style={{ marginTop: 12 }}>
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <div className={styles.grid}>
+          <div className={styles.aside}>
+            <LifestyleCardPrototype interactive={false} />
+            <div className={styles.asideCopy}>
+              <p className="gg-eyebrow">{mode === "register" ? "Sign up" : "Sign in"}</p>
+              <h1 className={`gg-display ${styles.title}`}>
+                {mode === "register" ? (
+                  <>
+                    Enter your <em>name</em>
+                  </>
+                ) : (
+                  <>
+                    Welcome <em>back</em>
+                  </>
+                )}
+              </h1>
+              <p className={`gg-lede ${styles.lede}`}>
+                {mode === "register"
+                  ? "Name, mobile, email, and a password. Your session is a cookie when Supabase is connected."
+                  : "Your Gutguard username or email, and your password. Same card, same door."}
+              </p>
+            </div>
+          </div>
+          <AuthCard>
+            {formError ? (
+              <p className="gg-alert gg-alert--error" role="alert" aria-live="polite">
+                {formError}
+              </p>
+            ) : null}
             {mode === "register" ? (
-              <>
-                Enter your <em>name</em>
-              </>
+              <form
+                className={styles.form}
+                noValidate
+                aria-busy={loading || undefined}
+                onSubmit={registerForm.handleSubmit(async (values) => {
+                  setFormError(null);
+                  setLoading(true);
+                  try {
+                    const result = await signUp({ ...values, returnTo });
+                    if (!result) return;
+                    await handleAuthResult(result, () => finishRegister(values));
+                  } finally {
+                    setLoading(false);
+                  }
+                })}
+              >
+                <FormField
+                  label="Your name"
+                  placeholder="Your name here"
+                  autoComplete="name"
+                  {...registerForm.register("name")}
+                  error={registerForm.formState.errors.name?.message}
+                />
+                <FormField
+                  label="Mobile number"
+                  placeholder="09xx xxx xxxx"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  {...registerForm.register("mobile")}
+                  error={registerForm.formState.errors.mobile?.message}
+                />
+                <FormField
+                  label="Email"
+                  placeholder="you@email.com"
+                  type="email"
+                  autoComplete="email"
+                  {...emailField}
+                  onChange={(event) => {
+                    setGuildMember(looksLikeGuildUsername(event.target.value));
+                    return emailField.onChange(event);
+                  }}
+                  error={registerForm.formState.errors.email?.message}
+                />
+                <FormField
+                  label="Password"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={PASSWORD_MIN_LENGTH}
+                  spellCheck={false}
+                  hint={PASSWORD_HINT}
+                  {...registerForm.register("password")}
+                  error={registerForm.formState.errors.password?.message}
+                />
+                {guildMember ? (
+                  <div className={`gg-alert ${styles.guild}`} role="status" aria-live="polite">
+                    <strong>{GUILD_PROMPT}</strong>
+                    <p className="gg-help">{GUILD_PROMPT_HELP}</p>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      block
+                      onClick={() => switchMode("signin")}
+                    >
+                      {GUILD_PROMPT_ACTION}
+                    </Button>
+                  </div>
+                ) : null}
+                <Button type="submit" variant="commerce" block loading={loading}>
+                  Get your card
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  block
+                  onClick={() => switchMode("signin")}
+                >
+                  Already have a card, or a OneGrinders username? Sign in
+                </Button>
+              </form>
             ) : (
-              <>
-                Welcome <em>back</em>
-              </>
+              <form
+                className={styles.form}
+                noValidate
+                aria-busy={loading || undefined}
+                onSubmit={signInForm.handleSubmit(async (values) => {
+                  setFormError(null);
+                  setLoading(true);
+                  try {
+                    const result = await signIn({ ...values, returnTo });
+                    if (!result) return;
+                    await handleAuthResult(result, async () => {
+                      router.push(resumeRoute(session.phase));
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                })}
+              >
+                <FormField
+                  label="Username or email"
+                  placeholder="yourname or you@email.com"
+                  type="text"
+                  autoComplete="username"
+                  spellCheck={false}
+                  {...signInForm.register("identifier")}
+                  error={signInForm.formState.errors.identifier?.message}
+                />
+                <FormField
+                  label="Password"
+                  type="password"
+                  autoComplete="current-password"
+                  spellCheck={false}
+                  {...signInForm.register("password")}
+                  error={signInForm.formState.errors.password?.message}
+                />
+                <Button type="submit" variant="commerce" block loading={loading}>
+                  Sign in
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  block
+                  onClick={() => switchMode("register")}
+                >
+                  Need a card? Register
+                </Button>
+              </form>
             )}
-          </h1>
-          <p className="gg-lede" style={{ marginTop: 14 }}>
-            {mode === "register"
-              ? "Name, mobile, email, and a password. Your session is a cookie when Supabase is connected."
-              : "Your Gutguard username or email, and your password. Same card, same door."}
-          </p>
+          </AuthCard>
         </div>
-        <Card variant="editorial" className="gg-stack">
-          {formError ? (
-            <p className="gg-field__error" role="alert" aria-live="polite">
-              {formError}
-            </p>
-          ) : null}
-          {mode === "register" ? (
-            <form
-              className="gg-stack"
-              noValidate
-              aria-busy={loading || undefined}
-              onSubmit={registerForm.handleSubmit(async (values) => {
-                setFormError(null);
-                setLoading(true);
-                try {
-                  const result = await signUp({ ...values, returnTo });
-                  if (!result) return;
-                  await handleAuthResult(result, () => finishRegister(values));
-                } finally {
-                  setLoading(false);
-                }
-              })}
-            >
-              <FormField
-                variant="ruled"
-                label="Your name"
-                placeholder="Your name here"
-                autoComplete="name"
-                {...registerForm.register("name")}
-                error={registerForm.formState.errors.name?.message}
-              />
-              <FormField
-                variant="ruled"
-                label="Mobile number"
-                placeholder="09xx xxx xxxx"
-                inputMode="tel"
-                autoComplete="tel"
-                {...registerForm.register("mobile")}
-                error={registerForm.formState.errors.mobile?.message}
-              />
-              <FormField
-                variant="ruled"
-                label="Email"
-                placeholder="you@email.com"
-                type="email"
-                autoComplete="email"
-                {...emailField}
-                onChange={(event) => {
-                  setGuildMember(looksLikeGuildUsername(event.target.value));
-                  return emailField.onChange(event);
-                }}
-                error={registerForm.formState.errors.email?.message}
-              />
-              <FormField
-                variant="ruled"
-                label="Password"
-                type="password"
-                autoComplete="new-password"
-                minLength={PASSWORD_MIN_LENGTH}
-                spellCheck={false}
-                hint={PASSWORD_HINT}
-                {...registerForm.register("password")}
-                error={registerForm.formState.errors.password?.message}
-              />
-              {guildMember ? (
-                <div className="gg-alert" role="status" aria-live="polite">
-                  <strong>{GUILD_PROMPT}</strong>
-                  <p className="gg-help" style={{ marginTop: 6 }}>
-                    {GUILD_PROMPT_HELP}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    block
-                    style={{ marginTop: 12 }}
-                    onClick={() => switchMode("signin")}
-                  >
-                    {GUILD_PROMPT_ACTION}
-                  </Button>
-                </div>
-              ) : null}
-              <Button type="submit" variant="editorial" block loading={loading}>
-                Get your card
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                block
-                onClick={() => switchMode("signin")}
-              >
-                Already have a card, or a OneGrinders username? Sign in
-              </Button>
-            </form>
-          ) : (
-            <form
-              className="gg-stack"
-              noValidate
-              aria-busy={loading || undefined}
-              onSubmit={signInForm.handleSubmit(async (values) => {
-                setFormError(null);
-                setLoading(true);
-                try {
-                  const result = await signIn({ ...values, returnTo });
-                  if (!result) return;
-                  await handleAuthResult(result, async () => {
-                    router.push(resumeRoute(session.phase));
-                  });
-                } finally {
-                  setLoading(false);
-                }
-              })}
-            >
-              <FormField
-                variant="ruled"
-                label="Username or email"
-                placeholder="yourname or you@email.com"
-                type="text"
-                autoComplete="username"
-                spellCheck={false}
-                {...signInForm.register("identifier")}
-                error={signInForm.formState.errors.identifier?.message}
-              />
-              <FormField
-                variant="ruled"
-                label="Password"
-                type="password"
-                autoComplete="current-password"
-                spellCheck={false}
-                {...signInForm.register("password")}
-                error={signInForm.formState.errors.password?.message}
-              />
-              <Button type="submit" variant="editorial" block loading={loading}>
-                Sign in
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                block
-                onClick={() => switchMode("register")}
-              >
-                Need a card? Register
-              </Button>
-            </form>
-          )}
-        </Card>
       </div>
     </main>
   );

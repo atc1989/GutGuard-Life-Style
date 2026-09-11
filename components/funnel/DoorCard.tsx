@@ -49,7 +49,7 @@ export function DoorCard({
           onFlip={() => setFlipped((value) => !value)}
           front={
             <CardFace name={name} claimed={claimed}>
-              <p className="gg-help gg-card-hint">
+              <p className="gg-help gg-doorcard__hint">
                 Tap to flip · Ipakita ito sa pintuan
               </p>
             </CardFace>

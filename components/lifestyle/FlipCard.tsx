@@ -31,6 +31,10 @@ export function FlipCard({
   );
 }
 
+/**
+ * Front and back both fill the shared `--gg-card-ratio` plane set by
+ * `.gg-flip__inner` — no face sets its own height.
+ */
 export function CardFace({
   name,
   claimed,
@@ -41,32 +45,32 @@ export function CardFace({
   children?: ReactNode;
 }) {
   return (
-    <div className="gg-card gg-card--ceremonial" style={{ minHeight: 420 }}>
+    <div className="gg-card gg-card--ceremonial gg-doorcard">
       <p className="gg-eyebrow" style={{ color: "var(--gg-gold-soft)" }}>
         {claimed ? "Already yours" : "Show this at the door"}
       </p>
-      <h2 className="gg-heading" style={{ color: "var(--gg-bone)", marginTop: 12 }}>
-        {name}
-      </h2>
-      <p className="gg-lede" style={{ color: "var(--gg-bone)", opacity: 0.86, marginTop: 8 }}>
-        Gutguard Lifestyle
-      </p>
-      {children}
+      <h2 className="gg-doorcard__name">{name}</h2>
+      <div>
+        <p className="gg-doorcard__sub">Gutguard Lifestyle</p>
+        {children}
+      </div>
     </div>
   );
 }
 
 export function CardBack({ seed, cardNo }: { seed: string; cardNo: string }) {
   return (
-    <div className="gg-card" style={{ minHeight: 420, textAlign: "center" }}>
+    <div className="gg-card gg-doorcard gg-doorcard--back">
       <p className="gg-eyebrow">Ipakita ito sa staff</p>
-      <h2 className="gg-heading" style={{ fontSize: 28, margin: "10px 0 16px" }}>
-        Scan at the door
-      </h2>
-      <QRBlock seed={seed} />
-      <p className="gg-help" style={{ marginTop: 14, fontFamily: "var(--gg-mono)" }}>
-        {cardNo}
-      </p>
+      <div className="gg-doorcard__scan">
+        <QRBlock seed={seed} />
+        <div>
+          <p className="gg-doorcard__sub" style={{ color: "var(--gg-ink)" }}>
+            Scan at the door
+          </p>
+          <p className="gg-help gg-doorcard__cardno">{cardNo}</p>
+        </div>
+      </div>
     </div>
   );
 }

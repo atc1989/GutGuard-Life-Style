@@ -1,0 +1,267 @@
+/*
+ * Landing-only layout. The canonical 900px cut from the Design System
+ * breakpoints note; the member-app shell widths are untouched.
+ */
+.page {
+  padding-bottom: clamp(48px, 8vw, 80px);
+}
+
+.shell {
+  width: min(100%, 900px);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 5vw, 24px);
+}
+
+/* Hero ------------------------------------------------------------------ */
+
+.hero {
+  padding-top: clamp(32px, 7vw, 64px);
+}
+
+.heroCopy {
+  text-align: center;
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+
+.heroCopy .lede {
+  max-width: 52ch;
+}
+
+.heroCta {
+  margin-top: clamp(20px, 3vw, 28px);
+}
+
+/*
+ * The dark stage bleeds the full width of the page while its contents stay in
+ * the 900px shell. Ink and blue only, fading back into paper at the bottom.
+ */
+.stage {
+  position: relative;
+  isolation: isolate;
+  margin-top: clamp(28px, 5vw, 44px);
+  padding-block: clamp(34px, 7vw, 72px) clamp(56px, 10vw, 104px);
+  background:
+    radial-gradient(118% 88% at 50% 0%, rgba(6, 8, 169, 0.58) 0%, rgba(6, 8, 169, 0) 62%),
+    radial-gradient(72% 58% at 50% 42%, rgba(6, 8, 169, 0.36) 0%, rgba(6, 8, 169, 0) 74%),
+    var(--gg-ink);
+  color: var(--gg-bone);
+}
+
+.stage::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+  height: clamp(56px, 9vw, 112px);
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(252, 250, 245, 0) 0%, var(--gg-paper) 100%);
+}
+
+.stageInner {
+  position: relative;
+  z-index: 1;
+}
+
+.stageCaption {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  max-width: 46ch;
+  margin: clamp(26px, 4vw, 40px) auto 0;
+  text-align: center;
+}
+
+.stageCaption .stageEyebrow {
+  color: var(--gg-gold-soft);
+}
+
+.stageCaption .stageHeading {
+  color: var(--gg-bone);
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+.stageCaption .stageLede {
+  color: rgba(244, 241, 234, 0.86);
+}
+
+/* Trust ----------------------------------------------------------------- */
+
+.trust {
+  margin-top: clamp(28px, 5vw, 48px);
+}
+
+.trustGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.statCard {
+  display: grid;
+  gap: 4px;
+  padding: clamp(14px, 2.4vw, 20px);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-bone);
+  text-align: center;
+}
+
+.statValue {
+  display: block;
+  color: var(--gg-ink);
+  font-family: var(--gg-serif);
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Protocol -------------------------------------------------------------- */
+
+.steps {
+  margin-top: clamp(36px, 6vw, 56px);
+}
+
+.stepGrid {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepCard {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: clamp(16px, 2.6vw, 24px);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-bone-soft);
+}
+
+.stepCard .stepTitle {
+  font-size: clamp(22px, 2.6vw, 26px);
+}
+
+/* FAQ and wayfinding ----------------------------------------------------- */
+
+.faq {
+  margin-top: clamp(36px, 6vw, 56px);
+}
+
+.faqGrid {
+  display: grid;
+  gap: clamp(24px, 4vw, 40px);
+  margin-top: 14px;
+  align-items: start;
+}
+
+.faqList {
+  border-top: 1px solid var(--gg-rule);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.faqSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 12px 2px;
+  color: var(--gg-ink);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* The default disclosure triangle would compete with the chevron. */
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqSummary:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
+}
+
+.faqSummary:hover {
+  color: var(--gg-blue);
+}
+
+.faqChevron {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s var(--gg-ease-out), color 0.2s ease;
+}
+
+.faqItem[open] .faqSummary {
+  color: var(--gg-blue);
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+}
+
+.faqBody {
+  padding: 0 2px 16px;
+  color: var(--gg-ink-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wayfinding {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.wayLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqChevron {
+    transition: none;
+  }
+}
+
+/* Desktop --------------------------------------------------------------- */
+
+@media (min-width: 900px) {
+  .trustGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stepGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .faqGrid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+/* Narrow refinement: the established ~440px mobile measure. */
+@media (max-width: 599px) {
+  .shell {
+    width: min(100%, 440px);
+    padding-inline: 18px;
+  }
+}

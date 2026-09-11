@@ -1,0 +1,119 @@
+/*
+ * Route-scoped skin for /register (sign up, sign in, confirm code). Rounded
+ * commerce/auth dialect: 24px card, 10px fields, 14px primary action. Scoped
+ * on purpose — the editorial ruled fields and square actions elsewhere in the
+ * product are left alone.
+ */
+.page {
+  padding-block: clamp(28px, 6vw, 64px) clamp(48px, 8vw, 80px);
+}
+
+.shell {
+  width: min(100%, 900px);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 5vw, 24px);
+}
+
+.grid {
+  display: grid;
+  gap: clamp(24px, 4vw, 40px);
+}
+
+/* Card first, then the heading, then the form — the same order the funnel
+   uses on the landing page. */
+.aside {
+  display: grid;
+  gap: clamp(20px, 3vw, 28px);
+  align-content: start;
+}
+
+.asideCopy {
+  display: grid;
+  gap: 12px;
+}
+
+/* The full display size is built for a full-width hero, not a form column. */
+.asideCopy .title {
+  font-size: clamp(34px, 5.2vw, 48px);
+}
+
+.asideCopy .lede {
+  font-size: 17px;
+}
+
+/* Auth card ------------------------------------------------------------- */
+
+.card {
+  display: grid;
+  gap: 16px;
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-lg);
+  background: var(--gg-bone);
+  box-shadow: 0 10px 28px rgba(15, 15, 24, 0.05);
+}
+
+/* Boxed fields at the auth radius. FormField already supplies the label, ids,
+   hint, error, and ARIA wiring; only the skin changes here. */
+.card :global(.gg-field__control),
+.card :global(.gg-field__control--lg) {
+  min-height: 52px;
+  border-radius: var(--gg-r-sm);
+  background: var(--gg-bone-soft);
+}
+
+/* Gold is the keyboard focus indicator; the blue halo only supports it. */
+.card :global(.gg-field__control:focus-visible) {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
+  border-color: var(--gg-blue);
+  box-shadow: 0 0 0 3px rgba(6, 8, 169, 0.14);
+}
+
+/* An invalid field keeps its red border through focus. */
+.card :global(.gg-field__control[aria-invalid="true"]) {
+  border-color: var(--gg-error);
+  background: rgba(176, 32, 46, 0.05);
+}
+
+.card :global(.gg-field__control[aria-invalid="true"]:focus-visible) {
+  border-color: var(--gg-error);
+  box-shadow: 0 0 0 3px rgba(176, 32, 46, 0.14);
+}
+
+/* Six-digit confirmation code. */
+.codeField :global(.gg-field__control) {
+  font-family: var(--gg-mono);
+  font-size: clamp(22px, 6vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-align: center;
+  /* Letter-spacing trails the last glyph, so centring lands half a space to
+     the left. Nudge it back by half. */
+  text-indent: 0.16em;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.guild {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+  }
+}
+
+/* Narrow refinement: the established ~440px mobile measure. */
+@media (max-width: 599px) {
+  .shell {
+    width: min(100%, 440px);
+    padding-inline: 18px;
+  }
+}
