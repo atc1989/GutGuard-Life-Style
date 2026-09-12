@@ -161,4 +161,4 @@ A Staging member can move hub → spoke → hub without a second register. Chair
 
 ## Next
 
-[[Change 6 - Shared domain SSO]]
+[[Change 6 - Shared domain SSO]] (done). Chrome identity leftover is [[Change 9 - Member chrome identity]].

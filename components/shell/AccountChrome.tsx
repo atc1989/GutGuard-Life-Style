@@ -4,10 +4,10 @@ import { Bell, QrCode, Settings } from "lucide-react";
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/ui/SignOutButton";
-import { memberDisplayName } from "@/lib/initials";
 import { memberNotifications } from "@/lib/member-notifications";
 import { nextMenuIndex } from "@/lib/member-shell";
 import { useOverlay } from "@/lib/overlay-store";
+import { useMemberChrome } from "@/lib/lifestyle/member-chrome-context";
 import { useSession } from "@/lib/session";
 
 function AccountMeta({ name, sponsor }: { name: string; sponsor: string }) {
@@ -69,8 +69,9 @@ function useDismissiblePopup({
 /** Desktop sidebar account entry. Secondary actions live in one inward-opening menu. */
 export function AccountCard() {
   const { session } = useSession();
+  const { displayName, sponsor } = useMemberChrome();
   const { open } = useOverlay();
-  const name = memberDisplayName(session.name);
+  const name = displayName;
   const notifications = memberNotifications(session);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -96,7 +97,7 @@ export function AccountCard() {
         onClick={() => setMenuOpen((value) => !value)}
       >
         <Avatar name={name} />
-        <AccountMeta name={name} sponsor={session.sponsor} />
+        <AccountMeta name={name} sponsor={sponsor} />
         {notifications.length ? (
           <span className="gg-account__badge" aria-label={`${notifications.length} notifications`}>
             {notifications.length}
@@ -128,8 +129,9 @@ export function AccountCard() {
 /** Mobile masthead account trigger. Account utilities open in a bottom sheet. */
 export function AccountMenu() {
   const { session } = useSession();
+  const { displayName } = useMemberChrome();
   const { overlay, open } = useOverlay();
-  const name = memberDisplayName(session.name);
+  const name = displayName;
   const notifications = memberNotifications(session);
 
   return (
