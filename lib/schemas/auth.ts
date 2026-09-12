@@ -4,21 +4,30 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_HINT =
   "At least 8 characters, with uppercase, lowercase, and a number.";
 
-/** Normalize a validated PH mobile number to E.164 (`+639…`). */
+/**
+ * Normalize a validated PH mobile number to E.164 (`+639…`).
+ *
+ * Three spellings arrive here and all three are the same number: `+639171234567`
+ * is already E.164, `639171234567` is missing only its plus, and `09171234567`
+ * is the local form whose trunk `0` the country code replaces. That last case is
+ * why this is not a single `slice(1)` — on a bare `63…` that would eat the `6`.
+ */
 export function toE164Phone(mobile: string) {
   const compact = mobile.replace(/[\s()-]/g, "");
-  if (compact.startsWith("+63")) return compact;
+  if (compact.startsWith("+")) return compact;
+  if (compact.startsWith("63")) return `+${compact}`;
   return `+63${compact.slice(1)}`;
 }
 
-const phMobile = z
+/** PH mobiles only, in any of the three spellings people actually type. */
+export const phMobileSchema = z
   .string()
   .trim()
   .transform((value) => value.replace(/[\s()-]/g, ""))
   .pipe(
     z
       .string()
-      .regex(/^(09\d{9}|\+639\d{9})$/, "Enter a valid PH mobile number"),
+      .regex(/^(09\d{9}|\+?639\d{9})$/, "Enter a valid PH mobile number"),
   )
   .transform(toE164Phone);
 
@@ -47,7 +56,7 @@ export const authRegisterSchema = z.object({
     .trim()
     .min(2, "Enter your name")
     .max(80, "Name is too long"),
-  mobile: phMobile,
+  mobile: phMobileSchema,
   email: emailSchema,
   password: passwordSchema,
   returnTo: returnToSchema,

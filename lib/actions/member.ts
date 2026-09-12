@@ -2,8 +2,11 @@
 
 import { BASE_STEPS, FIRST_ORDER_PESOS, type DoseSlotId, type FunnelPhase, type InviteStage } from "@/lib/mock/seed";
 import { queueOrderSchema } from "@/lib/schemas/order";
+import { MOBILE_TAKEN } from "@/lib/schemas/auth";
+import { profileSchema } from "@/lib/schemas/settings";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 async function requireUser() {
   if (!isSupabaseConfigured()) return null;
@@ -69,6 +72,78 @@ export async function persistProfile(patch: {
     .eq("id", ctx.user.id);
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };
+}
+
+/**
+ * Change 5 — the name and mobile behind the Settings drawer.
+ *
+ * These are read and written on their own rather than through the session
+ * store, because with Supabase configured the client session is deliberately a
+ * guest session (`parseLifestyleSession`) and carries neither field. The drawer
+ * is the only reader, so it loads on open and saves on submit.
+ */
+export async function loadProfile() {
+  const ctx = await requireUser();
+  if (!ctx) return null;
+  const { data, error } = await ctx.supabase
+    .from("profiles")
+    .select("name, mobile")
+    .eq("id", ctx.user.id)
+    .maybeSingle<{ name: string | null; mobile: string | null }>();
+  if (error || !data) return null;
+  return { name: data.name ?? "", mobile: data.mobile ?? "" };
+}
+
+/** `profiles_mobile_uidx` — someone else already holds this number. */
+function isMobileCollision(error: {
+  code?: string;
+  message?: string;
+  details?: string;
+}) {
+  if (error.code !== "23505") return false;
+  return `${error.message ?? ""} ${error.details ?? ""}`.toLowerCase().includes("mobile");
+}
+
+export async function saveProfile(input: unknown) {
+  // Validated here and not only in the drawer: a server action is a public
+  // endpoint, and `persistProfile` above takes its patch on trust.
+  const parsed = profileSchema.safeParse(input);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = String(issue.path[0] ?? "form");
+      if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { ok: false as const, error: "Check the highlighted fields.", fieldErrors };
+  }
+
+  const ctx = await requireUser();
+  if (!ctx) return { ok: true as const, skipped: true, values: parsed.data };
+
+  // `name` and `mobile` only. The `profiles_sync_identity` trigger mirrors them
+  // onto `full_name` and `phone`, so writing those here would fight it.
+  const { error } = await ctx.supabase
+    .from("profiles")
+    .update({
+      name: parsed.data.name,
+      mobile: parsed.data.mobile,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", ctx.user.id);
+
+  if (error) {
+    if (isMobileCollision(error)) {
+      return {
+        ok: false as const,
+        error: MOBILE_TAKEN,
+        fieldErrors: { mobile: MOBILE_TAKEN },
+      };
+    }
+    return { ok: false as const, error: "Could not save that just now. Try again." };
+  }
+
+  revalidatePath("/app", "layout");
+  return { ok: true as const, values: parsed.data };
 }
 
 export async function persistInvite(name: string, handle: string, stage: InviteStage) {

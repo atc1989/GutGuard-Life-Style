@@ -35,6 +35,10 @@
   --gg-r-lg: 24px;
   --gg-r-pill: 999px;
 
+  /* Physical ID-1 card. Shared by the landing/auth placeholder and the
+     operational door card so all three scale by width from one number. */
+  --gg-card-ratio: 85.6 / 53.98;
+
   --gg-shadow-card: 0 14px 36px rgba(15, 15, 24, 0.07);
   --gg-shadow-modal: 0 24px 80px rgba(15, 15, 24, 0.28);
   --gg-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -1550,11 +1554,6 @@ a {
   margin-top: 22px;
 }
 
-.gg-card-hint {
-  color: var(--gg-gold-soft);
-  margin-top: 24px;
-}
-
 .gg-invite-note {
   margin-top: 6px;
 }
@@ -1596,6 +1595,8 @@ a {
   cursor: pointer;
   overflow: hidden;
   perspective: 900px;
+  /* Card type scales with the card, not the viewport. */
+  container-type: inline-size;
 }
 
 .gg-flip:focus-visible {
@@ -1607,7 +1608,10 @@ a {
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.7s var(--gg-ease-out);
-  min-height: 420px;
+  /* Width-only scaling on the shared card ratio. Never pair with a height.
+     The container context lives on .gg-flip: layout containment here would
+     flatten transform-style and kill the flip. */
+  aspect-ratio: var(--gg-card-ratio);
 }
 
 .gg-flip.is-back .gg-flip__inner {
@@ -1622,6 +1626,78 @@ a {
 
 .gg-flip__face--back {
   transform: rotateY(180deg);
+}
+
+/*
+ * Door card faces. Both fill the shared ID-1 plane, so the content has to work
+ * inside a fixed height rather than set one. Sizes are in container units so a
+ * 320px phone and a 420px desktop column read the same.
+ */
+.gg-doorcard {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 6px;
+  overflow: hidden;
+  padding: clamp(14px, 4.2cqw, 22px);
+}
+
+.gg-doorcard .gg-eyebrow {
+  font-size: clamp(8px, 2.1cqw, 10px);
+}
+
+.gg-doorcard__name {
+  align-self: end;
+  margin: 0;
+  color: var(--gg-bone);
+  font-family: var(--gg-serif);
+  font-size: clamp(20px, 6.4cqw, 32px);
+  font-weight: 400;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.gg-doorcard__sub {
+  color: var(--gg-bone);
+  font-size: clamp(11px, 3cqw, 14px);
+  opacity: 0.86;
+}
+
+.gg-doorcard__hint {
+  color: var(--gg-gold-soft);
+  margin: 0;
+}
+
+.gg-doorcard--back {
+  grid-template-rows: auto 1fr;
+  text-align: left;
+}
+
+.gg-doorcard__scan {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(10px, 3cqw, 16px);
+  min-height: 0;
+}
+
+.gg-doorcard__scan .gg-qr {
+  padding: 6px;
+  border-radius: var(--gg-r-sm);
+}
+
+/* The SVG carries a viewBox, so CSS can scale it without touching the seed. */
+.gg-doorcard__scan .gg-qr svg {
+  display: block;
+  width: clamp(88px, 30cqw, 136px);
+  height: auto;
+}
+
+.gg-doorcard__cardno {
+  font-family: var(--gg-mono);
+  font-size: clamp(10px, 2.8cqw, 13px);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
 }
 
 .gg-demo {
