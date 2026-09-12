@@ -111,6 +111,40 @@ asserts its contents so a spoke cannot be added in one place and forgotten in
 the other. A missing or malformed value **narrows** the allow-list — the member
 lands on the door card rather than being sent somewhere unchecked.
 
+### Correction, 2026-09-12 — the hub is no longer on its own allow-list
+
+`NEXT_PUBLIC_SITE_URL` was in `ORIGIN_ENV_KEYS`, and that was the bug. After the
+domain cutover, Academy's Production `NEXT_PUBLIC_SITE_URL` held the **hub's**
+origin, so its Create-account link asked to be returned to
+`https://lifestyle.gutguard.ph/academy`. The allow-list checks the origin and
+nothing else; that origin was the hub's own, so the check passed — and Lifestyle
+serves no `/academy`. A member who had just typed their confirm code got a hard
+404, which is precisely what *"a member never sees a redirect error"* above
+promises cannot happen.
+
+The list is now the two spokes only:
+
+```
+NEXT_PUBLIC_ACADEMY_URL   Academy
+NEXT_PUBLIC_GEMA_URL      GEMA
+```
+
+`NEXT_PUBLIC_SITE_URL` is still read, as `HUB_ENV_KEY`, but **to exclude**: its
+origin is removed from the allow-list however it got in, so a spoke variable
+misconfigured to the hub also falls back to the door card instead of 404ing.
+Lifestyle keeps using the variable for its own links and the confirm-code email
+redirect; that is unchanged.
+
+A `returnTo` naming the hub can never be worth honouring — the hub already knows
+where its own members land, and the only paths a spoke could ask it for are
+paths it does not serve.
+
+**Still owner work:** this stops the 404, it does not restore the redirect.
+Academy Production needs `NEXT_PUBLIC_SITE_URL=https://gentrep.gutguard.ph` and
+a redeploy — `NEXT_PUBLIC_*` is inlined at build time, so an env edit alone
+changes nothing. Until then a member who starts on Academy lands on the door
+card.
+
 ## Preview points at the Production domains — owner decision, 2026-09-05
 
 Vercel Preview URLs are per-branch (`…-git-<branch>-<team>.vercel.app`), so an

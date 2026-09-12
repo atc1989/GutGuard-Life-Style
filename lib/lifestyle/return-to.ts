@@ -11,6 +11,23 @@
  * `startsWith`, not `endsWith`, not a regex on the host — `gutguard.ph.attacker.com`
  * passes all three. Anything not on the list falls back silently; a member
  * never sees a redirect error, they just land where they always did.
+ *
+ * ## The hub is not on its own allow-list — 2026-09-12
+ *
+ * It used to be, and that cost a member a 404 in the middle of registering.
+ * Academy's Production `NEXT_PUBLIC_SITE_URL` came out of the domain cutover
+ * holding the **hub's** origin, so its "Create account" link asked to be
+ * returned to `https://lifestyle.gutguard.ph/academy`. The allow-list checks
+ * the origin and nothing else, that origin was the hub's own, so the check
+ * passed — and Lifestyle has no `/academy` route. Hard 404, straight after the
+ * confirm code, which is exactly the "member never sees a redirect error"
+ * promise above.
+ *
+ * A `returnTo` naming the hub can never be worth honouring: the hub already
+ * knows where its own members land (`DEFAULT_LANDING`, or the phase the
+ * confirm step resumes them at), and the only paths a spoke could ask for are
+ * paths the hub does not serve. So the hub's origin is kept off the list, and
+ * removed again if a spoke variable is misconfigured to it.
  */
 
 /** Where a member lands with no `returnTo`, or one that is not trusted. */
@@ -19,15 +36,22 @@ export const DEFAULT_LANDING = "/card";
 type EnvLike = Record<string, string | undefined>;
 
 /**
- * The env vars naming the three apps. Lifestyle already has its own
- * `NEXT_PUBLIC_SITE_URL`; the spokes are new here, and a missing one narrows
- * the allow-list rather than widening it — the safe direction to fail.
+ * The env vars naming the **spokes** — the only apps a member can be returned
+ * to. Lifestyle's own `NEXT_PUBLIC_SITE_URL` is deliberately absent; it is read
+ * as `HUB_ENV_KEY` below, to exclude rather than to allow. A missing one
+ * narrows the allow-list rather than widening it — the safe direction to fail.
  */
 export const ORIGIN_ENV_KEYS = [
-  "NEXT_PUBLIC_SITE_URL",
   "NEXT_PUBLIC_ACADEMY_URL",
   "NEXT_PUBLIC_GEMA_URL",
 ] as const;
+
+/**
+ * The hub itself. Read only so its origin can be taken back out of the list —
+ * see the 2026-09-12 note above. Lifestyle still uses this variable for its
+ * own links and its confirm-code email redirect; this is not that.
+ */
+export const HUB_ENV_KEY = "NEXT_PUBLIC_SITE_URL";
 
 /**
  * Parse a configured value down to a bare origin, or drop it. A value that is
@@ -54,6 +78,11 @@ export function allowedOrigins(env: EnvLike = process.env): string[] {
     const origin = toOrigin(env[key]);
     if (origin) origins.add(origin);
   }
+  // Leaving the hub off `ORIGIN_ENV_KEYS` is not enough on its own: the way
+  // this broke in production was a *spoke* variable holding the hub's origin.
+  // Take it out however it got in.
+  const hub = toOrigin(env[HUB_ENV_KEY]);
+  if (hub) origins.delete(hub);
   return [...origins];
 }
 
