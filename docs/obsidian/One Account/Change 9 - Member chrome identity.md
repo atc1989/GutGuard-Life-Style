@@ -10,13 +10,11 @@ tags:
 
 # Change 9 — Member chrome identity
 
-**Status:** **planned / ready for implementation** — not coded. Planned 2026-09-12.
+**Status:** **done** — Staging 2026-09-12, Production Lifestyle `d00488c` the same day.
 
-**Current change** on this board. Gentrep Academy Change 8 stays **CLOSED**.
+Gentrep Academy Change 8 stays **CLOSED**. **Current change** on this board is now **none**. Do not invent Change 10 from this note.
 
-Engineering plan (do not implement from memory): Academy repo `docs/change9-plan.md`.
-
-Read [[00 - Session gate]], [[00 - Locks]], [[01 - Decisions]], [[04 - UX]] before implementing. This Change **touches UI** — read the Design System (OWNER, Visual Foundations, Dialects, Portable CSS). Tech Stack: OWNER, Canonical, Frontend, Supabase, Deploy.
+Engineering plan: Academy repo `docs/change9-plan.md`.
 
 ## Goal
 
@@ -24,31 +22,41 @@ When a signed-in member opens Lifestyle `/app/*` against real Supabase, the shel
 
 ## Why this is Change 9
 
-Academy Changes 1–8 (streamline + Production cutover) are done. One Account Changes 1–6b are done. The only named leftover on this board was Change 5’s unfixed chrome (“still says Member”). During Change 8 that leftover was labelled “own Change, not Academy Change 9” so it would not ride the cutover. It is now the next numbered increment on both boards. There is no One Account Change 7 or 8.
+Academy Changes 1–8 (streamline + Production cutover) are done. One Account Changes 1–6b are done. The only named leftover on this board was Change 5’s unfixed chrome (“still says Member”). During Change 8 that leftover was labelled “own Change, not Academy Change 9” so it would not ride the cutover. It is now closed. There is no One Account Change 7 or 8.
 
-Owning repo: **`atc1989/GutGuard-Life-Style`**. Academy and GEMA application code are not in scope.
+Owning repo: **`atc1989/GutGuard-Life-Style`**. Academy and GEMA application code were not in scope.
 
 ## Work (implementation session)
 
-- [ ] Branch from Lifestyle `origin/main` (Settings name/mobile already there). Do not start from Settings-less `staging` HEAD.
-- [ ] Server-read `public.profiles` in `app/app/layout.tsx` after `ensureCardForCurrentUser()`. User-scoped client only.
-- [ ] Pass chrome into `MemberShell` → account card/menu, account sheet, QR overlay.
-- [ ] `saveProfile` revalidates `/app` layout. Do not revive `localStorage` as authorization.
-- [ ] Tests T-910–T-922. Staging Preview T-914–T-923. Production read-only T-924.
-- [ ] No SQL. No `db push`. Do not apply `20260911153100` / `20260911154000`. Do not create Staging `app_roles` / `webhook_events`.
+- [x] Branch from Lifestyle `origin/main` (Settings name/mobile already there). Do not start from Settings-less `staging` HEAD.
+- [x] Server-read `public.profiles` in `app/app/layout.tsx` after `ensureCardForCurrentUser()`. User-scoped client only.
+- [x] Pass chrome into `MemberShell` → account card/menu, account sheet, QR overlay.
+- [x] `saveProfile` revalidates `/app` layout. Do not revive `localStorage` as authorization.
+- [x] Tests T-910–T-922. Staging T-914–T-923 (local Next against Staging Auth; Preview SSO still on). Production read-only T-924.
+- [x] No SQL. No `db push`. Did not apply `20260911153100` / `20260911154000`. Did not create Staging `app_roles` / `webhook_events`.
 
-## Non-goals
+## Proof
+
+- Lifestyle PR [#41](https://github.com/atc1989/GutGuard-Life-Style/pull/41) → `staging` (`eef5160`).
+- Lifestyle PR [#42](https://github.com/atc1989/GutGuard-Life-Style/pull/42) → Production `main` (`d00488c`).
+- Rollback point: previous Production `main` `6c49daa`.
+- Staging fixture `demo.member` restored (name Demo Member, mobile null). No `[TEST] C9` residue.
+- Production T-924 used existing disposable `bob@test.com` **read-only**. Name/mobile were not written.
+
+## Non-goals (still out of scope)
 
 Academy training features, GEMA, cookies/Auth/domains, Production operator provisioning, Production Academy events catalog, Health/Team/Story content hydration, Bien `/admin`.
 
 ## Owner steps in
 
-None to start implementation. Staging Preview still needs Vercel SSO. Production Settings **write** stays off real members unless the owner later names a disposable Production fixture. Copy this folder to Najee’s vault when convenient.
+Copy this folder to Najee’s vault when convenient. Staging Preview still needs Vercel SSO for hosted Preview clicks; Change 9 Staging proof used local Lifestyle against Staging Auth, same method as Change 8.
 
 ## Done when
 
 A Staging member with a filled `public.profiles` row sees their name and card on `/app/*` chrome (not `"Member"` / empty QR), Settings save updates that chrome, guest-lock tests still pass, `/card` still matches, spokes still open signed-in. Then the same read-only proof on Production Lifestyle.
 
+**Met 2026-09-12.**
+
 ## Next
 
-Do not invent Change 10 from this note. Re-read the board after Change 9 ships.
+Do not invent Change 10 from this note. Re-read the board. Current change is none.
