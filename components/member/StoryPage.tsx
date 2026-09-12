@@ -2,7 +2,6 @@
 
 import { STORIES } from "@/lib/mock/seed";
 import { useOverlay } from "@/lib/overlay-store";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { StoryStatus } from "@/lib/schemas/story-moderate";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -32,16 +31,18 @@ export function StoryPage({
   feedError?: string;
 }) {
   const { open } = useOverlay();
-  const useLive = isSupabaseConfigured() && feed;
-  const community = useLive
+  const mine = feed?.mine ?? [];
+  const community = feed
     ? feed.community
-    : STORIES.map((story) => ({
-        id: story.id,
-        name: story.name,
-        about: story.quote,
-        outcomes: [] as string[],
-        days: story.place,
-      }));
+    : feedError
+      ? []
+      : STORIES.map((story) => ({
+          id: story.id,
+          name: story.name,
+          about: story.quote,
+          outcomes: [] as string[],
+          days: story.place,
+        }));
 
   return (
     <div className="gg-stack">
@@ -66,10 +67,10 @@ export function StoryPage({
         </p>
       ) : null}
 
-      {useLive && feed.mine.length > 0 ? (
+      {mine.length > 0 ? (
         <div className="gg-stack">
           <p className="gg-eyebrow">Your submissions</p>
-          {feed.mine.map((story) => (
+          {mine.map((story) => (
             <Card key={story.id}>
               <Badge active={story.status === "approved"}>{story.status}</Badge>
               <p className="gg-lede" style={{ marginTop: 8 }}>
