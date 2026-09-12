@@ -2,7 +2,6 @@
 
 import { STORIES } from "@/lib/mock/seed";
 import { useOverlay } from "@/lib/overlay-store";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { StoryStatus } from "@/lib/schemas/story-moderate";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -32,16 +31,21 @@ export function StoryPage({
   feedError?: string;
 }) {
   const { open } = useOverlay();
-  const useLive = isSupabaseConfigured() && feed;
-  const community = useLive
+  // Prefer the server feed whenever the page passed one. Branching on
+  // isSupabaseConfigured() here mismatched SSR vs client and hydrated the mock
+  // roster over an empty live feed.
+  const useLive = Boolean(feed);
+  const community = feed
     ? feed.community
-    : STORIES.map((story) => ({
-        id: story.id,
-        name: story.name,
-        about: story.quote,
-        outcomes: [] as string[],
-        days: story.place,
-      }));
+    : feedError
+      ? []
+      : STORIES.map((story) => ({
+          id: story.id,
+          name: story.name,
+          about: story.quote,
+          outcomes: [] as string[],
+          days: story.place,
+        }));
 
   return (
     <div className="gg-stack">
