@@ -31,10 +31,7 @@ export function StoryPage({
   feedError?: string;
 }) {
   const { open } = useOverlay();
-  // Prefer the server feed whenever the page passed one. Branching on
-  // isSupabaseConfigured() here mismatched SSR vs client and hydrated the mock
-  // roster over an empty live feed.
-  const useLive = Boolean(feed);
+  const mine = feed?.mine ?? [];
   const community = feed
     ? feed.community
     : feedError
@@ -70,10 +67,10 @@ export function StoryPage({
         </p>
       ) : null}
 
-      {useLive && feed.mine.length > 0 ? (
+      {mine.length > 0 ? (
         <div className="gg-stack">
           <p className="gg-eyebrow">Your submissions</p>
-          {feed.mine.map((story) => (
+          {mine.map((story) => (
             <Card key={story.id}>
               <Badge active={story.status === "approved"}>{story.status}</Badge>
               <p className="gg-lede" style={{ marginTop: 8 }}>
