@@ -1,6 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 import { sharedSessionCookieOptions } from "@/lib/one-account/client";
+import { cookieOptionsForRequestHost } from "@/lib/supabase/cookie-options";
 
 /** Browser anon client. Used when public Supabase env is set. */
 export function createClient() {
@@ -10,7 +11,10 @@ export function createClient() {
     {
       // Change 6: the browser writes these cookies too, so it must agree with
       // the server about their Domain — otherwise two cookies share one name.
-      cookieOptions: sharedSessionCookieOptions(),
+      cookieOptions: cookieOptionsForRequestHost(
+        sharedSessionCookieOptions(),
+        typeof window === "undefined" ? undefined : window.location.hostname,
+      ),
     },
   );
 }
