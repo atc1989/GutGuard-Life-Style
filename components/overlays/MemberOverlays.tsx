@@ -36,12 +36,13 @@ import {
 import { profileSchema, type ProfileValues } from "@/lib/schemas/settings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
 import { formatIdentityDetails } from "@/lib/member-display";
 import { memberNotifications } from "@/lib/member-notifications";
 import { Avatar } from "@/components/ui/Avatar";
-import { memberDisplayName } from "@/lib/initials";
+import { useMemberChrome } from "@/lib/lifestyle/member-chrome-context";
 import { Bell, QrCode, Settings } from "lucide-react";
 
 /**
@@ -55,6 +56,7 @@ import { Bell, QrCode, Settings } from "lucide-react";
 function SettingsIdentity() {
   const { session, update } = useSession();
   const { push } = useToast();
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const configured = isSupabaseConfigured();
@@ -102,6 +104,7 @@ function SettingsIdentity() {
             // The saved values, not the typed ones: the schema normalizes a
             // mobile to +639…, and the field should show what the row holds.
             if (result.values) reset(result.values);
+            router.refresh();
           }
           push({ tone: "success", title: "Saved", body: "Your details are up to date." });
         } finally {
@@ -140,6 +143,7 @@ function SettingsIdentity() {
 export function MemberOverlays() {
   const { overlay, close, open } = useOverlay();
   const { session, update } = useSession();
+  const chrome = useMemberChrome();
   const { push } = useToast();
   const [qty, setQty] = useState(1);
   const [serverGema, setServerGema] = useState<boolean | null>(null);
@@ -147,9 +151,9 @@ export function MemberOverlays() {
   const baseComplete = isSupabaseConfigured()
     ? Boolean(serverGema)
     : localComplete;
-  const identityDetails = formatIdentityDetails(session);
+  const identityDetails = formatIdentityDetails(chrome);
   const notifications = memberNotifications(session);
-  const displayName = memberDisplayName(session.name);
+  const displayName = chrome.displayName;
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -169,8 +173,8 @@ export function MemberOverlays() {
             <Avatar name={displayName} />
             <div>
               <strong>{displayName}</strong>
-              {session.sponsor ? (
-                <p className="gg-help">with {session.sponsor}</p>
+              {chrome.sponsor ? (
+                <p className="gg-help">with {chrome.sponsor}</p>
               ) : null}
             </div>
           </div>
@@ -477,16 +481,25 @@ export function MemberOverlays() {
 
       <Drawer title="Your QR" open={overlay === "qr"} onClose={close}>
         <div style={{ textAlign: "center" }}>
-          <p className="gg-eyebrow">{session.name}</p>
-          <p className="gg-help" style={{ margin: "8px 0 12px" }}>
-            Show this to staff at the door and in the centers.
-          </p>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <QRBlock seed={session.cardNo} />
-          </div>
-          <p className="gg-help" style={{ fontFamily: "var(--gg-mono)", marginTop: 12 }}>
-            {session.cardNo}
-          </p>
+          <p className="gg-eyebrow">{displayName}</p>
+          {chrome.cardNo ? (
+            <>
+              <p className="gg-help" style={{ margin: "8px 0 12px" }}>
+                Show this to staff at the door and in the centers.
+              </p>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <QRBlock seed={chrome.cardNo} />
+              </div>
+              <p className="gg-help" style={{ fontFamily: "var(--gg-mono)", marginTop: 12 }}>
+                {chrome.cardNo}
+              </p>
+            </>
+          ) : (
+            <EmptyState
+              title="Card not ready"
+              copy="Your Gutguard card number will show here once it is minted. This is not a guest or placeholder code."
+            />
+          )}
         </div>
       </Drawer>
 

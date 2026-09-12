@@ -6,6 +6,7 @@ import { MOBILE_TAKEN } from "@/lib/schemas/auth";
 import { profileSchema } from "@/lib/schemas/settings";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 async function requireUser() {
   if (!isSupabaseConfigured()) return null;
@@ -141,6 +142,7 @@ export async function saveProfile(input: unknown) {
     return { ok: false as const, error: "Could not save that just now. Try again." };
   }
 
+  revalidatePath("/app", "layout");
   return { ok: true as const, values: parsed.data };
 }
 
