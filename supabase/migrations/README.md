@@ -14,3 +14,9 @@ RLS is on for every user-facing table. Members can only read/write their own row
 Auth for this product: **email + password** (One Account / Staging). Mobile is stored on the profile. SMS OTP can replace the password path when a provider is configured.
 
 Maya: Route Handler `POST /api/webhooks/maya` verifies `x-maya-signature` HMAC with `MAYA_WEBHOOK_SECRET` (never `NEXT_PUBLIC_`). Member Place-order queues `pending` only — no browser charges.
+
+## Production
+
+Production `rvwseybgimmewuoccecu` already had a slim `public.profiles` table, so these CREATE-TABLE files were **not** applied there via `db push`. The additive SQL that was applied on 2026-09-12 is recorded in `../patches/20260912_production_additive.sql`.
+
+Do not insert Academy versions `20260911153000` / `20260911153500` / `20260911154500` into `supabase_migrations.schema_migrations`. Those belong to `academy.applied_migrations`.
