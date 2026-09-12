@@ -1,19 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { sharedSessionCookieOptions } from "@/lib/one-account";
+import { cookieOptionsForRequestHost } from "@/lib/supabase/cookie-options";
 
 /** Cookie / SSR anon client. Used by middleware and member actions when env is set. */
 export async function createClient() {
-  const cookieStore = await cookies();
+  const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  const requestHostname =
+    headerStore.get("x-forwarded-host") ?? headerStore.get("host");
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      // Change 6: one session across the three origins. Undefined until
-      // NEXT_PUBLIC_ONE_ACCOUNT_COOKIE_DOMAIN is set, so this is a no-op today.
-      cookieOptions: sharedSessionCookieOptions(),
+      // Share on gutguard.ph, but keep a host-only session on Vercel aliases.
+      cookieOptions: cookieOptionsForRequestHost(
+        sharedSessionCookieOptions(),
+        requestHostname,
+      ),
       cookies: {
         getAll() {
           return cookieStore.getAll();
