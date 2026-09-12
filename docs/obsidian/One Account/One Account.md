@@ -19,10 +19,9 @@ Canonical folder on Najee’s machine:
 
 Copy this whole folder there (not inside Tech Stack, not inside Design System). Cloud agents read the product-repo copy at `docs/obsidian/One Account/`.
 
-**Current change:** [[Change 9 - Member chrome identity]] — implementing on
-Lifestyle `change/9-member-chrome`. One Account Changes 1 through 6b remain
-**done**. Gentrep Academy Change 8 remains **CLOSED**. Do not skip to other
-leftovers while Change 9 is current.
+**Current change:** none. [[Change 9 - Member chrome identity]] is **done**
+(2026-09-12). One Account Changes 1 through 6b remain **done**. Gentrep
+Academy Change 8 remains **CLOSED**. Do not invent Change 10 from this note.
 
 Change 1 is checked done — proven on Staging 2026-08-28, production Auth untouched.  
 Change 2 is checked done — Staging shared-login proof recorded 2026-09-03 (`TEST_MANCERA` + `demo.admin` email across Lifestyle, Academy, GEMA Preview; OneGrinders-unavailable safe failure on Academy Preview).
@@ -56,7 +55,7 @@ flowchart TB
 5. [[Change 5 - Hub chrome]] — **done** (Staging, 2026-09-07) — cross-app links, and Settings name/mobile closed the same day
 6. [[Change 6 - Shared domain SSO]] — **done** (Staging, 2026-09-07)
 6b. [[Change 6b - Staging on the real domain]] — **done** (2026-09-07), opened from a failed Change 6 test that turned out to be environment scoping
-9. [[Change 9 - Member chrome identity]] — **implementing** (2026-09-12). Lifestyle shell identity from `public.profiles`. There is no One Account Change 7 or 8; those numbers were Academy-only.
+9. [[Change 9 - Member chrome identity]] — **done** (Staging + Production Lifestyle, 2026-09-12). Lifestyle shell identity from `public.profiles`. There is no One Account Change 7 or 8; those numbers were Academy-only.
 
 ## Proven end to end, 2026-09-07
 
@@ -97,10 +96,10 @@ historical; [[Change 6b - Staging on the real domain]] has the addendum.
 
 - ~~**The production cutover**~~ **Done 2026-09-12.** All three custom
   domains are Production. Gentrep Academy Change 8 is CLOSED.
-- **Settings name/mobile.** On Production `main` and on this Change 9 branch
-  (merged from `main`, not from Settings-less `staging` HEAD).
-- **Change 9 (current):** Lifestyle `/app` chrome from `public.profiles`.
-  See [[Change 9 - Member chrome identity]].
+- ~~**Settings name/mobile.**~~ Shipped in Lifestyle Change 5 on Production
+  `main`. Change 9 merged that lineage onto Lifestyle `staging` as well.
+- ~~**Change 9 (member chrome).**~~ **Done 2026-09-12.** Lifestyle `/app/*`
+  chrome reads `public.profiles` on the server. See [[Change 9 - Member chrome identity]].
 - ~~**Registration asks for a PH mobile, and requires it.**~~ **Answered by the
   owner, 2026-09-07: PH only, and it stays required.** The one thing that
   changed is that `639171234567` is now accepted alongside `09171234567` and
