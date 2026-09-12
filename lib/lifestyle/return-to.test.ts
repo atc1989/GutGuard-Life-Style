@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   allowedOrigins,
   DEFAULT_LANDING,
+  HUB_ENV_KEY,
   ORIGIN_ENV_KEYS,
   resolveReturnTo,
   trustedReturnTo,
@@ -12,9 +13,10 @@ import {
 const HUB = "https://app.gutguard.test";
 const ACADEMY = "https://academy.gutguard.test";
 const GEMA = "https://events.gutguard.test";
-const ALLOWED = [HUB, ACADEMY, GEMA];
+/** The hub is never on it — see the 2026-09-12 note in `return-to.ts`. */
+const ALLOWED = [ACADEMY, GEMA];
 
-test("the allow-list is built from the three apps' site URLs", () => {
+test("the allow-list is built from the spokes' site URLs", () => {
   const origins = allowedOrigins({
     NEXT_PUBLIC_SITE_URL: HUB,
     NEXT_PUBLIC_ACADEMY_URL: `${ACADEMY}/`,
@@ -24,32 +26,85 @@ test("the allow-list is built from the three apps' site URLs", () => {
   assert.deepEqual(origins.sort(), [...ALLOWED].sort());
 });
 
+test("the hub is not on its own allow-list", () => {
+  // 2026-09-12: it was, and a member registering from Academy landed on
+  // `lifestyle.gutguard.ph/academy` — a route the hub does not serve.
+  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_SITE_URL: HUB }), []);
+});
+
+test("a spoke misconfigured to the hub's origin is dropped, not honoured", () => {
+  // This is the shape of the production failure: Academy's own
+  // `NEXT_PUBLIC_SITE_URL` held the hub, so its returnTo named the hub.
+  assert.deepEqual(
+    allowedOrigins({ NEXT_PUBLIC_SITE_URL: HUB, NEXT_PUBLIC_ACADEMY_URL: HUB }),
+    [],
+  );
+  assert.deepEqual(
+    allowedOrigins({
+      NEXT_PUBLIC_SITE_URL: `${HUB}/card`,
+      NEXT_PUBLIC_ACADEMY_URL: HUB,
+      NEXT_PUBLIC_GEMA_URL: GEMA,
+    }),
+    [GEMA],
+  );
+});
+
+test("a returnTo naming a hub path the hub does not serve falls back", () => {
+  // The regression test for the 404. End to end through the env, because the
+  // bug lived in how the list was built, not in how a URL was checked.
+  const env = {
+    NEXT_PUBLIC_SITE_URL: HUB,
+    NEXT_PUBLIC_ACADEMY_URL: ACADEMY,
+    NEXT_PUBLIC_GEMA_URL: GEMA,
+  };
+  assert.equal(
+    resolveReturnTo(`${HUB}/academy`, allowedOrigins(env)),
+    DEFAULT_LANDING,
+  );
+  assert.equal(trustedReturnTo(`${HUB}/academy`, allowedOrigins(env)), null);
+  // The spoke it should have named all along still works.
+  assert.equal(
+    resolveReturnTo(`${ACADEMY}/academy`, allowedOrigins(env)),
+    `${ACADEMY}/academy`,
+  );
+});
+
 test("a missing or unparseable origin narrows the allow-list, never widens it", () => {
-  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_SITE_URL: HUB }), [HUB]);
-  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_SITE_URL: "not a url" }), []);
-  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_SITE_URL: "" }), []);
+  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_ACADEMY_URL: ACADEMY }), [ACADEMY]);
+  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_ACADEMY_URL: "not a url" }), []);
+  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_ACADEMY_URL: "" }), []);
   assert.deepEqual(allowedOrigins({}), []);
 });
 
 test("a non-http scheme in configuration is not a redirect target", () => {
-  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_SITE_URL: "javascript:alert(1)" }), []);
-  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_SITE_URL: "ftp://files.gutguard.test" }), []);
+  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_ACADEMY_URL: "javascript:alert(1)" }), []);
+  assert.deepEqual(allowedOrigins({ NEXT_PUBLIC_ACADEMY_URL: "ftp://files.gutguard.test" }), []);
 });
 
-test("ORIGIN_ENV_KEYS names every app the hub can return a member to", () => {
+test("a hub value that is noise cannot delete a real spoke", () => {
+  // An unparseable hub means "no hub origin known", not "drop everything".
+  assert.deepEqual(
+    allowedOrigins({ NEXT_PUBLIC_SITE_URL: "not a url", NEXT_PUBLIC_ACADEMY_URL: ACADEMY }),
+    [ACADEMY],
+  );
+});
+
+test("ORIGIN_ENV_KEYS names every spoke the hub can return a member to", () => {
   // The .env.example and the owner's Vercel settings are written from this
   // list. Adding a spoke without adding its key here silently disables it.
   assert.deepEqual([...ORIGIN_ENV_KEYS], [
-    "NEXT_PUBLIC_SITE_URL",
     "NEXT_PUBLIC_ACADEMY_URL",
     "NEXT_PUBLIC_GEMA_URL",
   ]);
+  // And the hub's own variable is read to exclude, never to allow.
+  assert.equal(HUB_ENV_KEY, "NEXT_PUBLIC_SITE_URL");
+  assert.ok(!([...ORIGIN_ENV_KEYS] as string[]).includes(HUB_ENV_KEY));
 });
 
 test("each allowed origin is returned, path and query preserved", () => {
   assert.equal(resolveReturnTo(`${ACADEMY}/academy`, ALLOWED), `${ACADEMY}/academy`);
   assert.equal(resolveReturnTo(`${GEMA}/events?ref=abc`, ALLOWED), `${GEMA}/events?ref=abc`);
-  assert.equal(resolveReturnTo(HUB, ALLOWED), `${HUB}/`);
+  assert.equal(resolveReturnTo(ACADEMY, ALLOWED), `${ACADEMY}/`);
 });
 
 test("a look-alike host falls back — this is why the check is exact", () => {
