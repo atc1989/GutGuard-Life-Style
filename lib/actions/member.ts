@@ -1,6 +1,7 @@
 "use server";
 
 import { BASE_STEPS, FIRST_ORDER_PESOS, type DoseSlotId, type FunnelPhase, type InviteStage } from "@/lib/mock/seed";
+import { decideReservation, type ReservationKind, type ReservationMap } from "@/lib/reservations";
 import { queueOrderSchema } from "@/lib/schemas/order";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -28,6 +29,18 @@ export async function claimCard() {
     .eq("id", ctx.user.id);
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };
+}
+
+export async function getWelcomeSeen() {
+  const ctx = await requireUser();
+  if (!ctx) return { seen: false as const };
+  const { data, error } = await ctx.supabase
+    .from("profiles")
+    .select("welcome_seen")
+    .eq("id", ctx.user.id)
+    .maybeSingle();
+  if (error || !data) return { seen: false as const };
+  return { seen: Boolean(data.welcome_seen) };
 }
 
 export async function persistProfile(patch: {
@@ -202,6 +215,48 @@ export async function queueMemberOrder(input: unknown) {
 
   if (error) return { ok: false as const, error: "Could not queue order." };
   return { ok: true as const };
+}
+
+export async function persistReservation(slug: string) {
+  const ctx = await requireUser();
+  if (!ctx) return { ok: true as const, skipped: true as const };
+  const existing = await loadReservationMap(ctx.supabase, ctx.user.id);
+  const decision = decideReservation(slug, existing);
+  if (!decision.ok) return { ok: false as const, error: decision.error };
+  const { error } = await ctx.supabase.from("event_reservations").upsert(
+    {
+      user_id: ctx.user.id,
+      event_slug: slug,
+      kind: decision.kind,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,event_slug" },
+  );
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const, kind: decision.kind, notice: decision.notice };
+}
+
+export async function listMyReservations(): Promise<ReservationMap> {
+  const ctx = await requireUser();
+  if (!ctx) return {};
+  return loadReservationMap(ctx.supabase, ctx.user.id);
+}
+
+async function loadReservationMap(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+): Promise<ReservationMap> {
+  const { data } = await supabase
+    .from("event_reservations")
+    .select("event_slug, kind")
+    .eq("user_id", userId);
+  const map: ReservationMap = {};
+  for (const row of data ?? []) {
+    if (row.kind === "reserved" || row.kind === "waitlist") {
+      map[row.event_slug as string] = row.kind as ReservationKind;
+    }
+  }
+  return map;
 }
 
 export async function uploadDoseProof(logDate: string, formData: FormData) {

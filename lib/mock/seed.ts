@@ -274,7 +274,63 @@ export type OverlayId =
   | "share"
   | "qr"
   | "invite"
+  | "health-setup"
   | null;
+
+export type HealthSetupId = "doses" | "contact" | "community";
+
+export type HealthSetup = Record<HealthSetupId, boolean>;
+
+export type ContactChannel = "sms" | "telegram" | "in-app";
+
+export type CommunityDestination = "telegram" | "facebook" | "events";
+
+export type NotificationPermissionState =
+  | "not_asked"
+  | "allowed"
+  | "blocked"
+  | "unsupported";
+
+export type NotificationPrefs = {
+  permission: NotificationPermissionState;
+  quietHours: boolean;
+  refill: boolean;
+  checkin: boolean;
+};
+
+export type FollowUpNote = {
+  at: string;
+  channel: ContactChannel;
+  note: string;
+};
+
+export type StoryDraft = {
+  about: "self" | "other";
+  relationship?: string;
+  days: string;
+  capsules: string;
+  outcomes: string[];
+  statement?: string;
+  evidenceName?: string;
+  consentUpload: boolean;
+  consentPublic: boolean;
+  consentTruth: boolean;
+  consentSupplement: boolean;
+  signature?: string;
+};
+
+export const EMPTY_HEALTH_SETUP: HealthSetup = {
+  doses: false,
+  contact: false,
+  community: false,
+};
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  permission: "not_asked",
+  quietHours: false,
+  refill: true,
+  checkin: true,
+};
 
 export type LedgerEntry = {
   id: string;
@@ -316,6 +372,14 @@ export type MockSession = {
   welcomeSeen: boolean;
   contactInvited: Record<string, boolean>;
   ledger: LedgerEntry[];
+  reservations: Record<string, "reserved" | "waitlist">;
+  healthSetup: HealthSetup;
+  contactChannel: ContactChannel;
+  communityDestination: CommunityDestination;
+  notificationPrefs: NotificationPrefs;
+  notificationReads: Record<string, boolean>;
+  storyDraft: StoryDraft | null;
+  followUps: Record<string, FollowUpNote[]>;
 };
 
 export function createNewMemberSession(
@@ -345,6 +409,14 @@ export function createNewMemberSession(
     welcomeSeen: false,
     contactInvited: {},
     ledger: [],
+    reservations: {},
+    healthSetup: { ...EMPTY_HEALTH_SETUP },
+    contactChannel: "in-app",
+    communityDestination: "events",
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+    notificationReads: {},
+    storyDraft: null,
+    followUps: {},
     ...overrides,
   };
 }
@@ -371,14 +443,43 @@ export function parseLifestyleSession(
   }
   if (!raw) return createNewMemberSession();
   try {
-    return { ...createNewMemberSession(), ...JSON.parse(raw) } as MockSession;
+    return mergeLifestyleSession(JSON.parse(raw) as Partial<MockSession>);
   } catch {
     return createNewMemberSession();
   }
 }
 
+export function mergeLifestyleSession(parsed: Partial<MockSession>): MockSession {
+  const base = createNewMemberSession();
+  return {
+    ...base,
+    ...parsed,
+    healthSetup: { ...base.healthSetup, ...parsed.healthSetup },
+    notificationPrefs: { ...base.notificationPrefs, ...parsed.notificationPrefs },
+    contactInvited: { ...base.contactInvited, ...parsed.contactInvited },
+    reservations: { ...base.reservations, ...parsed.reservations },
+    notificationReads: { ...base.notificationReads, ...parsed.notificationReads },
+    followUps: { ...base.followUps, ...parsed.followUps },
+    storyDraft: parsed.storyDraft ?? base.storyDraft,
+  };
+}
+
 export function shouldPersistMockSession(supabaseConfigured: boolean): boolean {
   return !supabaseConfigured;
+}
+
+function demoDoseLog(): DoseLog {
+  const log: DoseLog = {};
+  const now = new Date();
+  for (let i = 3; i >= 1; i -= 1) {
+    const date = new Date(now);
+    date.setDate(now.getDate() - i);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    log[`${year}-${month}-${day}`] = { morning: true, midday: true };
+  }
+  return log;
 }
 
 export function createDefaultSession(
@@ -391,6 +492,7 @@ export function createDefaultSession(
     pending: 5,
     banked: 500,
     daysLeft: 10,
+    doseLog: demoDoseLog(),
     invites: [
       { name: "Nene R.", stage: "bought" },
       { name: "Boy Tapang", stage: "showed" },

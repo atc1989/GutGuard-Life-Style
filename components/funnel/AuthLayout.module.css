@@ -1,0 +1,73 @@
+.shell {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 32px 20px 56px;
+}
+
+.grid {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+}
+
+.left {
+  display: grid;
+  gap: 20px;
+  justify-items: stretch;
+}
+
+.intro {
+  display: grid;
+  gap: 12px;
+}
+
+.intro :global(.gg-display) {
+  margin: 0;
+}
+
+.formCol {
+  min-width: 0;
+}
+
+.shell :global(.gg-field__control) {
+  border-radius: var(--gg-r-sm);
+  background: var(--gg-bone);
+  min-height: 48px;
+}
+
+.shell :global(.gg-field__control--lg) {
+  min-height: 60px;
+  border-radius: var(--gg-r-sm);
+}
+
+.shell :global(.gg-button--ghost) {
+  min-height: 44px;
+}
+
+@media (max-width: 599px) {
+  .shell {
+    width: min(100%, 440px);
+    padding-inline: 16px;
+  }
+}
+
+@media (min-width: 900px) {
+  .shell {
+    padding: 48px 32px 72px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+  }
+
+  .formCol {
+    display: flex;
+    align-items: center;
+  }
+
+  .formCol > * {
+    width: 100%;
+  }
+}

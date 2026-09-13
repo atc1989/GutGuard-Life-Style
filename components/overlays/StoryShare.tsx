@@ -1,19 +1,27 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { persistStory } from "@/lib/actions/member";
 import { OUTCOMES } from "@/lib/mock/seed";
-import { storyShareSchema, type StoryShareValues } from "@/lib/schemas/story-share";
+import {
+  emptyStoryDraft,
+  firstInvalidField,
+  namesMatch,
+  STORY_STEP_FIELDS,
+  STORY_STEPS,
+  storyShareSchema,
+  type StoryShareValues,
+} from "@/lib/schemas/story-share";
 import { useSession } from "@/lib/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useToast } from "@/lib/toast";
 import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
+import { FileAttachment } from "@/components/ui/FileAttachment";
 import { FormField } from "@/components/ui/FormField";
-
-const STEPS = ["Who", "Change", "Record", "Sign"] as const;
+import { cx } from "@/lib/cx";
 
 export function StoryShare({
   open,
@@ -22,41 +30,79 @@ export function StoryShare({
   open: boolean;
   onClose: () => void;
 }) {
-  const { session } = useSession();
+  const { session, update } = useSession();
   const { push } = useToast();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const skipSave = useRef(false);
   const form = useForm<StoryShareValues>({
     resolver: zodResolver(storyShareSchema),
-    defaultValues: {
-      about: "self",
-      days: "10",
-      capsules: String(session.capsulesPerDay),
-      outcomes: [],
-      consentTruth: false,
-      consentSupplement: false,
-    },
+    defaultValues: session.storyDraft ?? emptyStoryDraft(session.capsulesPerDay),
   });
   const outcomes = useWatch({ control: form.control, name: "outcomes" }) ?? [];
   const about = useWatch({ control: form.control, name: "about" });
-  const consentTruth = useWatch({ control: form.control, name: "consentTruth" });
-  const consentSupplement = useWatch({
-    control: form.control,
-    name: "consentSupplement",
-  });
+  const values = useWatch({ control: form.control });
+
+  useEffect(() => {
+    if (!open) return;
+    skipSave.current = true;
+    form.reset(session.storyDraft ?? emptyStoryDraft(session.capsulesPerDay));
+    setStep(0);
+    const timer = window.setTimeout(() => {
+      skipSave.current = false;
+    }, 0);
+    return () => window.clearTimeout(timer);
+    // Restore once per open so auto-save does not reset the wizard.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open is the gate
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || skipSave.current) return;
+    const timer = window.setTimeout(() => {
+      update({ storyDraft: form.getValues() });
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [open, update, values, form]);
+
+  async function goNext() {
+    const fields = STORY_STEP_FIELDS[step] ?? [];
+    if (fields.length) {
+      const valid = await form.trigger(fields);
+      if (!valid) {
+        const invalid = firstInvalidField(form.formState.errors, fields);
+        if (invalid) document.getElementById(String(invalid))?.focus();
+        return;
+      }
+    }
+    setStep((n) => n + 1);
+  }
 
   async function submit() {
     const valid = await form.trigger();
-    if (!valid) return;
+    if (!valid) {
+      const invalid = firstInvalidField(
+        form.formState.errors,
+        STORY_STEP_FIELDS[STORY_STEPS.length - 1] ?? [],
+      );
+      if (invalid) document.getElementById(String(invalid))?.focus();
+      return;
+    }
+    const next = form.getValues();
+    if (!namesMatch(next.signature ?? "", session.name)) {
+      form.setError("signature", {
+        message: "Type your name as it appears on the card.",
+      });
+      document.getElementById("signature")?.focus();
+      return;
+    }
     setLoading(true);
-    const values = form.getValues();
     if (isSupabaseConfigured()) {
       const result = await persistStory({
-        about: values.about,
-        relationship: values.relationship,
-        days: values.days,
-        capsules: values.capsules,
-        outcomes: values.outcomes,
+        about: next.about,
+        relationship: next.relationship,
+        days: next.days,
+        capsules: next.capsules,
+        outcomes: next.outcomes,
       });
       if (!result.ok) {
         push({ tone: "error", title: "Could not save", body: result.error });
@@ -64,10 +110,11 @@ export function StoryShare({
         return;
       }
     }
+    update({ storyDraft: null });
     push({
       tone: "success",
-      title: "Signed",
-      body: "Posted to the community page.",
+      title: "Submitted for review",
+      body: "You can ask your sponsor to withdraw it later.",
     });
     setLoading(false);
     setStep(0);
@@ -78,12 +125,9 @@ export function StoryShare({
     <Drawer
       title="Stories of Hope"
       open={open}
-      onClose={() => {
-        setStep(0);
-        onClose();
-      }}
+      onClose={onClose}
       footer={
-        <div className="gg-row" style={{ width: "100%" }}>
+        <div className="gg-row gg-row--spread">
           {step > 0 ? (
             <Button variant="secondary" onClick={() => setStep((n) => n - 1)}>
               Back
@@ -91,47 +135,55 @@ export function StoryShare({
           ) : (
             <span />
           )}
-          {step < STEPS.length - 1 ? (
-            <Button variant="commerce" onClick={() => setStep((n) => n + 1)}>
+          {step < STORY_STEPS.length - 1 ? (
+            <Button variant="commerce" onClick={() => void goNext()}>
               Next
             </Button>
           ) : (
             <Button variant="commerce" loading={loading} onClick={() => void submit()}>
-              Sign & share
+              Submit for review
             </Button>
           )}
         </div>
       }
     >
-      <p className="gg-eyebrow">
-        Step {step + 1} of {STEPS.length} · {STEPS[step]}
-      </p>
-      <form className="gg-stack" style={{ marginTop: 16 }}>
+      <ol className="gg-wizard" aria-label="Story steps">
+        {STORY_STEPS.map((name, index) => (
+          <li
+            key={name}
+            className={cx(
+              index === step && "is-current",
+              index < step && "is-done",
+            )}
+          >
+            {name}
+          </li>
+        ))}
+      </ol>
+      <form className="gg-stack gg-space-top">
         {step === 0 ? (
           <>
-            <p className="gg-lede">Para kanino ang kwento?</p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <p className="gg-lede">Who is this story about?</p>
+            <div className="gg-chip-row">
               {(["self", "other"] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
-                  className="gg-badge"
-                  style={{
-                    cursor: "pointer",
-                    borderColor: about === value ? "var(--gg-blue)" : undefined,
-                    color: about === value ? "var(--gg-blue)" : undefined,
-                  }}
+                  className={cx("gg-chip", about === value && "is-active")}
+                  aria-pressed={about === value}
                   onClick={() => form.setValue("about", value)}
                 >
-                  {value === "self" ? "Aking karanasan" : "Story about someone"}
+                  {value === "self" ? "My experience" : "Someone else"}
                 </button>
               ))}
             </div>
             {about === "other" ? (
               <FormField
+                id="relationship"
                 label="Your relationship"
                 placeholder="e.g. my child, my father"
                 {...form.register("relationship")}
+                error={form.formState.errors.relationship?.message}
               />
             ) : null}
           </>
@@ -139,21 +191,17 @@ export function StoryShare({
 
         {step === 1 ? (
           <>
-            <p className="gg-eyebrow">Before starting Gutguard · After taking Gutguard</p>
-            <p className="gg-help">Tap all that apply</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <p className="gg-eyebrow">What changed</p>
+            <p className="gg-help">Tap all that apply. These are reports, not medical claims.</p>
+            <div id="outcomes" tabIndex={-1} className="gg-chip-row">
               {OUTCOMES.map((outcome) => {
                 const selected = outcomes.includes(outcome);
                 return (
                   <button
                     key={outcome}
                     type="button"
-                    className="gg-badge"
-                    style={{
-                      cursor: "pointer",
-                      borderColor: selected ? "var(--gg-blue)" : undefined,
-                      color: selected ? "var(--gg-blue)" : undefined,
-                    }}
+                    className={cx("gg-chip", selected && "is-active")}
+                    aria-pressed={selected}
                     onClick={() => {
                       const current = form.getValues("outcomes");
                       form.setValue(
@@ -170,17 +218,33 @@ export function StoryShare({
                 );
               })}
             </div>
+            {form.formState.errors.outcomes?.message ? (
+              <p className="gg-field__error" role="alert">
+                {form.formState.errors.outcomes.message}
+              </p>
+            ) : null}
+            <label className="gg-field" htmlFor="statement">
+              <span className="gg-field__label">Short statement</span>
+              <textarea
+                id="statement"
+                className="gg-field__control gg-field__control--area"
+                rows={3}
+                {...form.register("statement")}
+              />
+            </label>
           </>
         ) : null}
 
         {step === 2 ? (
           <>
             <FormField
+              id="days"
               label="Days taking Gutguard"
               {...form.register("days")}
               error={form.formState.errors.days?.message}
             />
             <FormField
+              id="capsules"
               label="Capsules per day"
               {...form.register("capsules")}
               error={form.formState.errors.capsules?.message}
@@ -188,37 +252,114 @@ export function StoryShare({
             <p className="gg-help">
               Pre-filled from the record — adjust if the story is about someone else.
             </p>
+            <FileAttachment
+              label="Optional lab or photo"
+              hint="Private until reviewed. Not shown on the community feed."
+              fileName={form.getValues("evidenceName") || undefined}
+              onPick={(file) =>
+                form.setValue("evidenceName", file.name, { shouldValidate: true })
+              }
+              onRemove={() => form.setValue("evidenceName", "", { shouldValidate: true })}
+            />
+            <label className="gg-check" htmlFor="consentUpload">
+              <input
+                id="consentUpload"
+                type="checkbox"
+                checked={Boolean(form.watch("consentUpload"))}
+                onChange={(event) =>
+                  form.setValue("consentUpload", event.target.checked, {
+                    shouldValidate: true,
+                  })
+                }
+              />
+              Upload consent is separate from public use. Staff may review a file. The
+              feed will not show raw evidence.
+            </label>
+            {form.formState.errors.consentUpload?.message ? (
+              <p className="gg-field__error" role="alert">
+                {form.formState.errors.consentUpload.message}
+              </p>
+            ) : null}
           </>
         ) : null}
 
         {step === 3 ? (
+          <div className="gg-stack">
+            <p className="gg-eyebrow">Review</p>
+            <p className="gg-lede">
+              {about === "other"
+                ? `About ${form.getValues("relationship") || "someone else"}`
+                : "Your own story"}
+            </p>
+            <p className="gg-help">
+              {form.getValues("days")} days · {form.getValues("capsules")} capsules ·{" "}
+              {(form.getValues("outcomes") ?? []).join(", ")}
+            </p>
+            {form.getValues("statement") ? (
+              <p className="gg-lede">{form.getValues("statement")}</p>
+            ) : null}
+            <p className="gg-help">
+              Name, photo, story, and optional evidence stay private until review.
+              Public use needs the next step. You can ask your sponsor to withdraw a
+              published story later.
+            </p>
+          </div>
+        ) : null}
+
+        {step === 4 ? (
           <>
-            <label className="gg-help" style={{ display: "flex", gap: 10 }}>
+            <p className="gg-help">
+              Withdraw later through your sponsor or Settings. Final legal wording
+              is still with the team — this typed name confirms you reviewed the
+              story, not a closed contract.
+            </p>
+            <label className="gg-check" htmlFor="consentPublic">
               <input
+                id="consentPublic"
                 type="checkbox"
-                checked={Boolean(consentTruth)}
+                checked={Boolean(form.watch("consentPublic"))}
+                onChange={(event) =>
+                  form.setValue("consentPublic", event.target.checked, {
+                    shouldValidate: true,
+                  })
+                }
+              />
+              Public-use consent: approved display name, place, and short statement
+              may appear on My Story after review. Evidence stays off the feed.
+            </label>
+            <label className="gg-check" htmlFor="consentTruth">
+              <input
+                id="consentTruth"
+                type="checkbox"
+                checked={Boolean(form.watch("consentTruth"))}
                 onChange={(event) =>
                   form.setValue("consentTruth", event.target.checked, {
                     shouldValidate: true,
                   })
                 }
-                style={{ width: 19, height: 19, accentColor: "#0608A9" }}
               />
               This story is truthful and shared voluntarily.
             </label>
-            <label className="gg-help" style={{ display: "flex", gap: 10 }}>
+            <label className="gg-check" htmlFor="consentSupplement">
               <input
+                id="consentSupplement"
                 type="checkbox"
-                checked={Boolean(consentSupplement)}
+                checked={Boolean(form.watch("consentSupplement"))}
                 onChange={(event) =>
                   form.setValue("consentSupplement", event.target.checked, {
                     shouldValidate: true,
                   })
                 }
-                style={{ width: 19, height: 19, accentColor: "#0608A9" }}
               />
-              I understand Gutguard is a food supplement with no approved therapeutic claims — results vary.
+              I understand Gutguard is a food supplement with no approved therapeutic
+              claims — results vary.
             </label>
+            <FormField
+              id="signature"
+              label="Type your full name"
+              {...form.register("signature")}
+              error={form.formState.errors.signature?.message}
+            />
           </>
         ) : null}
       </form>

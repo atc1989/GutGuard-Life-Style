@@ -8,6 +8,7 @@ type Props = {
   hint?: string;
   fileName?: string;
   onPick: (file: File) => void;
+  onRemove?: () => void;
 };
 
 export function FileAttachment({
@@ -15,6 +16,7 @@ export function FileAttachment({
   hint = "Camera or gallery · JPG PNG · max 5MB",
   fileName,
   onPick,
+  onRemove,
 }: Props) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,6 +43,16 @@ export function FileAttachment({
           <div>
             <p className="gg-file__name">{fileName}</p>
             <p className="gg-file__meta">Attached</p>
+          </div>
+          <div className="gg-file__actions">
+            <label className="gg-file__replace" htmlFor={id}>
+              Replace
+            </label>
+            {onRemove ? (
+              <button type="button" className="gg-file__remove" onClick={onRemove}>
+                Remove
+              </button>
+            ) : null}
           </div>
         </div>
       ) : (

@@ -22,12 +22,15 @@ import { QRBlock } from "@/components/ui/QRBlock";
 import { RequirementTimeline } from "@/components/ui/RequirementTimeline";
 import { Switch } from "@/components/ui/Switch";
 import { InvitePicker } from "@/components/overlays/InvitePicker";
+import { NotificationCenter } from "@/components/overlays/NotificationCenter";
 import { StoryShare } from "@/components/overlays/StoryShare";
+import { HealthSetupSheet } from "@/components/member/HealthSetup";
+import { firstIncompleteSetup } from "@/lib/health";
 import { persistBaseStep, persistPointEvent, gemaUnlocked, queueMemberOrder } from "@/lib/actions/member";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useEffect, useState } from "react";
 import { formatIdentityDetails } from "@/lib/member-display";
-import { memberNotifications } from "@/lib/member-notifications";
+import { unreadNotifications } from "@/lib/member-notifications";
 import { Avatar } from "@/components/ui/Avatar";
 import { memberDisplayName } from "@/lib/initials";
 import { Bell, QrCode, Settings } from "lucide-react";
@@ -43,7 +46,7 @@ export function MemberOverlays() {
     ? Boolean(serverGema)
     : localComplete;
   const identityDetails = formatIdentityDetails(session);
-  const notifications = memberNotifications(session);
+  const notifications = unreadNotifications(session);
   const displayName = memberDisplayName(session.name);
 
   useEffect(() => {
@@ -150,7 +153,10 @@ export function MemberOverlays() {
             checked={session.notifications}
             onChange={(notifications) => update({ notifications })}
           />
-          <p className="gg-help">Nudges + low-supply reminders</p>
+          <p className="gg-help">In-app nudges. Browser permission is asked only from Notifications.</p>
+          <p className="gg-help">
+            Permission: {session.notificationPrefs.permission.replaceAll("_", " ")}
+          </p>
           <div className="gg-row">
             <span>Capsules per day</span>
             <QuantityStepper
@@ -161,7 +167,13 @@ export function MemberOverlays() {
               onChange={(capsulesPerDay) => update({ capsulesPerDay })}
             />
           </div>
-          <p className="gg-help">The protocol needs at least 2 capsules a day.</p>
+          <p className="gg-help">
+            The protocol needs at least 2 capsules a day. A change applies from
+            tomorrow. Today still uses the slots already on the calendar.
+          </p>
+          <Button variant="secondary" onClick={() => open("health-setup")}>
+            Edit first-ten-days setup
+          </Button>
           {identityDetails.length ? (
             <p className="gg-help">{identityDetails.join(" · ")}</p>
           ) : null}
@@ -178,15 +190,7 @@ export function MemberOverlays() {
         open={overlay === "notifications"}
         onClose={close}
       >
-        {notifications.length ? (
-          <ul className="gg-notification-list">
-            {notifications.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState title="No alerts" copy="You’re all caught up." />
-        )}
+        <NotificationCenter />
       </Drawer>
 
       <Drawer title="BASE Activation" open={overlay === "base"} onClose={close}>
@@ -383,6 +387,14 @@ export function MemberOverlays() {
       </Drawer>
 
       <StoryShare open={overlay === "share"} onClose={close} />
+      <HealthSetupSheet
+        step={
+          overlay === "health-setup"
+            ? firstIncompleteSetup(session) ?? "doses"
+            : null
+        }
+        onClose={close}
+      />
       <InvitePicker />
     </>
   );

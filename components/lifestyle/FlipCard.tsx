@@ -41,7 +41,7 @@ export function CardFace({
   children?: ReactNode;
 }) {
   return (
-    <div className="gg-card gg-card--ceremonial" style={{ minHeight: 420 }}>
+    <div className="gg-card gg-card--ceremonial gg-card--id1">
       <p className="gg-eyebrow" style={{ color: "var(--gg-gold-soft)" }}>
         {claimed ? "Already yours" : "Show this at the door"}
       </p>
@@ -58,7 +58,7 @@ export function CardFace({
 
 export function CardBack({ seed, cardNo }: { seed: string; cardNo: string }) {
   return (
-    <div className="gg-card" style={{ minHeight: 420, textAlign: "center" }}>
+    <div className="gg-card gg-card--id1" style={{ textAlign: "center" }}>
       <p className="gg-eyebrow">Ipakita ito sa staff</p>
       <h2 className="gg-heading" style={{ fontSize: 28, margin: "10px 0 16px" }}>
         Scan at the door

@@ -13,9 +13,19 @@ type Props = {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  /** Centered marketing overlay. Default sheet follows member/admin chrome. */
+  variant?: "sheet" | "center";
 };
 
-export function Dialog({ id, title, open, onClose, children, footer }: Props) {
+export function Dialog({
+  id,
+  title,
+  open,
+  onClose,
+  children,
+  footer,
+  variant = "sheet",
+}: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
@@ -122,12 +132,20 @@ export function Dialog({ id, title, open, onClose, children, footer }: Props) {
 
   return (
     <div
-      className={cx("gg-backdrop", closing && "is-closing")}
+      className={cx(
+        "gg-backdrop",
+        variant === "center" && "gg-backdrop--center",
+        closing && "is-closing",
+      )}
       onClick={onClose}
     >
       <div
         id={id}
-        className={cx("gg-dialog", closing && "is-closing")}
+        className={cx(
+          "gg-dialog",
+          variant === "center" && "gg-dialog--center",
+          closing && "is-closing",
+        )}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

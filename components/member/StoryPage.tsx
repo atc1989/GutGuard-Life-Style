@@ -1,7 +1,9 @@
 "use client";
 
 import { STORIES } from "@/lib/mock/seed";
+import { completedDoseDays, JOURNEY_DAYS } from "@/lib/health";
 import { useOverlay } from "@/lib/overlay-store";
+import { useSession } from "@/lib/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { StoryStatus } from "@/lib/schemas/story-moderate";
 import { Badge } from "@/components/ui/Badge";
@@ -32,6 +34,8 @@ export function StoryPage({
   feedError?: string;
 }) {
   const { open } = useOverlay();
+  const { session } = useSession();
+  const journeyDays = completedDoseDays(session.doseLog, session.capsulesPerDay);
   const useLive = isSupabaseConfigured() && feed;
   const community = useLive
     ? feed.community
@@ -56,6 +60,15 @@ export function StoryPage({
           Share my story
         </Button>
       </div>
+      <Card>
+        <p className="gg-eyebrow">90-day journey</p>
+        <h2 className="gg-heading gg-heading--sm">
+          {journeyDays} of {JOURNEY_DAYS} completed dose-days
+        </h2>
+        <p className="gg-help gg-space-top-sm">
+          This is adherence and time on protocol, not a medical outcome score.
+        </p>
+      </Card>
       <p className="gg-alert gg-story-disclaimer">
         Gutguard is a food supplement with no approved therapeutic claims — results vary.
       </p>

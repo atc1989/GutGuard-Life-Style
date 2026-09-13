@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 import { memberDisplayName } from "@/lib/initials";
-import { memberNotifications } from "@/lib/member-notifications";
+import { unreadNotifications } from "@/lib/member-notifications";
 import { nextMenuIndex } from "@/lib/member-shell";
 import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
@@ -71,7 +71,7 @@ export function AccountCard() {
   const { session } = useSession();
   const { open } = useOverlay();
   const name = memberDisplayName(session.name);
-  const notifications = memberNotifications(session);
+  const notifications = unreadNotifications(session);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -130,7 +130,7 @@ export function AccountMenu() {
   const { session } = useSession();
   const { overlay, open } = useOverlay();
   const name = memberDisplayName(session.name);
-  const notifications = memberNotifications(session);
+  const notifications = unreadNotifications(session);
 
   return (
     <button

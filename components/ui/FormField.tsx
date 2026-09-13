@@ -6,6 +6,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
   variant?: "boxed" | "ruled";
   hint?: ReactNode;
+  controlClassName?: string;
 };
 
 export function FormField({
@@ -15,6 +16,7 @@ export function FormField({
   hint,
   id,
   className,
+  controlClassName,
   ...props
 }: Props) {
   const fieldId = id ?? props.name;
@@ -58,7 +60,11 @@ export function FormField({
       <span className="gg-field__label">{label}</span>
       <input
         id={fieldId}
-        className={cx("gg-field__control", props["aria-label"] ? undefined : "gg-field__control--lg")}
+        className={cx(
+          "gg-field__control",
+          props["aria-label"] ? undefined : "gg-field__control--lg",
+          controlClassName,
+        )}
         {...props}
         aria-invalid={invalid}
         aria-describedby={describedBy}

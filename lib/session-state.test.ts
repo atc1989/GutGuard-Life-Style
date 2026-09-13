@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createGuestSession,
+  mergeLifestyleSession,
   parseLifestyleSession,
   shouldPersistMockSession,
 } from "./mock/seed.ts";
@@ -33,4 +34,14 @@ test("guest session is not a door card", () => {
   assert.equal(guest.cardNo, "");
   assert.equal(guest.sponsor, "");
   assert.equal(guest.phase, "landing");
+});
+
+test("older mock sessions pick up first-ten-days defaults", () => {
+  const session = mergeLifestyleSession({
+    name: "Maria Santos",
+    phase: "member",
+  });
+  assert.equal(session.healthSetup.doses, false);
+  assert.equal(session.notificationPrefs.permission, "not_asked");
+  assert.equal(session.storyDraft, null);
 });

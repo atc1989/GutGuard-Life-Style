@@ -11,6 +11,8 @@ test("cookie session is required for card, nearly-free, and the member shell", (
   assert.equal(requiresLifestyleAuth("/app/health"), true);
   assert.equal(requiresLifestyleAuth("/register"), false);
   assert.equal(requiresLifestyleAuth("/"), false);
+  assert.equal(requiresLifestyleAuth("/events"), false);
+  assert.equal(requiresLifestyleAuth("/events/ginhawa-gensan-october"), false);
 });
 
 test("unauthenticated member surfaces send people to register, not a mock card", () => {

@@ -1,0 +1,267 @@
+.landing {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+}
+
+.section {
+  margin: 0;
+}
+
+.hero {
+  display: grid;
+  gap: 28px;
+  text-align: center;
+  justify-items: center;
+}
+
+.heroCopy {
+  width: min(100%, 36rem);
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.heroCopy :global(.gg-display) {
+  margin: 0;
+}
+
+.lede {
+  margin: 0;
+  max-width: 34rem;
+}
+
+.cta {
+  margin-top: 8px;
+}
+
+.ctaLink {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--gg-r-pill);
+  padding: 14px 22px;
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ctaLink:hover {
+  background: var(--gg-blue-press);
+  text-decoration: none;
+}
+
+.ctaLink:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
+}
+
+.stageBleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 40px 20px 56px;
+  background:
+    linear-gradient(180deg, transparent 0%, var(--gg-paper) 100%),
+    radial-gradient(90% 80% at 50% 18%, rgba(6, 8, 169, 0.55), transparent 62%),
+    linear-gradient(180deg, var(--gg-ink) 0%, #07081f 58%, var(--gg-paper) 100%);
+}
+
+.stageInner {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  display: grid;
+  justify-items: center;
+}
+
+.trust {
+  margin: 36px 0 8px;
+}
+
+.trustList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat {
+  text-align: center;
+  background: var(--gg-bone);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  padding: clamp(16px, 2.4vw, 22px);
+  box-shadow: none;
+}
+
+.stat strong {
+  display: block;
+  font-family: var(--gg-serif);
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.protocol {
+  margin: 28px 0 8px;
+}
+
+.stepGrid {
+  margin: 14px 0 40px;
+  display: grid;
+  gap: 14px;
+}
+
+.step {
+  background: var(--gg-bone-soft);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  padding: clamp(16px, 2.4vw, 22px);
+  box-shadow: none;
+  height: 100%;
+}
+
+.stepTitle {
+  margin: 6px 0 0;
+  font-family: var(--gg-serif);
+  font-size: clamp(22px, 3vw, 26px);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.stepCopy {
+  margin: 6px 0 0;
+  color: var(--gg-ink-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.faqSplit {
+  display: grid;
+  gap: 28px;
+  margin-top: 8px;
+}
+
+.faqList {
+  margin-top: 10px;
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.faqSummary {
+  list-style: none;
+  min-height: 52px;
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqSummary:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
+}
+
+.faqChevron {
+  flex-shrink: 0;
+  color: var(--gg-ink-3);
+  transition: transform 0.2s var(--gg-ease-out), color 0.2s var(--gg-ease-out);
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+  color: var(--gg-blue);
+}
+
+.faqBody {
+  padding: 0 0 16px;
+  color: var(--gg-ink-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wayfinding {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.wayLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--gg-blue);
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.35;
+}
+
+.wayLink:hover {
+  text-decoration: underline;
+}
+
+.wayLink:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
+}
+
+@media (max-width: 599px) {
+  .landing {
+    width: min(100%, 440px);
+    padding-inline: 16px;
+  }
+
+  .trustList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 900px) {
+  .landing {
+    padding: 48px 32px 72px;
+  }
+
+  .trustList {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stepGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .faqSplit {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .stageBleed {
+    padding: 48px 32px 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqChevron {
+    transition: none;
+  }
+}

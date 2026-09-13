@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { RegisterForm } from "@/components/funnel/RegisterForm";
 
 // A first-time OneGrinders username waits on the guild API, which currently
@@ -7,5 +8,9 @@ import { RegisterForm } from "@/components/funnel/RegisterForm";
 export const maxDuration = 60;
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
 }
