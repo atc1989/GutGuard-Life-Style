@@ -43,3 +43,4 @@ next-env.d.ts
 
 # port scripts (Addendum 05)
 __pycache__/
+docs/prototype/shots/
