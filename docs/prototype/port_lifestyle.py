@@ -45,7 +45,7 @@ rep('const STORIES = [', 'let STORIES = [')
 rep('const TEAM = [', 'let TEAM = [')
 rep('const ME = { name: "Rey Aquino"', 'let ME = { name: "Rey Aquino"')
 rep('const INVITE_URL = "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J";',
-    'const INVITE_URL = HUB_URL ? HUB_URL + "/" : "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J";')
+    'const INVITE_URL = HUB_URL ? HUB_URL + "/" : DEMO ? "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J" : typeof location !== "undefined" ? location.origin + "/" : "/";')
 rep('const SITE = "https://claude.ai/artifact/EU7uvgH4zxnXT3E4DSpiRo";', 'const SITE = DEMO ? "https://claude.ai/artifact/EU7uvgH4zxnXT3E4DSpiRo" : WEBSITE_URL + "/";')
 
 # ?do=guardian from the website (production); #member~guardian (demo)
@@ -92,6 +92,12 @@ rep('''    setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; t[slot] = tru
 rep('''  const submitConsent = () => {''',
     '''  const submitConsent = () => {
     if (LIVE) persistStory({ about: story.trim() || Object.keys(changed).filter((k) => changed[k]).concat(customList).join(", "), relationship: who === "other" ? `${subjName.trim()} (${relation.trim()})` : undefined, days: String(daysField), capsules: String(capsField), outcomes: Object.keys(changed).filter((k) => changed[k]).concat(customList) }).catch(() => {});''')
+
+# ── 4b. Final pass: no fake saves, no promises not yet built (lifestyle_final.py) ──
+import lifestyle_final
+lifestyle_final.apply(rep)
+lifestyle_final.no_artifact_links_member(rep)
+lifestyle_final.no_ship_text_promise(rep)
 
 # ── 5. The demo bar is hidden in production ────────────────────────────────────────────
 rep('''      {/* demo controls — not part of the product */}

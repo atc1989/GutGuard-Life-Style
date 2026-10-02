@@ -1,7 +1,9 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { persistDose, persistStory } from "@/lib/actions/member";
-import { markGutGuardian, saveMyDose } from "@/lib/actions/lifestyle";
+import { markGutGuardian, requestChange, saveMyDose } from "@/lib/actions/lifestyle";
+/* production: a request for Gutguard to confirm, never a change that only shows on screen */
+const sendRequest = (kind, detail, flash) => requestChange({ kind, detail }).then((r) => flash(r && r.ok === false ? "Not sent. Check your connection." : "Request sent · Gutguard confirms it before your next refill")).catch(() => flash("Not sent. Check your connection."));
 /* Production port (Addendum 05). DEMO=1 brings back the prototype demo bar and seeded data. */
 const DEMO = process.env.NEXT_PUBLIC_PROTOTYPE_DEMO === "1";
 /* The signed-in member, set by the page before the first render (see LifestyleMemberPage below). */
@@ -254,7 +256,7 @@ const META = {
   dreams: { label: "Taps", note: "before bedtime" },
 };
 const DOSE_KEYS = ["morning", "lunch", "dreams"];
-const INVITE_URL = HUB_URL ? HUB_URL + "/" : "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J"; /* production: gutguard.ph/lifestyle/join?ref=[member code] */
+const INVITE_URL = HUB_URL ? HUB_URL + "/" : DEMO ? "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J" : typeof location !== "undefined" ? location.origin + "/" : "/"; /* production: gutguard.ph/lifestyle/join?ref=[member code] */
 const GOALS = {
   keep:   { label: "Keep healthy",  level: "Maintenance", glis: "GLIS Moderate",      caps: 2, per: { morning: 1, dreams: 1 }, mo: 6,  q: 18 },
   better: { label: "Feel better",   level: "Support",     glis: "GLIS Slightly High", caps: 4, per: { morning: 2, dreams: 2 }, mo: 12, q: 36 },
@@ -616,7 +618,7 @@ function LifestyleMember() {
   const [payPick, setPayPick] = useState("card");
   const [feel, setFeel] = useState({ sleep: 0, energy: 0, digestion: 0 });
   const [feelSaved, setFeelSaved] = useState(false);
-  const [times, setTimes] = useState({ morning: "07:00", lunch: "12:30", dreams: "21:00" });
+  const [times, setTimes] = useState(() => { try { const t = JSON.parse(localStorage.getItem("gg-times") || "null"); if (t && t.morning) return t; } catch (e) {} return { morning: "07:00", lunch: "12:30", dreams: "21:00" }; }); /* reminder times: kept on this phone */
   /* The member's own dose. null = the recommended dose for the goal. Any change shows "Adjusted". */
   const [myDose, setMyDoseRaw] = useState(() => { if (LIVE) return LIVE.dose; try { return JSON.parse(localStorage.getItem("gg-dose") || "null"); } catch (e) { return null; } });
   const setMyDose = (v) => { setMyDoseRaw(v); if (LIVE) { saveMyDose(v || null).catch(() => {}); return; } try { if (v) localStorage.setItem("gg-dose", JSON.stringify(v)); else localStorage.removeItem("gg-dose"); } catch (e) {} };
@@ -704,7 +706,7 @@ function LifestyleMember() {
   const perRefill = plan ? (plan.qty || (plan.freq === "monthly" ? G.mo : G.q)) : 0;
 
   /* Buying happens on the website Shop (Addendum 04). These open it, logged in. */
-  const SITE_SHOP = "https://claude.ai/artifact/EU7uvgH4zxnXT3E4DSpiRo#/shop"; /* production: https://gutguard.ph/#/shop, same tab */
+  const SITE_SHOP = DEMO ? "https://claude.ai/artifact/EU7uvgH4zxnXT3E4DSpiRo#/shop" : WEBSITE_URL + "/shop"; /* production: https://gutguard.ph/#/shop, same tab */
   const siteWho = stage === "card" ? "card" : stage === "ordered" || stage === "trial" ? "trial" : "sub";
   /* Links to the website Shop are real <a> links (new tab in the demo). A page opened by script (window.open) is refused
      by the artifact viewer for most people, and the viewer passes only a plain #word, so the Shop reads tokens:
@@ -816,7 +818,7 @@ function LifestyleMember() {
   const bG = GOALS[bGoal];
   const bBlisters = bFreq === "monthly" ? bG.mo : bG.q;
   const bAmt = bBlisters * PRICE[bFreq];
-  const creditOk = isTrial && bFreq === "monthly";
+  const creditOk = DEMO && isTrial && bFreq === "monthly";
   const bToday = bAmt - (creditOk ? TRIAL_CREDIT : 0);
   const bNext = addMonths(now, bFreq === "monthly" ? 1 : 3);
   const payNow = () => {
@@ -828,6 +830,7 @@ function LifestyleMember() {
     flash(`Payment confirmed · +${earned} E-Points`);
   };
   const saveChange = () => {
+    if (LIVE) { sendRequest(builder.mode === "goal" ? "goal" : "payment", { goal: bGoal, freq: bFreq }, flash); setBuilder(null); return; }
     if (builder.mode === "goal" && bGoal !== plan.goal) setGoalChanged(true);
     setPlan((p) => ({ ...p, goal: bGoal, freq: bFreq }));
     setBuilder(null);
@@ -865,7 +868,7 @@ function LifestyleMember() {
               <div className="g-m" style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#7E6035", fontWeight: 600 }}>{isTrial ? "After Night 5" : plan ? "Start again" : "Gutguard Daily"}</div>
               <div className="osw gx-h" style={{ fontSize: 20, fontWeight: 700, marginTop: 6, lineHeight: 1.25 }}>{isTrial ? "Keep going with your plan" : plan ? "Your plan is cancelled" : "Never run out"}</div>
               <div className="inr" style={{ fontSize: 13.5, color: C.mute, marginTop: 8, lineHeight: 1.5 }}>
-                {isTrial ? <>Choose your goal. We show how many blisters you need. Your <b style={{ color: C.ink }}>{peso(TRIAL_CREDIT)} credit</b> comes off your first monthly order.</> : plan ? "Choose your goal and plan to start again anytime." : "Two questions and your cart is ready. Delivered every month or every 3 months."}
+                {isTrial ? <>Choose your goal. We show how many blisters you need.{DEMO ? <> Your <b style={{ color: C.ink }}>{peso(TRIAL_CREDIT)} credit</b> comes off your first monthly order.</> : null}</> : plan ? "Choose your goal and plan to start again anytime." : "Two questions and your cart is ready. Delivered every month or every 3 months."}
               </div>
               <a className="tap" {...extLink(SHOP_PLAN)} style={todayDone < SLOTS.length && !isWaiting ? { ...cta, ...aBtn, background: "transparent", color: C.cta, border: `1.5px solid ${C.cta}`, boxShadow: "none", fontWeight: 700 } : { ...cta, ...aBtn, background: C.cta, color: C.onCta, fontWeight: 700 }}>{isTrial ? "Choose my plan" : "Choose a plan in the Shop"}</a>
             </div>
@@ -1051,7 +1054,7 @@ function LifestyleMember() {
                   </React.Fragment>
                 ))}
               </div>
-              <div className="inr" style={{ fontSize: 13, color: C.mute, marginTop: 10, lineHeight: 1.55 }}>{courier === "paid" ? "10 capsules. We text you when it ships." : "On its way with the courier. Night 1 starts by itself the day it is delivered."}</div>
+              <div className="inr" style={{ fontSize: 13, color: C.mute, marginTop: 10, lineHeight: 1.55 }}>{courier === "paid" ? (DEMO ? "10 capsules. We text you when it ships." : "10 capsules. Night 1 starts the day it is delivered.") : "On its way with the courier. Night 1 starts by itself the day it is delivered."}</div>
               {courier === "shipped" && <button className="tap" onClick={() => flash("Opens the courier tracking page")} style={{ ...cta, background: C.blue }}>Track my order</button>}
               <button className="tap" onClick={startTrial} style={{ display: "block", margin: "12px auto 0", fontSize: 12.5, fontWeight: 600, color: C.blue, textDecoration: "underline", textUnderlineOffset: 3 }}>Already have your pack? Start Night 1 now</button>
             </div>
@@ -1202,7 +1205,7 @@ function LifestyleMember() {
                 </div>
               </div>
             ))}
-            <button className="tap" disabled={!(feel.sleep && feel.energy && feel.digestion) || feelSaved} onClick={() => { setFeelSaved(true); flash("Saved · next check in 7 days"); }} style={{ ...cta, marginTop: 14, padding: 13, fontSize: 15, background: feelSaved ? C.good : (feel.sleep && feel.energy && feel.digestion) ? C.blue : "#c3ccd8" }}>{feelSaved ? "Saved ✓" : "Save this week"}</button>
+            <button className="tap" disabled={!(feel.sleep && feel.energy && feel.digestion) || feelSaved} onClick={() => { setFeelSaved(true); if (LIVE) { try { localStorage.setItem("gg-feel-" + isoDay(TODAY), JSON.stringify(feel)); } catch (e) {} flash("Saved on this phone · next check in 7 days"); return; } flash("Saved · next check in 7 days"); }} style={{ ...cta, marginTop: 14, padding: 13, fontSize: 15, background: feelSaved ? C.good : (feel.sleep && feel.energy && feel.digestion) ? C.blue : "#c3ccd8" }}>{feelSaved ? "Saved ✓" : "Save this week"}</button>
           </div>}
 
           </div><div className="col-r">
@@ -1550,7 +1553,7 @@ function LifestyleMember() {
                   </button>
                 ))}
                 <div className="inr" style={{ fontSize: 11.5, color: C.mute, margin: "2px 2px 4px" }}>Savings compared with buying single Blisters at {peso(1499)}.</div>
-                {isTrial && builder.mode === "new" && <div className="inr" style={{ fontSize: 12, color: bFreq === "monthly" ? C.good : C.mute, fontWeight: 600, marginTop: 2 }}>{bFreq === "monthly" ? `Your ${peso(TRIAL_CREDIT)} credit comes off your first month.` : `The ${peso(TRIAL_CREDIT)} credit is for Monthly plans only.`}</div>}
+                {DEMO && isTrial && builder.mode === "new" && <div className="inr" style={{ fontSize: 12, color: bFreq === "monthly" ? C.good : C.mute, fontWeight: 600, marginTop: 2 }}>{bFreq === "monthly" ? `Your ${peso(TRIAL_CREDIT)} credit comes off your first month.` : `The ${peso(TRIAL_CREDIT)} credit is for Monthly plans only.`}</div>}
                 <div style={{ display: "flex", gap: 8 }}>
                   {builder.mode !== "plan" && <button className="tap" onClick={() => setBuilder({ ...builder, step: 1 })} style={{ ...ghost, marginTop: 16 }}>Back</button>}
                   {builder.mode === "new"
@@ -1627,7 +1630,7 @@ function LifestyleMember() {
                       <span className="osw" style={{ display: "block", fontSize: 14.5, fontWeight: 700, color: C.navy }}>{r.label}</span>
                       <span className="inr" style={{ fontSize: 12, color: C.mute }}>{r.pts} E-Points · {r.note}</span>
                     </span>
-                    <button className="tap" disabled={!ok} onClick={() => { setPoints((p) => p - r.pts); flash(`Reward saved · ${r.note.toLowerCase()}`); }} style={{ padding: "9px 16px", borderRadius: 100, fontSize: 13, fontWeight: 600, background: ok ? C.blue : C.paper, color: ok ? "#FCFAF5" : C.mute, border: ok ? "none" : `1px solid ${C.line}`, flexShrink: 0, textAlign: "center" }}>{ok ? "Redeem" : `${r.pts - points} more`}</button>
+                    <button className="tap" disabled={!ok} onClick={() => { if (LIVE) { sendRequest("redeem", { reward: r.id, points: r.pts }, flash); return; } setPoints((p) => p - r.pts); flash(`Reward saved · ${r.note.toLowerCase()}`); }} style={{ padding: "9px 16px", borderRadius: 100, fontSize: 13, fontWeight: 600, background: ok ? C.blue : C.paper, color: ok ? "#FCFAF5" : C.mute, border: ok ? "none" : `1px solid ${C.line}`, flexShrink: 0, textAlign: "center" }}>{ok ? "Redeem" : `${r.pts - points} more`}</button>
                   </div>
                 );
               })}
@@ -1700,7 +1703,7 @@ function LifestyleMember() {
               {plan.skips > 0 ? <div className="inr" style={{ fontSize: 13, color: C.clay, fontWeight: 600, marginTop: 12 }}>You already skipped a refill in the last 90 days.</div> : null}
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="tap" onClick={() => setSheetOpen(null)} style={{ ...ghost, marginTop: 16 }}>Keep</button>
-                <button className="tap" disabled={plan.skips > 0} onClick={() => { setPlan((p) => ({ ...p, skips: p.skips + 1 })); setSheetOpen(null); flash("Next refill skipped"); }} style={{ ...cta, background: plan.skips > 0 ? "#c3ccd8" : C.blue }}>Skip refill</button>
+                <button className="tap" disabled={plan.skips > 0} onClick={() => { if (LIVE) { sendRequest("skip", {}, flash); setSheetOpen(null); return; } setPlan((p) => ({ ...p, skips: p.skips + 1 })); setSheetOpen(null); flash("Next refill skipped"); }} style={{ ...cta, background: plan.skips > 0 ? "#c3ccd8" : C.blue }}>Skip refill</button>
               </div>
             </div>
           </Overlay>
@@ -1723,7 +1726,7 @@ function LifestyleMember() {
               <div className="inr" style={{ fontSize: 12.5, color: C.mute, lineHeight: 1.5, marginTop: 4 }}>We send an SMS 3 days before your plan starts again. Your goal and E-Points stay.</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="tap" onClick={() => setSheetOpen(null)} style={{ ...ghost, marginTop: 16 }}>Back</button>
-                <button className="tap" onClick={() => { setPlan((p) => ({ ...p, status: "paused", pausedUntil: addDays(now, pauseDays) })); setSheetOpen(null); flash(`Plan paused for ${pauseDays} days`); }} style={{ ...cta, background: C.navy }}>Pause {pauseDays} days</button>
+                <button className="tap" onClick={() => { if (LIVE) { sendRequest("pause", { days: pauseDays }, flash); setSheetOpen(null); return; } setPlan((p) => ({ ...p, status: "paused", pausedUntil: addDays(now, pauseDays) })); setSheetOpen(null); flash(`Plan paused for ${pauseDays} days`); }} style={{ ...cta, background: C.navy }}>Pause {pauseDays} days</button>
               </div>
             </div>
           </Overlay>
@@ -1743,7 +1746,7 @@ function LifestyleMember() {
                   </span>
                 </button>
               ))}
-              <button className="tap" onClick={() => { setPlan((p) => ({ ...p, pay: payPick })); setSheetOpen(null); flash(payPick === "gcash" ? "Saved · pay links will come by SMS" : `Saved · ${PAY[payPick].label} confirmed`); }} style={{ ...cta, background: C.blue }}>{payPick === "gcash" ? "Save" : `Confirm ${PAY[payPick].label}`}</button>
+              <button className="tap" onClick={() => { if (LIVE) { sendRequest("payment", { method: payPick }, flash); setSheetOpen(null); return; } setPlan((p) => ({ ...p, pay: payPick })); setSheetOpen(null); flash(payPick === "gcash" ? "Saved · pay links will come by SMS" : `Saved · ${PAY[payPick].label} confirmed`); }} style={{ ...cta, background: C.blue }}>{payPick === "gcash" ? "Save" : `Confirm ${PAY[payPick].label}`}</button>
             </div>
           </Overlay>
         )}
@@ -1762,7 +1765,7 @@ function LifestyleMember() {
               {leaveWhy && <div className="inr" style={{ fontSize: 12.5, color: C.mute, lineHeight: 1.5, marginTop: 4 }}>{leaveWhy === LEAVE[1] ? `You can skip or pause instead. Your plan stays and your next refill waits.` : "Your E-Points stay in your wallet until they expire."}</div>}
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="tap" onClick={() => setSheetOpen(null)} style={{ ...cta, background: C.blue }}>Keep my plan</button>
-                <button className="tap" disabled={!leaveWhy} onClick={() => { setPlan((p) => ({ ...p, status: "cancelled" })); setSheetOpen(null); flash("Plan cancelled"); }} style={{ ...ghost, marginTop: 16, color: leaveWhy ? C.clay : "#c3ccd8", borderColor: leaveWhy ? C.clay : C.line, whiteSpace: "nowrap" }}>Cancel plan</button>
+                <button className="tap" disabled={!leaveWhy} onClick={() => { if (LIVE) { sendRequest("cancel", { reason: leaveWhy }, flash); setSheetOpen(null); return; } setPlan((p) => ({ ...p, status: "cancelled" })); setSheetOpen(null); flash("Plan cancelled"); }} style={{ ...ghost, marginTop: 16, color: leaveWhy ? C.clay : "#c3ccd8", borderColor: leaveWhy ? C.clay : C.line, whiteSpace: "nowrap" }}>Cancel plan</button>
               </div>
             </div>
           </Overlay>
@@ -1797,7 +1800,7 @@ function LifestyleMember() {
               </div>
               {guardianMoment === "watch"
                 ? <><a className="tap" {...extLink(SHOP_PLAN)} onClick={() => setGuardianMoment(null)} style={{ ...cta, ...aBtn, background: C.cta, color: C.onCta, fontWeight: 700 }}>Choose my plan</a>
-                  <div className="inr" style={{ fontSize: 12.5, color: C.mute, marginTop: 8 }}>Your {peso(TRIAL_CREDIT)} comes off your first month.</div>
+                  {DEMO ? <div className="inr" style={{ fontSize: 12.5, color: C.mute, marginTop: 8 }}>Your {peso(TRIAL_CREDIT)} comes off your first month.</div> : null}
                   <button onClick={() => setGuardianMoment(null)} style={{ display: "block", margin: "10px auto 0", fontSize: 13, fontWeight: 600, color: C.ink, textDecoration: "underline", textUnderlineOffset: 3 }}>Later</button></>
                 : <button className="tap" onClick={() => setGuardianMoment(null)} style={{ ...cta, background: C.cta, color: C.onCta, fontWeight: 700 }}>Start my first watch</button>}
             </div>
@@ -1844,7 +1847,7 @@ function LifestyleMember() {
               <div className="lw-seg" role="radiogroup" aria-label="Language">
                 {[["EN", "English"], ["TL", "Taglish"]].map(([code, full]) => <button key={code} role="radio" aria-checked={lang === code} className={lang === code ? "on" : ""} onClick={() => setLang(code)}><b>{full}</b></button>)}
               </div>
-              <button className="tap" onClick={() => { setSheetOpen(null); flash("Settings saved"); }} style={{ ...cta, background: C.cta, color: C.onCta, fontWeight: 700 }}>Save changes</button>
+              <button className="tap" onClick={() => { try { localStorage.setItem("gg-times", JSON.stringify(times)); } catch (e) {} setSheetOpen(null); flash("Settings saved"); }} style={{ ...cta, background: C.cta, color: C.onCta, fontWeight: 700 }}>Save changes</button>
             </div>
           </Overlay>
         )}

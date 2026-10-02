@@ -247,7 +247,7 @@ const META = {
   dreams: { label: "Taps", note: "before bedtime" },
 };
 const DOSE_KEYS = ["morning", "lunch", "dreams"];
-const INVITE_URL = "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J"; /* production: gutguard.ph/lifestyle/join?ref=[member code] */
+const INVITE_URL = DEMO ? "https://claude.ai/artifact/9tPTTKyCSRCkaeFwuMku3J" : "/"; /* production: gutguard.ph/lifestyle/join?ref=[member code] */
 const GOALS = {
   keep:   { label: "Keep healthy",  level: "Maintenance", glis: "GLIS Moderate",      caps: 2, per: { morning: 1, dreams: 1 }, mo: 6,  q: 18 },
   better: { label: "Feel better",   level: "Support",     glis: "GLIS Slightly High", caps: 4, per: { morning: 2, dreams: 2 }, mo: 12, q: 36 },
@@ -628,15 +628,15 @@ const Tick = ({ checked, onChange, children }) => (
   </label>
 );
 
-/** @param {{ initialLogin?: boolean }} props */
-function LifestyleLanding({ initialLogin = false } = {}) {
+/** @param {{ initialLogin?: boolean, initialJoin?: boolean }} props */
+function LifestyleLanding({ initialLogin = false, initialJoin = false } = {}) {
   useFieldInView();
   const src0 = readSource();
   const [from, setFrom] = useState(src0.from);
   const [hasRef, setHasRef] = useState(src0.ref);
   const [handoff, setHandoff] = useState("member"); // which member-page state the hand-off opens
   const [showCode, setShowCode] = useState(false);
-  const [step, setStep] = useState(() => (initialLogin || (DEMO && typeof location !== "undefined" && location.hash.includes("login")) ? "login" : "landing")); // landing | register | otp | first | checkout | done | plan | login
+  const [step, setStep] = useState(() => (initialLogin || (DEMO && typeof location !== "undefined" && location.hash.includes("login")) ? "login" : initialJoin ? "register" : "landing")); // landing | register | otp | first | checkout | done | plan | login
   const [form, setForm] = useState({ name: "", mobile: "", email: "", code: "", password: "", ident: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -787,7 +787,7 @@ function LifestyleLanding({ initialLogin = false } = {}) {
               <span className="ant" style={{ fontSize: 34, color: C.navy, lineHeight: 1 }}>{peso(TRIAL_PRICE)}</span>
               <span className="inr" style={{ fontSize: 13, color: C.mute }}>{shipShort()} · 10 capsules · 5 nights</span>
             </div>
-            <div className="inr" style={{ fontSize: 13, color: C.mute, marginTop: 8, lineHeight: 1.5 }}>If you continue with a monthly plan, the {peso(TRIAL_PRICE)} comes off your first month.</div>
+            <div className="inr" style={{ fontSize: 13, color: C.mute, marginTop: 8, lineHeight: 1.5 }}>{DEMO ? <>If you continue with a monthly plan, the {peso(TRIAL_PRICE)} comes off your first month.</> : "Then choose a monthly plan when you are ready."}</div>
           </div>
           {sponsorNote}
 
@@ -897,7 +897,7 @@ function LifestyleLanding({ initialLogin = false } = {}) {
             <div className="gx-h" style={{ fontSize: 26, marginTop: 4, color: C.ink }}>Your Lifestyle page</div>
             <div className="inr" style={{ color: C.mute, fontSize: 13.5, marginTop: 10, lineHeight: 1.55 }}>This goes to <b style={{ color: C.ink }}>{MEMBER_PAGE}</b>, logged in. It opens on My Health{handoff === "card" ? " with your card and your first step." : "."}</div>
           </div>
-          <a href={"https://claude.ai/artifact/GGYfp5cEpWgJDezFRfKrWK#" + handoff} target="_blank" rel="noopener" className="tap" style={{ ...cta, display: "block", background: C.cta, color: C.onCta, fontWeight: 700, textDecoration: "none", boxSizing: "border-box" }}>Open the Lifestyle page demo</a>
+          <a href={DEMO ? "https://claude.ai/artifact/GGYfp5cEpWgJDezFRfKrWK#" + handoff : "/app"} target="_blank" rel="noopener" className="tap" style={{ ...cta, display: "block", background: C.cta, color: C.onCta, fontWeight: 700, textDecoration: "none", boxSizing: "border-box" }}>Open the Lifestyle page demo</a>
           <div className="inr" style={{ fontSize: 12, color: C.mute, marginTop: 8, textAlign: "center" }}>In this demo, the member page is a separate prototype. It opens in the matching state.</div>
           <button onClick={() => setStep("landing")} style={{ display: "block", margin: "14px auto 0", fontSize: 13, color: C.blue, fontWeight: 600, textDecoration: "underline" }}>Start the demo again</button>
         </section>)}

@@ -1,4 +1,5 @@
 // The ported member page with a real-looking member (production mode, database calls stubbed).
+// From the repo root: bash docs/prototype/harness/build.sh && node docs/prototype/test_member_live.js
 const { chromium } = require('playwright');
 const H = 'file://' + __dirname + '/harness/index.html';
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
@@ -28,11 +29,17 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
       await p.getByLabel('One more capsule at Taps').click(); await p.getByText('Save changes').click(); await p.waitForTimeout(400);
       const sd = (await p.evaluate(() => window.__calls)).find((c) => c[0] === 'saveMyDose');
       ok(sd && sd[1].dreams === 3 && sd[1].morning === 2 && sd[1].lunch === 2, 'adjusted dose saved: ' + JSON.stringify(sd));
+      await p.locator('button:has-text("Manage my plan"):visible').first().click(); await p.waitForTimeout(400);
+      await p.locator('button:has-text("Skip next refill"):visible').first().click(); await p.waitForTimeout(400);
+      await p.getByRole('button', { name: 'Skip refill' }).click(); await p.waitForTimeout(500);
+      const rq = (await p.evaluate(() => window.__calls)).find((c) => c[0] === 'requestChange');
+      ok(rq && rq[1].kind === 'skip', 'skip is sent as a request: ' + JSON.stringify(rq));
+      const toastTxt = await p.evaluate(() => document.body.textContent); ok(/Request sent/.test(toastTxt) && !/Next refill skipped/.test(toastTxt), 'member sees "Request sent", not "skipped"');
       await p.locator('.lw-tab').nth(1).click(); await p.waitForTimeout(500);
       const t2 = await p.locator('body').innerText();
       ok(/Mas maganda ang tulog ko/.test(t2) && /Lorna/.test(t2), 'Stories of Hope from the database feed');
-      await p.screenshot({ path: __dirname + '/shots/member-live-stories.png' });
-    } else await p.screenshot({ path: __dirname + '/shots/member-live-desk.png' });
+      
+    }
     await p.context().close();
   }
   ok(errs.length === 0, 'no page errors ' + JSON.stringify(errs.slice(0, 3)));

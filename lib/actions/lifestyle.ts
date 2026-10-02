@@ -50,3 +50,26 @@ export async function markGutGuardian() {
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const, earned: data === true };
 }
+
+const requestSchema = z.object({
+  kind: z.enum(["skip", "pause", "cancel", "goal", "payment", "redeem"]),
+  detail: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+});
+
+/**
+ * Plan changes and reward redemptions from the member page. Saved as a request for Gutguard
+ * to confirm (member_requests); the plan itself changes only on the server side.
+ */
+export async function requestChange(input: unknown) {
+  const parsed = requestSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "Check your request." };
+  const ctx = await requireUser();
+  if (!ctx) return { ok: true as const, skipped: true };
+  const { error } = await ctx.supabase.from("member_requests").insert({
+    user_id: ctx.user.id,
+    kind: parsed.data.kind,
+    detail: parsed.data.detail,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
+}

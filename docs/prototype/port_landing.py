@@ -132,6 +132,9 @@ rep('''  const [w, setW] = useState(() => typeof matchMedia !== "undefined" && m
 rep('function LifestyleLanding() {', '/** @param {{ initialLogin?: boolean }} props */\nfunction LifestyleLanding({ initialLogin = false } = {}) {')
 rep('''const [step, setStep] = useState(() => (typeof location !== "undefined" && (location.hash.includes("login") || /[?&]login\\b/.test(location.search)) ? "login" : "landing"));''',
     '''const [step, setStep] = useState(() => (initialLogin || (DEMO && typeof location !== "undefined" && location.hash.includes("login")) ? "login" : "landing"));''')
+import lifestyle_final
+lifestyle_final.apply_landing(rep)
+lifestyle_final.no_artifact_links_landing(rep)
 rep('createRoot(document.getElementById("root")).render(<LifestyleLanding />);', 'export default LifestyleLanding;')
 
 s = fix_fonts(s)

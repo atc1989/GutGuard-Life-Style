@@ -1,6 +1,6 @@
 // Speed budget check (Addendum 05, Section 7a). Run against a production build before every release:
-//   npm run build && npx next start -p 3100
-//   node docs/prototype/speed_check.js http://localhost:3100/ http://localhost:3100/shop ...
+//   npm run build && npx next start -p 3101
+//   node docs/prototype/speed_check.js http://localhost:3101/ "http://localhost:3101/?login" http://localhost:3101/app
 // Phone (W=390 default; W=1440 for desktop) on slow 4G: 1.6 Mbps down, 150 ms latency, CPU 4x slower. Cache off. Each page loads 3 times;
 // the median is checked. Exit code 1 when any page is over budget.
 const { chromium } = require('playwright');

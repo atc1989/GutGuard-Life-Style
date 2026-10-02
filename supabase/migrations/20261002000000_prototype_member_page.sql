@@ -98,3 +98,40 @@ $$;
 
 revoke all on function public.lifestyle_mark_guardian() from public, anon;
 grant execute on function public.lifestyle_mark_guardian() to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Member requests (Addendum 05). Skip, pause, cancel, change goal or payment, and reward
+-- redemptions are saved here for Gutguard staff to confirm. The member page says "Request sent";
+-- nothing changes on the plan until staff (or the back-end task that replaces them) acts.
+-- The monthly payment-link job must not send a link while a skip, pause or cancel is pending.
+-- ---------------------------------------------------------------------------
+create table if not exists public.member_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind text not null check (kind in ('skip', 'pause', 'cancel', 'goal', 'payment', 'redeem')),
+  detail jsonb not null default '{}'::jsonb,
+  status text not null default 'pending' check (status in ('pending', 'done', 'declined')),
+  created_at timestamptz not null default now(),
+  handled_at timestamptz,
+  handled_by uuid references auth.users (id)
+);
+
+alter table public.member_requests enable row level security;
+
+drop policy if exists member_requests_select on public.member_requests;
+create policy member_requests_select on public.member_requests
+  for select to authenticated
+  using (user_id = auth.uid() or public.lifestyle_is_admin());
+
+drop policy if exists member_requests_insert_own on public.member_requests;
+create policy member_requests_insert_own on public.member_requests
+  for insert to authenticated
+  with check (user_id = auth.uid() and status = 'pending' and handled_at is null and handled_by is null);
+
+drop policy if exists member_requests_update_admin on public.member_requests;
+create policy member_requests_update_admin on public.member_requests
+  for update to authenticated
+  using (public.lifestyle_is_admin())
+  with check (public.lifestyle_is_admin());
+
+create index if not exists member_requests_pending on public.member_requests (created_at) where status = 'pending';
