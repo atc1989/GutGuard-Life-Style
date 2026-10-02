@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "warn",
       "react-hooks/immutability": "warn",
       "react/no-unescaped-entities": "warn",
+      "react-hooks/globals": "warn",
     },
   },
   // Override default ignores of eslint-config-next.
@@ -25,6 +26,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Addendum 05: prototype sources and port tools, not app code.
+    "docs/prototype/**",
   ]),
 ]);
 

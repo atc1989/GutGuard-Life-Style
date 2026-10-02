@@ -180,7 +180,10 @@ const SOUND_OPTS = [["jingle", "Jingle"], ["default", "Chime"], ["silent", "Sile
 const WD = ["S", "M", "T", "W", "T", "F", "S"];
 const now = new Date();
 const Y = now.getFullYear(), M = now.getMonth(), TODAY = now.getDate();
-const key = (d) => `${Y}-${M + 1}-${d}`;
+const key = (d) => { const x = new Date(Y, M, d); return `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`; }; /* d may be 0 or less: last month */
+const keyDate = (k) => { const [a, b, c] = String(k).split("-").map(Number); return new Date(a, b - 1, c); };
+/* production: capsules and trial nights count from LIVE.countSince (trial start or current refill) */
+const counted = (log) => Object.entries(log).filter(([k]) => !LIVE || !LIVE.countSince || keyDate(k) >= keyDate(LIVE.countSince)).map(([, v]) => v);
 
 function seedOwn() {
   const log = {};
@@ -681,7 +684,7 @@ function LifestyleMember() {
   const isBuilder = stage === "builder";
   /* Gut Guardian: earned by finishing the 5-Night Watch, or by starting with any pack or plan. Card-only and trial members are Lifestyle Members. */
   const [guardianEarned, setEarnedRaw] = useState(() => { if (LIVE) return LIVE.guardian; try { return localStorage.getItem("gg-guardian") === "1"; } catch (e) { return false; } });
-  const setEarned = () => { setEarnedRaw(true); if (LIVE) { markGutGuardian().catch(() => {}); return; } try { localStorage.setItem("gg-guardian", "1"); } catch (e) {} };
+  const setEarned = () => { setEarnedRaw(true); if (LIVE) { (LIVE.lastSave || Promise.resolve()).then(() => markGutGuardian()).catch(() => {}); return; } try { localStorage.setItem("gg-guardian", "1"); } catch (e) {} };
   const [guardianMoment, setGuardianMoment] = useState(null); /* null | "watch" (Night 5 done) | "plan" (first pack or plan) */
   const isGuardian = stage === "member" || stage === "base" || (stage === "trial" && guardianEarned);
   const tier = isBuilder ? "GENTREP · 2LT" : isGuardian ? "GUT GUARDIAN" : "LIFESTYLE MEMBER";
@@ -695,7 +698,7 @@ function LifestyleMember() {
   const dose = canAdjust && myDose ? myDose : recDose;
   const adjusted = canAdjust && !!myDose && DOSE_KEYS.some((k) => (myDose[k] || 0) !== (recDose[k] || 0));
   const stepDose = (k, d) => { const n = { ...dose, [k]: Math.max(0, Math.min(4, (dose[k] || 0) + d)) }; if (DOSE_KEYS.reduce((a, x) => a + n[x], 0) < 1) return; setMyDose(DOSE_KEYS.every((x) => n[x] === recDose[x]) ? null : n); };
-  const nightNow = isWaiting || isCard ? 0 : Math.min(5, Object.keys(log).length + 1);
+  const nightNow = isWaiting || isCard ? 0 : Math.min(5, counted(log).length + 1);
   const SLOTS = isWaiting || isCard ? [] : isTrial && nightNow === 1 ? ["dreams"] : ["morning", "lunch", "dreams"].filter((k) => dose[k] > 0);
   const DAILY = SLOTS.reduce((a, k) => a + dose[k], 0);
   const perRefill = plan ? (plan.qty || (plan.freq === "monthly" ? G.mo : G.q)) : 0;
@@ -720,13 +723,13 @@ function LifestyleMember() {
   let takenCaps = 0;
   /* capsules taken: each day counted with its own dose, so the supply does not jump when the member adjusts */
   const perSlot = (day) => day.dose || recDose; /* each day keeps the dose it was taken with */
-  Object.values(log).forEach((day) => ["morning", "lunch", "dreams"].forEach((s) => { if (day[s]) takenCaps += perSlot(day)[s] || 0; }));
+  counted(log).forEach((day) => ["morning", "lunch", "dreams"].forEach((s) => { if (day[s]) takenCaps += perSlot(day)[s] || 0; }));
   const remaining = Math.max(0, TOTAL_CAPS - takenCaps);
   const daysLeft = DAILY ? Math.floor(remaining / DAILY) : 0;
   let streak = 0;
-  for (let d = TODAY; d >= 1 && SLOTS.length; d--) { if (dayFull(d)) streak++; else if (d !== TODAY) break; else continue; }
+  for (let d = TODAY; d >= TODAY - 119 && SLOTS.length; d--) { if (dayFull(d)) streak++; else if (d !== TODAY) break; else continue; }
   const todayDone = doneCount(TODAY);
-  const daysUsed = Object.keys(log).length;
+  const daysUsed = counted(log).length;
   const proofDays = Object.values(log).filter((d) => d.proof).length;
   const night = isWaiting ? 0 : Math.min(5, daysUsed + 1);
   const protocolDay = Math.min(90, daysUsed + 1);
@@ -740,7 +743,7 @@ function LifestyleMember() {
 
   const confirm = (slot, withProof, dataUrl) => {
     setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; t[slot] = true; t.slots = SLOTS; t.dose = dose; if (withProof) t.proof = true; return { ...L, [key(TODAY)]: t }; });
-    if (LIVE) persistDose(isoDay(TODAY), slot === "lunch" ? "midday" : slot, true).then((r) => { if (r && r.ok === false) flash("Not saved. Check your connection."); }).catch(() => flash("Not saved. Check your connection."));
+    if (LIVE) LIVE.lastSave = persistDose(isoDay(TODAY), slot === "lunch" ? "midday" : slot, true).then((r) => { if (r && r.ok === false) flash("Not saved. Check your connection."); }).catch(() => flash("Not saved. Check your connection."));
     if (withProof && dataUrl) setProofs((P) => ({ ...P, [`${key(TODAY)}-${slot}`]: dataUrl }));
     setFire((f) => f + 1);
     const left = SLOTS.filter((s) => s !== slot && !dayLog(TODAY)[s]).length;
@@ -792,7 +795,7 @@ function LifestyleMember() {
   const cells = [];
   for (let i = 0; i < firstWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  const trialStart = TODAY - Object.keys(log).length;
+  const trialStart = TODAY - counted(log).length;
   const firstLogged = Object.keys(log).reduce((m, k) => { const [yy, mm, dd] = k.split("-").map(Number); return yy === Y && mm === M + 1 ? Math.min(m, dd) : m; }, TODAY);
   const cellState = (d) => {
     if (d > TODAY || (isTrial && d < trialStart) || (!isTrial && d < firstLogged)) return "future";
@@ -2001,8 +2004,13 @@ function applyLive(live, feed) {
   NEW_STORIES = 0;
   TEAM = []; /* My Team comes from GEMA (Addendum 05, back-end task) */
 }
+let LIVE_SIG = "";
 /** @param {{ live?: object | null, feed?: Array<{ name: string, about: string, outcomes: string[], days: string }> | null }} props */
 export default function LifestyleMemberPage({ live = null, feed = null }) {
-  if (live && !DEMO && LIVE === null) applyLive(live, feed);
-  return <LifestyleMember />;
+  /* one member's data never stays for the next one on the same phone: a new member remounts the page */
+  const sig = live ? [live.cardNo, live.mobile, live.name].join("|") : "";
+  if (live && !DEMO && LIVE_SIG !== sig) { applyLive(live, feed); LIVE_SIG = sig; }
+  /* the page keys days by the date it loaded; after midnight, load again */
+  useEffect(() => { const t = setInterval(() => { if (new Date().getDate() !== TODAY) window.location.reload(); }, 60000); return () => clearInterval(t); }, []);
+  return <LifestyleMember key={sig || "demo"} />;
 }

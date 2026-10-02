@@ -29,6 +29,11 @@ export type LiveMember = {
   /** null = the recommended dose for the goal */
   dose: null | { morning: number; lunch: number; dreams: number };
   guardian: boolean;
+  /**
+   * Count capsules and trial nights from this date (ISO): the trial start, or the start of the
+   * current refill cycle. Older days still show on the calendar and in the streak.
+   */
+  countSince: string | null;
   /** dose_logs, keyed the way the page keys days: "YYYY-M-D" (no zero padding) */
   log: Record<string, { morning?: boolean; lunch?: boolean; dreams?: boolean; proof?: boolean }>;
 };
@@ -93,6 +98,13 @@ export async function loadPrototypeMember(): Promise<LiveMember | null> {
       log[dayKey(row.log_date)] = { morning: row.morning, lunch: row.midday, dreams: row.dreams, proof: Boolean(row.proof_path) };
     }
 
+    const countSince =
+      (p?.lifestyle_stage === "trial" || p?.lifestyle_stage === "ordered") && p.trial_started_on
+        ? p.trial_started_on
+        : p?.plan_started_on
+          ? currentCycleStart(p.plan_started_on, p.plan_cadence === "quarterly" ? 3 : 1, p.plan_skips ?? 0)
+          : null;
+
     const hasDose = p && (p.dose_morning !== null || p.dose_midday !== null || p.dose_dreams !== null);
     return {
       name: p?.name ?? "",
@@ -116,6 +128,7 @@ export async function loadPrototypeMember(): Promise<LiveMember | null> {
           : null,
       dose: hasDose ? { morning: p!.dose_morning ?? 0, lunch: p!.dose_midday ?? 0, dreams: p!.dose_dreams ?? 0 } : null,
       guardian: Boolean(p?.guardian_at),
+      countSince,
       log,
     };
   } catch (error) {
@@ -123,4 +136,20 @@ export async function loadPrototypeMember(): Promise<LiveMember | null> {
     console.warn("[lifestyle] prototype member read skipped", error instanceof Error ? error.message : String(error));
     return null;
   }
+}
+
+/** Start of the refill cycle that contains today (calendar months, skips push it forward). */
+function currentCycleStart(startIso: string, months: number, skips: number): string {
+  const [y, m, d] = startIso.split("-").map(Number);
+  const today = new Date();
+  let k = 0;
+  let at = new Date(y, m - 1, d);
+  for (;;) {
+    const next = new Date(y, m - 1 + months * (k + 1 + skips), 1);
+    next.setDate(Math.min(d, new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate()));
+    if (next > today) break;
+    at = next;
+    k += 1;
+  }
+  return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`;
 }

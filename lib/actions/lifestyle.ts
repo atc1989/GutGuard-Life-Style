@@ -42,15 +42,11 @@ export async function saveMyDose(input: unknown) {
   return { ok: true as const };
 }
 
-/** Night 5 Taps: the 5-Night Watch is complete. Set once. */
+/** Night 5 Taps: the 5-Night Watch is complete. The database checks the 5 nights itself. */
 export async function markGutGuardian() {
   const ctx = await requireUser();
   if (!ctx) return { ok: true as const, skipped: true };
-  const { error } = await ctx.supabase
-    .from("profiles")
-    .update({ guardian_at: new Date().toISOString() })
-    .eq("id", ctx.user.id)
-    .is("guardian_at", null);
+  const { data, error } = await ctx.supabase.rpc("lifestyle_mark_guardian");
   if (error) return { ok: false as const, error: error.message };
-  return { ok: true as const };
+  return { ok: true as const, earned: data === true };
 }

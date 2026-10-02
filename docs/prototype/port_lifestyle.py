@@ -53,6 +53,19 @@ rep('const hashParts = () => { let h = (typeof location !== "undefined" ? locati
 rep('const CARD_NO = "0240 5578 9012 3456";', 'let CARD_NO = "0240 5578 9012 3456";')
 rep('const [gifts, setGifts] = useState(() => [{ id: "g1", name: "Lorna Aquino"', 'const [gifts, setGifts] = useState(() => LIVE ? [] /* plans paid for others: back-end task (Addendum 05) */ : [{ id: "g1", name: "Lorna Aquino"')
 
+# ── 2b. Days across month ends; counts from the trial start or the current refill ───────
+rep('const key = (d) => `${Y}-${M + 1}-${d}`;',
+    'const key = (d) => { const x = new Date(Y, M, d); return `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`; }; /* d may be 0 or less: last month */\n'
+    'const keyDate = (k) => { const [a, b, c] = String(k).split("-").map(Number); return new Date(a, b - 1, c); };\n'
+    '/* production: capsules and trial nights count from LIVE.countSince (trial start or current refill) */\n'
+    'const counted = (log) => Object.entries(log).filter(([k]) => !LIVE || !LIVE.countSince || keyDate(k) >= keyDate(LIVE.countSince)).map(([, v]) => v);')
+rep('const nightNow = isWaiting || isCard ? 0 : Math.min(5, Object.keys(log).length + 1);', 'const nightNow = isWaiting || isCard ? 0 : Math.min(5, counted(log).length + 1);')
+rep('Object.values(log).forEach((day) => ["morning", "lunch", "dreams"].forEach((s) => { if (day[s]) takenCaps += perSlot(day)[s] || 0; }));',
+    'counted(log).forEach((day) => ["morning", "lunch", "dreams"].forEach((s) => { if (day[s]) takenCaps += perSlot(day)[s] || 0; }));')
+rep('for (let d = TODAY; d >= 1 && SLOTS.length; d--) {', 'for (let d = TODAY; d >= TODAY - 119 && SLOTS.length; d--) {')
+rep('const daysUsed = Object.keys(log).length;', 'const daysUsed = counted(log).length;')
+rep('const trialStart = TODAY - Object.keys(log).length;', 'const trialStart = TODAY - counted(log).length;')
+
 # ── 3. First render from the member's data ─────────────────────────────────────────────
 rep('const [stage, setStageRaw] = useState(hashStage());', 'const [stage, setStageRaw] = useState(LIVE ? LIVE.stage : hashStage());')
 rep('const [plan, setPlan] = useState(stage === "trial" || stage === "ordered" || stage === "card" ? null : stage === "builder" ? { ...defaultPlan(), goal: "full" } : defaultPlan());',
@@ -68,12 +81,12 @@ rep('const [myDose, setMyDoseRaw] = useState(() => { try { return JSON.parse(loc
 rep('const [guardianEarned, setEarnedRaw] = useState(() => { try { return localStorage.getItem("gg-guardian") === "1"; } catch (e) { return false; } });\n'
     '  const setEarned = () => { setEarnedRaw(true); try { localStorage.setItem("gg-guardian", "1"); } catch (e) {} };',
     'const [guardianEarned, setEarnedRaw] = useState(() => { if (LIVE) return LIVE.guardian; try { return localStorage.getItem("gg-guardian") === "1"; } catch (e) { return false; } });\n'
-    '  const setEarned = () => { setEarnedRaw(true); if (LIVE) { markGutGuardian().catch(() => {}); return; } try { localStorage.setItem("gg-guardian", "1"); } catch (e) {} };')
+    '  const setEarned = () => { setEarnedRaw(true); if (LIVE) { (LIVE.lastSave || Promise.resolve()).then(() => markGutGuardian()).catch(() => {}); return; } try { localStorage.setItem("gg-guardian", "1"); } catch (e) {} };')
 
 # ── 4. Saves ─────────────────────────────────────────────────────────────────────────
 rep('''    setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; t[slot] = true; t.slots = SLOTS; t.dose = dose; if (withProof) t.proof = true; return { ...L, [key(TODAY)]: t }; });''',
     '''    setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; t[slot] = true; t.slots = SLOTS; t.dose = dose; if (withProof) t.proof = true; return { ...L, [key(TODAY)]: t }; });
-    if (LIVE) persistDose(isoDay(TODAY), slot === "lunch" ? "midday" : slot, true).then((r) => { if (r && r.ok === false) flash("Not saved. Check your connection."); }).catch(() => flash("Not saved. Check your connection."));''')
+    if (LIVE) LIVE.lastSave = persistDose(isoDay(TODAY), slot === "lunch" ? "midday" : slot, true).then((r) => { if (r && r.ok === false) flash("Not saved. Check your connection."); }).catch(() => flash("Not saved. Check your connection."));''')
 rep('''  const submitConsent = () => {''',
     '''  const submitConsent = () => {
     if (LIVE) persistStory({ about: story.trim() || Object.keys(changed).filter((k) => changed[k]).concat(customList).join(", "), relationship: who === "other" ? `${subjName.trim()} (${relation.trim()})` : undefined, days: String(daysField), capsules: String(capsField), outcomes: Object.keys(changed).filter((k) => changed[k]).concat(customList) }).catch(() => {});''')
@@ -108,10 +121,15 @@ function applyLive(live, feed) {
   NEW_STORIES = 0;
   TEAM = []; /* My Team comes from GEMA (Addendum 05, back-end task) */
 }
+let LIVE_SIG = "";
 /** @param {{ live?: object | null, feed?: Array<{ name: string, about: string, outcomes: string[], days: string }> | null }} props */
 export default function LifestyleMemberPage({ live = null, feed = null }) {
-  if (live && !DEMO && LIVE === null) applyLive(live, feed);
-  return <LifestyleMember />;
+  /* one member's data never stays for the next one on the same phone: a new member remounts the page */
+  const sig = live ? [live.cardNo, live.mobile, live.name].join("|") : "";
+  if (live && !DEMO && LIVE_SIG !== sig) { applyLive(live, feed); LIVE_SIG = sig; }
+  /* the page keys days by the date it loaded; after midnight, load again */
+  useEffect(() => { const t = setInterval(() => { if (new Date().getDate() !== TODAY) window.location.reload(); }, 60000); return () => clearInterval(t); }, []);
+  return <LifestyleMember key={sig || "demo"} />;
 }''')
 
 s = fix_fonts(s)
