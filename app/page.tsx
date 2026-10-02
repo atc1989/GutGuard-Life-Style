@@ -1,5 +1,7 @@
-import { LifestyleLandingClient } from "@/components/prototype/ClientPages";
+import LifestyleLanding from "@/components/prototype/LifestyleLanding";
 
-export default function HomePage() {
-  return <LifestyleLandingClient />;
+/** The approved landing (Addendum 05), drawn on the server so it shows at once. */
+export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  return <LifestyleLanding initialLogin={params.login !== undefined} />;
 }

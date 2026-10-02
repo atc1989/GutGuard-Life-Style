@@ -10,6 +10,8 @@ Usage: python3 port/port_lifestyle.py <app.jsx> <out.jsx>
 """
 import sys
 from fontfix import fix_fonts
+from assets import extract_images
+import os
 
 src, out = sys.argv[1], sys.argv[2]
 s = open(src, encoding="utf-8").read()
@@ -133,5 +135,7 @@ export default function LifestyleMemberPage({ live = null, feed = null }) {
 }''')
 
 s = fix_fonts(s)
+# speed: big embedded images become cached files in public/prototype/
+s = extract_images(s, os.path.join(os.path.dirname(os.path.abspath(out)), "..", "..", "public", "prototype"))
 open(out, "w", encoding="utf-8").write(s)
 print("ported", len(s.splitlines()), "lines ->", out)

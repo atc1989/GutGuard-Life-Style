@@ -10,6 +10,8 @@ Usage: python3 port/port_landing.py <landing.jsx> <out.jsx>
 """
 import sys
 from fontfix import fix_fonts
+from assets import extract_images
+import os
 
 src, out = sys.argv[1], sys.argv[2]
 s = open(src, encoding="utf-8").read()
@@ -118,8 +120,22 @@ rep('''      {/* demo controls — not part of the product (same bar as the memb
     '''      {/* demo controls — not part of the product (same bar as the member page) */}
       <div style={{ display: DEMO ? "block" : "none", background: "#fff", borderBottom: `1px solid ${B.edge}`, padding: "7px 12px" }}>''')
 
+# speed: the landing is drawn on the server, so its first render must match the browser's
+rep('''  const [w, setW] = useState(() => typeof matchMedia !== "undefined" && matchMedia(WIDE_Q).matches);
+  useEffect(() => { const m = matchMedia(WIDE_Q); const f = () => setW(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
+  return w;''', '''  /* server and first browser render: phone layout; then the real width, without a hydration mismatch */
+  return React.useSyncExternalStore(
+    (cb) => { const m = matchMedia(WIDE_Q); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); },
+    () => matchMedia(WIDE_Q).matches,
+    () => false,
+  );''')
+rep('function LifestyleLanding() {', '/** @param {{ initialLogin?: boolean }} props */\nfunction LifestyleLanding({ initialLogin = false } = {}) {')
+rep('''const [step, setStep] = useState(() => (typeof location !== "undefined" && (location.hash.includes("login") || /[?&]login\\b/.test(location.search)) ? "login" : "landing"));''',
+    '''const [step, setStep] = useState(() => (initialLogin || (DEMO && typeof location !== "undefined" && location.hash.includes("login")) ? "login" : "landing"));''')
 rep('createRoot(document.getElementById("root")).render(<LifestyleLanding />);', 'export default LifestyleLanding;')
 
 s = fix_fonts(s)
+# speed: big embedded images become cached files in public/prototype/
+s = extract_images(s, os.path.join(os.path.dirname(os.path.abspath(out)), "..", "..", "public", "prototype"))
 open(out, "w", encoding="utf-8").write(s)
 print("ported", len(s.splitlines()), "lines ->", out)
