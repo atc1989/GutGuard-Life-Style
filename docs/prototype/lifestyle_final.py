@@ -82,7 +82,7 @@ def last_fake_saves(rep):
     rep('onClick={() => { setPlan((p) => ({ ...p, status: "active", pausedUntil: null, start: new Date(now) })); flash("Welcome back · plan resumed"); }}',
         'onClick={() => { if (LIVE) { sendRequest("resume", {}, flash); return; } setPlan((p) => ({ ...p, status: "active", pausedUntil: null, start: new Date(now) })); flash("Welcome back · plan resumed"); }}')
     rep('onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); flash(`${META[s].label} undone`); }}',
-        'onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); if (LIVE) persistDose(isoDay(TODAY), s === "lunch" ? "midday" : s, false).catch(() => {}); flash(`${META[s].label} undone`); }}')
+        'onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); if (LIVE) persistDose(isoDay(TODAY), s === "lunch" ? "midday" : s, false).then((r) => { if (r && r.ok === false) flash("Not saved. Check your connection."); }).catch(() => flash("Not saved. Check your connection.")); flash(`${META[s].label} undone`); }}')
     rep('onClick={() => flash(`Opening ${a.name}...`)}',
         'onClick={() => { const u = LIVE ? ({ gema: process.env.NEXT_PUBLIC_GEMA_URL, academy: process.env.NEXT_PUBLIC_ACADEMY_URL })[a.id] : null; if (u) { window.location.href = u; return; } flash(LIVE ? `${a.name} opens here soon` : `Opening ${a.name}...`); }}')
     rep('sendRequest(builder.mode === "goal" ? "goal" : "payment", { goal: bGoal, freq: bFreq }, flash)',

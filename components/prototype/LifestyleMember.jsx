@@ -1108,7 +1108,7 @@ function LifestyleMember() {
                 </div>
                 {done ? (<>
                   {ph && <img src={ph} alt="" style={{ width: 38, height: 38, borderRadius: 10, objectFit: "cover" }} />}
-                  <button className="lw-undo" onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); if (LIVE) persistDose(isoDay(TODAY), s === "lunch" ? "midday" : s, false).catch(() => {}); flash(`${META[s].label} undone`); }}>{LI.undo(14)} Undo</button>
+                  <button className="lw-undo" onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); if (LIVE) persistDose(isoDay(TODAY), s === "lunch" ? "midday" : s, false).then((r) => { if (r && r.ok === false) flash("Not saved. Check your connection."); }).catch(() => flash("Not saved. Check your connection.")); flash(`${META[s].label} undone`); }}>{LI.undo(14)} Undo</button>
                 </>) : (<>
                   <button className="lw-cam tap" onClick={() => openCam(s)} aria-label={`Take a photo of your ${META[s].label} dose`}>{LI.camera(19)}</button>
                   <button className={"lw-done tap" + (isNext ? "" : " soft")} onClick={() => confirm(s, false)}>Done</button>
