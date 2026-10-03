@@ -1,19 +1,21 @@
--- Back-end task 3 (Addendum 05): a paid website shop order updates the buyer's Lifestyle page.
+-- Back-end task 3 (Addendum 05): a website shop order updates the buyer's Lifestyle page.
 --
 -- The website calls public.lifestyle_apply_shop_order(payload) with the Lifestyle service role:
---   * event 'paid'      : from the website Maya webhook, when an order becomes paid;
---   * event 'delivered' : from the website admin, when an order is marked Delivered (status fulfilled).
--- Payload: { order_code, event, at (ISO date), email, mobile, for_other, recipient_mobile,
---            items: [{ id, qty }] }   (ids from the website lib/catalog.ts)
+--   * event 'paid'      : the order became paid (Maya webhook, reconcile, or staff in the website admin);
+--   * event 'delivered' : staff marked the order Delivered (status fulfilled) in the website admin;
+--   * event 'refunded'  : staff marked the payment refunded in the website admin.
+-- Payload: { order_code, event, at (YYYY-MM-DD, Manila), email, mobile, for_other, recipient_mobile,
+--            items: [{ id, qty, caps }] }   (the order's own items from shop_orders.items)
 --
 -- Rules (Addendum 05, Part C, task 3):
---   * Match a person by email first, then by mobile (last 10 digits). Exactly one profile, or none.
---   * E-Points go to the payer. The number is the one the website Done screen shows.
---     Each order pays once (point_events.source_ref = 'shop:<order_code>').
---   * The stage goes to the person who takes the capsules (the payer, or the recipient of a gift).
---     A stage only goes up, never down.
---   * Nobody matched yet? The order waits in shop_order_sync and is applied when that person signs
---     up or logs in (lifestyle_claim_shop_orders(), called by the member's own session).
+--   * E-Points: 1 per blister (10 capsules) paid, to the PAYER, found by the checkout email.
+--     Only a confirmed log-in email counts (auth.users.email_confirmed_at), because members can edit
+--     the email on their profile. Each order pays once (point_events.source_ref = 'shop:<code>').
+--     A refund takes the order's E-Points back once ('shop:<code>:refund'). The stage stays.
+--   * Stage: to the person who TAKES the capsules: the gift recipient (by mobile), or the payer
+--     (by email, else by mobile). A stage only goes up.
+--   * Nobody matched yet? The order waits in shop_order_sync. It is applied when that person opens
+--     /app (lifestyle_claim_shop_orders(), called with the member's own session).
 --   * Calling twice with the same order and event is safe.
 
 do $$
@@ -28,7 +30,7 @@ create unique index if not exists point_events_source_ref_key on public.point_ev
 
 create table if not exists public.shop_order_sync (
   order_code text not null,
-  event text not null check (event in ('paid', 'delivered')),
+  event text not null check (event in ('paid', 'delivered', 'refunded')),
   payload jsonb not null,
   payer_id uuid references public.profiles (id) on delete set null,
   taker_id uuid references public.profiles (id) on delete set null,
@@ -45,8 +47,23 @@ create policy shop_order_sync_select_admin on public.shop_order_sync
   for select to authenticated using (public.lifestyle_is_admin());
 create index if not exists shop_order_sync_waiting on public.shop_order_sync (created_at) where applied_at is null;
 
--- one profile by email, else by mobile (last 10 digits), else null
-create or replace function public.lifestyle_match_profile(p_email text, p_mobile text)
+-- the profile whose CONFIRMED log-in email is this one
+create or replace function public.lifestyle_match_email(p_email text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.id
+    from auth.users u join public.profiles p on p.id = u.id
+   where lower(btrim(u.email)) = nullif(lower(btrim(coalesce(p_email, ''))), '')
+     and u.email_confirmed_at is not null
+   limit 1;
+$$;
+
+-- the one profile with this mobile (last 10 digits), or null when none or more than one
+create or replace function public.lifestyle_match_mobile(p_mobile text)
 returns uuid
 language plpgsql
 stable
@@ -54,41 +71,37 @@ security definer
 set search_path = public
 as $$
 declare
-  e text := nullif(lower(btrim(coalesce(p_email, ''))), '');
   m text := right(regexp_replace(coalesce(p_mobile, ''), '\D', '', 'g'), 10);
   ids uuid[];
 begin
-  if e is not null then
-    select array_agg(id) into ids from public.profiles where lower(btrim(email)) = e;
-    if cardinality(ids) = 1 then return ids[1]; end if;
-  end if;
-  if length(m) = 10 then
-    select array_agg(id) into ids from public.profiles
-     where right(regexp_replace(coalesce(mobile, ''), '\D', '', 'g'), 10) = m;
-    if cardinality(ids) = 1 then return ids[1]; end if;
-  end if;
+  if length(m) <> 10 then return null; end if;
+  select array_agg(id) into ids from public.profiles
+   where right(regexp_replace(coalesce(mobile, ''), '\D', '', 'g'), 10) = m;
+  if cardinality(ids) = 1 then return ids[1]; end if;
   return null;
 end;
 $$;
 
--- E-Points shown on the website Done screen: packs by capsules / 10; a plan by its blisters per month
+-- 1 E-Point per blister (10 capsules): Watch 1, Blister 1, Bottle 3, Start 3, Grow 9, Peak 33,
+-- Gutguard Daily 6 / 12 / 18 a month (18 / 36 / 54 every 3 months). Uses the capsules saved on the
+-- order line; the id list is a fallback for lines without them (old ids included).
 create or replace function public.lifestyle_shop_points(p_items jsonb)
 returns integer
 language sql
 immutable
 as $$
   select coalesce(sum(
-    case
-      when i->>'id' in ('watch', 'blister') then 1
-      when i->>'id' in ('bottle', 'start') then 3
-      when i->>'id' = 'grow' then 9
-      when i->>'id' = 'peak' then 33
-      when i->>'id' like 'plan-keep-%' then 6
-      when i->>'id' like 'plan-better-%' then 12
-      when i->>'id' like 'plan-full-%' then 18
-      else 0
-    end * case when i->>'id' like 'plan-%' then 1 else greatest(coalesce((i->>'qty')::int, 1), 1) end
-  ), 0)::int
+    coalesce(
+      nullif(i->>'caps', '')::int,
+      case i->>'id'
+        when 'watch' then 10 when 'blister' then 10 when 'trial-blister' then 10
+        when 'bottle' then 30 when 'trial-bottle' then 30 when 'start' then 30
+        when 'grow' then 90 when 'peak' then 330
+        when 'plan-keep-monthly' then 60 when 'plan-better-monthly' then 120 when 'plan-full-monthly' then 180
+        when 'plan-keep-quarterly' then 180 when 'plan-better-quarterly' then 360 when 'plan-full-quarterly' then 540
+        else 0 end)
+    * greatest(coalesce(nullif(i->>'qty', '')::int, 1), 1)
+  ), 0)::int / 10
   from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) i;
 $$;
 
@@ -111,30 +124,29 @@ declare
   p jsonb;
   items jsonb;
   pts integer;
+  given public.point_events%rowtype;
   plan_item text;
   has_watch boolean;
   has_pack boolean;
   at_date date;
-  prof public.profiles%rowtype;
 begin
   select * into r from public.shop_order_sync where order_code = p_code and event = p_event for update;
   if not found or r.applied_at is not null then return true; end if;
   p := r.payload;
   items := coalesce(p->'items', '[]'::jsonb);
-  at_date := coalesce((p->>'at')::date, current_date);
+  at_date := coalesce(nullif(p->>'at', '')::date, current_date);
   has_watch := exists (select 1 from jsonb_array_elements(items) i where i->>'id' = 'watch');
-  has_pack := exists (select 1 from jsonb_array_elements(items) i where i->>'id' in ('blister', 'bottle', 'start', 'grow', 'peak'));
+  has_pack := exists (select 1 from jsonb_array_elements(items) i where i->>'id' <> 'watch' and i->>'id' not like 'plan-%');
   select i->>'id' into plan_item from jsonb_array_elements(items) i where i->>'id' like 'plan-%' limit 1;
 
-  r.payer_id := coalesce(r.payer_id, public.lifestyle_match_profile(p->>'email', p->>'mobile'));
+  r.payer_id := coalesce(r.payer_id, public.lifestyle_match_email(p->>'email'));
   r.taker_id := coalesce(r.taker_id, case
-    when coalesce((p->>'for_other')::boolean, false) then public.lifestyle_match_profile(null, p->>'recipient_mobile')
-    else r.payer_id end);
+    when coalesce((p->>'for_other')::boolean, false) then public.lifestyle_match_mobile(p->>'recipient_mobile')
+    else coalesce(r.payer_id, public.lifestyle_match_mobile(p->>'mobile')) end);
 
   perform set_config('lifestyle.trusted', 'on', true);
 
   if p_event = 'paid' then
-    -- E-Points to the payer, once per order
     if not r.points_done and r.payer_id is not null then
       pts := public.lifestyle_shop_points(items);
       if pts > 0 then
@@ -148,15 +160,11 @@ begin
       r.points_done := true;
     end if;
 
-    -- stage to the person who takes the capsules
     if not r.stage_done and r.taker_id is not null then
-      select * into prof from public.profiles where id = r.taker_id for update;
       if plan_item is not null then
         -- A new plan (or one that was paused or cancelled) starts on the payment date.
-        -- A renewal of an active plan changes nothing here: the task 5 job moves the cycle
-        -- (plan_started_on = the due date, plan_skips = 0) on the due date.
+        -- A renewal of an active plan changes nothing here: the task 5 job moves the cycle.
         update public.profiles set
-          lifestyle_stage = case when public.lifestyle_stage_rank(lifestyle_stage) < 4 then 'member' else lifestyle_stage end,
           plan_goal = split_part(plan_item, '-', 2),
           plan_cadence = split_part(plan_item, '-', 3),
           plan_skips = 0,
@@ -164,9 +172,8 @@ begin
           plan_started_on = at_date,
           plan_paused_until = null
         where id = r.taker_id and plan_status is distinct from 'active';
-        update public.profiles set lifestyle_stage = 'member'
-        where id = r.taker_id and public.lifestyle_stage_rank(lifestyle_stage) < 4;
-      elsif has_pack then
+      end if;
+      if plan_item is not null or has_pack then
         update public.profiles set lifestyle_stage = 'member'
         where id = r.taker_id and public.lifestyle_stage_rank(lifestyle_stage) < 4;
       elsif has_watch then
@@ -175,6 +182,7 @@ begin
       end if;
       r.stage_done := true;
     end if;
+
   elsif p_event = 'delivered' then
     r.points_done := true;
     if not r.stage_done and r.taker_id is not null then
@@ -184,6 +192,24 @@ begin
       end if;
       r.stage_done := true;
     end if;
+
+  elsif p_event = 'refunded' then
+    r.stage_done := true;  -- the stage stays
+    select * into given from public.point_events where source_ref = 'shop:' || p_code;
+    if found then
+      insert into public.point_events (user_id, kind, amount, pending, label, source_ref)
+      values (given.user_id, 'shop_refund', -given.amount, false, 'Refund ' || p_code, 'shop:' || p_code || ':refund')
+      on conflict (source_ref) do nothing;
+      if found then
+        update public.profiles set points = points - given.amount where id = given.user_id;
+      end if;
+    else
+      -- the E-Points were never given: make sure they never will be
+      update public.shop_order_sync set points_done = true,
+        applied_at = case when stage_done then coalesce(applied_at, now()) else applied_at end
+      where order_code = p_code and event = 'paid';
+    end if;
+    r.points_done := true;
   end if;
 
   perform set_config('lifestyle.trusted', 'off', true);
@@ -198,7 +224,7 @@ end;
 $$;
 
 -- Called by the website (Lifestyle service role). Returns true when fully applied,
--- false when it waits for the person to sign up.
+-- false when part of it waits for the person to sign up.
 create or replace function public.lifestyle_apply_shop_order(p jsonb)
 returns boolean
 language plpgsql
@@ -209,21 +235,23 @@ declare
   code text := nullif(btrim(coalesce(p->>'order_code', '')), '');
   ev text := p->>'event';
 begin
-  if code is null or ev not in ('paid', 'delivered') then
-    raise exception 'order_code and event (paid or delivered) are required';
+  if code is null or ev is null or ev not in ('paid', 'delivered', 'refunded') then
+    raise exception 'order_code and event (paid, delivered or refunded) are required';
   end if;
   insert into public.shop_order_sync (order_code, event, payload)
   values (code, ev, p)
   on conflict (order_code, event) do nothing;
-  -- delivered never runs before paid
-  if ev = 'delivered' and exists (select 1 from public.shop_order_sync where order_code = code and event = 'paid' and applied_at is null) then
+  -- 'delivered' and 'refunded' never run before 'paid'
+  if ev <> 'paid' and exists (select 1 from public.shop_order_sync where order_code = code and event = 'paid' and applied_at is null) then
     perform public.lifestyle_try_shop_order(code, 'paid');
   end if;
   return public.lifestyle_try_shop_order(code, ev);
 end;
 $$;
 
--- Called by the member's own session after sign-up and after log-in. Applies their waiting orders.
+-- Called with the member's own session when they open /app. Applies their waiting orders.
+-- Candidates are found by the member's confirmed email or mobile; lifestyle_try_shop_order then
+-- applies the rules above (E-Points only ever by confirmed email).
 create or replace function public.lifestyle_claim_shop_orders()
 returns integer
 language plpgsql
@@ -232,20 +260,23 @@ set search_path = public
 as $$
 declare
   me public.profiles%rowtype;
+  my_email text;
   m text;
   w record;
   n integer := 0;
 begin
   select * into me from public.profiles where id = auth.uid();
   if not found then return 0; end if;
+  select lower(btrim(email)) into my_email from auth.users where id = me.id and email_confirmed_at is not null;
   m := right(regexp_replace(coalesce(me.mobile, ''), '\D', '', 'g'), 10);
   for w in
     select order_code, event from public.shop_order_sync s
      where s.applied_at is null
-       and (lower(btrim(coalesce(s.payload->>'email', ''))) = lower(btrim(coalesce(me.email, '-')))
-            or (length(m) = 10 and right(regexp_replace(coalesce(s.payload->>'mobile', ''), '\D', '', 'g'), 10) = m)
-            or (length(m) = 10 and right(regexp_replace(coalesce(s.payload->>'recipient_mobile', ''), '\D', '', 'g'), 10) = m))
-     order by s.created_at, s.event desc  -- 'paid' before 'delivered'
+       and ((my_email is not null and lower(btrim(coalesce(s.payload->>'email', ''))) = my_email)
+            or (length(m) = 10 and m in (
+                  right(regexp_replace(coalesce(s.payload->>'mobile', ''), '\D', '', 'g'), 10),
+                  right(regexp_replace(coalesce(s.payload->>'recipient_mobile', ''), '\D', '', 'g'), 10))))
+     order by s.created_at, case s.event when 'paid' then 0 when 'delivered' then 1 else 2 end
   loop
     if public.lifestyle_try_shop_order(w.order_code, w.event) then n := n + 1; end if;
   end loop;
@@ -253,11 +284,13 @@ begin
 end;
 $$;
 
-revoke all on function public.lifestyle_match_profile(text, text) from public, anon, authenticated;
+revoke all on function public.lifestyle_match_email(text) from public, anon, authenticated;
+revoke all on function public.lifestyle_match_mobile(text) from public, anon, authenticated;
 revoke all on function public.lifestyle_try_shop_order(text, text) from public, anon, authenticated;
 revoke all on function public.lifestyle_apply_shop_order(jsonb) from public, anon, authenticated;
-grant execute on function public.lifestyle_apply_shop_order(jsonb) to service_role;
-grant execute on function public.lifestyle_match_profile(text, text) to service_role;
+grant execute on function public.lifestyle_match_email(text) to service_role;
+grant execute on function public.lifestyle_match_mobile(text) to service_role;
 grant execute on function public.lifestyle_try_shop_order(text, text) to service_role;
+grant execute on function public.lifestyle_apply_shop_order(jsonb) to service_role;
 revoke all on function public.lifestyle_claim_shop_orders() from public, anon;
 grant execute on function public.lifestyle_claim_shop_orders() to authenticated;

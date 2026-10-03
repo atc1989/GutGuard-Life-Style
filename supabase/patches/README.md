@@ -65,7 +65,16 @@ How (both projects):
 
 ## `20261003000000_shop_order_sync.sql` (Addendum 05, task 3)
 
-Same steps as above, after the member page file. Undo: `20261003_shop_order_sync_rollback.sql`.
+Same steps as above, after the member page file. Check: `20261003_shop_order_sync_check.sql`. Undo: `20261003_shop_order_sync_rollback.sql`.
+
+| Project | Applied on | By |
+|---|---|---|
+| Staging `fxdsnacuonfvutdquogb` | | |
+| Production `rvwseybgimmewuoccecu` | | |
+
+## `task_e_points_lock.sql` (Addendum 05, task E)
+
+Apply only **after** the Lifestyle app with the task E code is live (the older app writes E-Points from the member's session, and those writes fail after this file). Check: `task_e_points_lock_check.sql`. Undo: `task_e_points_lock_rollback.sql`, only together with rolling the app back to a version from before task E.
 
 | Project | Applied on | By |
 |---|---|---|
