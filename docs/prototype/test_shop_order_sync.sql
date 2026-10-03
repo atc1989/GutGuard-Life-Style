@@ -56,3 +56,19 @@ reset role;
 select '24 final', name, lifestyle_stage, points from public.profiles order by name;
 select '25 events', amount, source_ref from public.point_events order by source_ref;
 select '26 waiting', count(*) from public.shop_order_sync where applied_at is null;
+-- refund arrives BEFORE the paid call (paid sync was failing): the E-Points are never given
+set role service_role; set request.jwt.claim.role = 'service_role';
+select '27 refund first', public.lifestyle_apply_shop_order('{"order_code":"GG-7","event":"refunded","email":"ana@x.ph","items":[{"id":"peak","qty":1,"caps":330}]}');
+select '28 then paid', public.lifestyle_apply_shop_order('{"order_code":"GG-7","event":"paid","email":"ana@x.ph","items":[{"id":"peak","qty":1,"caps":330}]}');
+reset role; select '29 ana points unchanged', points from public.profiles where name='Ana';
+-- refund after the member spent the points: never below 0
+update public.profiles set points = 5 where name='Ana';
+set role service_role; set request.jwt.claim.role = 'service_role';
+select '30 refund GG-5 (54 given)', public.lifestyle_apply_shop_order('{"order_code":"GG-5","event":"refunded"}');
+reset role; select '31 ana points', points from public.profiles where name='Ana';
+select '32 refund row', amount from public.point_events where source_ref = 'shop:GG-5:refund';
+-- a task 5 renewal order paid while the plan is paused does not change the plan
+update public.profiles set plan_status = 'paused', plan_paused_until = '2026-12-01' where name='Ana';
+set role service_role; set request.jwt.claim.role = 'service_role';
+select '33 renewal while paused', public.lifestyle_apply_shop_order('{"order_code":"GG-8","event":"paid","at":"2026-11-05","email":"ana@x.ph","renewal_due":"2026-11-04","items":[{"id":"plan-full-monthly","qty":1,"caps":180}]}');
+reset role; select '34 ana plan', plan_status, plan_paused_until, plan_started_on, points from public.profiles where name='Ana';

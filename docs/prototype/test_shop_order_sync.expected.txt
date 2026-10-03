@@ -33,3 +33,11 @@
 25 events|54|shop:GG-5
 25 events|3|shop:GG-OLD
 26 waiting|0
+27 refund first|t
+28 then paid|t
+29 ana points unchanged|77
+30 refund GG-5 (54 given)|t
+31 ana points|0
+32 refund row|-5
+33 renewal while paused|t
+34 ana plan|paused|2026-12-01|2026-10-04|18

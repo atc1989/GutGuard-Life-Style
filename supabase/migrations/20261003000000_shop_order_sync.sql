@@ -5,13 +5,15 @@
 --   * event 'delivered' : staff marked the order Delivered (status fulfilled) in the website admin;
 --   * event 'refunded'  : staff marked the payment refunded in the website admin.
 -- Payload: { order_code, event, at (YYYY-MM-DD, Manila), email, mobile, for_other, recipient_mobile,
---            items: [{ id, qty, caps }] }   (the order's own items from shop_orders.items)
+--            items: [{ id, qty, caps }], renewal_due }   (items: the order's own shop_orders.items;
+--            renewal_due: set only on task 5 renewal orders, which never change the plan fields here)
 --
 -- Rules (Addendum 05, Part C, task 3):
 --   * E-Points: 1 per blister (10 capsules) paid, to the PAYER, found by the checkout email.
 --     Only a confirmed log-in email counts (auth.users.email_confirmed_at), because members can edit
 --     the email on their profile. Each order pays once (point_events.source_ref = 'shop:<code>').
---     A refund takes the order's E-Points back once ('shop:<code>:refund'). The stage stays.
+--     A refund takes the order's E-Points back once ('shop:<code>:refund'), never below 0 points.
+--     The stage stays. A refunded order never pays E-Points later.
 --   * Stage: to the person who TAKES the capsules: the gift recipient (by mobile), or the payer
 --     (by email, else by mobile). A stage only goes up.
 --   * Nobody matched yet? The order waits in shop_order_sync. It is applied when that person opens
@@ -129,12 +131,15 @@ declare
   has_watch boolean;
   has_pack boolean;
   at_date date;
+  is_renewal boolean;
+  taken integer;
 begin
   select * into r from public.shop_order_sync where order_code = p_code and event = p_event for update;
   if not found or r.applied_at is not null then return true; end if;
   p := r.payload;
   items := coalesce(p->'items', '[]'::jsonb);
   at_date := coalesce(nullif(p->>'at', '')::date, current_date);
+  is_renewal := nullif(p->>'renewal_due', '') is not null;
   has_watch := exists (select 1 from jsonb_array_elements(items) i where i->>'id' = 'watch');
   has_pack := exists (select 1 from jsonb_array_elements(items) i where i->>'id' <> 'watch' and i->>'id' not like 'plan-%');
   select i->>'id' into plan_item from jsonb_array_elements(items) i where i->>'id' like 'plan-%' limit 1;
@@ -147,6 +152,10 @@ begin
   perform set_config('lifestyle.trusted', 'on', true);
 
   if p_event = 'paid' then
+    if not r.points_done and exists (
+         select 1 from public.shop_order_sync x where x.order_code = p_code and x.event = 'refunded') then
+      r.points_done := true;  -- refunded before the E-Points were given: never give them
+    end if;
     if not r.points_done and r.payer_id is not null then
       pts := public.lifestyle_shop_points(items);
       if pts > 0 then
@@ -161,7 +170,7 @@ begin
     end if;
 
     if not r.stage_done and r.taker_id is not null then
-      if plan_item is not null then
+      if plan_item is not null and not is_renewal then
         -- A new plan (or one that was paused or cancelled) starts on the payment date.
         -- A renewal of an active plan changes nothing here: the task 5 job moves the cycle.
         update public.profiles set
@@ -196,14 +205,16 @@ begin
   elsif p_event = 'refunded' then
     r.stage_done := true;  -- the stage stays
     select * into given from public.point_events where source_ref = 'shop:' || p_code;
-    if found then
+    if found and not exists (select 1 from public.point_events where source_ref = 'shop:' || p_code || ':refund') then
+      -- take back what was given, but never below 0 (the member may have redeemed some already)
+      select least(given.amount, greatest(points, 0)) into taken from public.profiles where id = given.user_id for update;
       insert into public.point_events (user_id, kind, amount, pending, label, source_ref)
-      values (given.user_id, 'shop_refund', -given.amount, false, 'Refund ' || p_code, 'shop:' || p_code || ':refund')
+      values (given.user_id, 'shop_refund', -coalesce(taken, 0), false, 'Refund ' || p_code, 'shop:' || p_code || ':refund')
       on conflict (source_ref) do nothing;
       if found then
-        update public.profiles set points = points - given.amount where id = given.user_id;
+        update public.profiles set points = points - coalesce(taken, 0) where id = given.user_id;
       end if;
-    else
+    elsif not found then
       -- the E-Points were never given: make sure they never will be
       update public.shop_order_sync set points_done = true,
         applied_at = case when stage_done then coalesce(applied_at, now()) else applied_at end
