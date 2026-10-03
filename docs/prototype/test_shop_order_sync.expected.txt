@@ -1,0 +1,26 @@
+watch paid applied|t
+again (idempotent)|t
+ana stage/points|ordered|1
+watch delivered|t
+ana stage/trial|trial|2026-10-03
+plan|t
+ana plan|member|full|monthly|active|2026-10-04|19
+late|t
+ana still member|member
+gift|f
+ana points after gift|20
+cy waits|f
+waiting rows|2
+ben claims|1
+cy claims|1
+cy claims again|0
+final|Ana|member|20
+final|Ben|ordered|0
+final|Cy|member|39
+events|t|1|shop:GG-1
+events|t|18|shop:GG-2
+events|t|1|shop:GG-3
+events|t|39|shop:GG-4
+waiting rows|0
+renewal|t
+ana after renewal|2026-10-04|0|38

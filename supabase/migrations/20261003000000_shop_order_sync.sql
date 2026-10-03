@@ -152,15 +152,20 @@ begin
     if not r.stage_done and r.taker_id is not null then
       select * into prof from public.profiles where id = r.taker_id for update;
       if plan_item is not null then
+        -- A new plan (or one that was paused or cancelled) starts on the payment date.
+        -- A renewal of an active plan changes nothing here: the task 5 job moves the cycle
+        -- (plan_started_on = the due date, plan_skips = 0) on the due date.
         update public.profiles set
           lifestyle_stage = case when public.lifestyle_stage_rank(lifestyle_stage) < 4 then 'member' else lifestyle_stage end,
           plan_goal = split_part(plan_item, '-', 2),
           plan_cadence = split_part(plan_item, '-', 3),
-          plan_skips = case when plan_status = 'active' then plan_skips else 0 end,
+          plan_skips = 0,
           plan_status = 'active',
           plan_started_on = at_date,
           plan_paused_until = null
-        where id = r.taker_id;
+        where id = r.taker_id and plan_status is distinct from 'active';
+        update public.profiles set lifestyle_stage = 'member'
+        where id = r.taker_id and public.lifestyle_stage_rank(lifestyle_stage) < 4;
       elsif has_pack then
         update public.profiles set lifestyle_stage = 'member'
         where id = r.taker_id and public.lifestyle_stage_rank(lifestyle_stage) < 4;

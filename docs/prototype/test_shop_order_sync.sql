@@ -40,3 +40,8 @@ reset role;
 select 'final', name, lifestyle_stage, points from public.profiles order by name;
 select 'events', user_id is not null, amount, source_ref from public.point_events order by source_ref;
 select 'waiting rows', count(*) from public.shop_order_sync where applied_at is null;
+-- renewal of an active plan: points only, plan dates unchanged
+set role service_role; set request.jwt.claim.role = 'service_role';
+select 'renewal', public.lifestyle_apply_shop_order('{"order_code":"GG-5","event":"paid","at":"2026-11-01","email":"ana@x.ph","items":[{"id":"plan-full-monthly","qty":1}]}');
+reset role;
+select 'ana after renewal', plan_started_on, plan_skips, points from public.profiles where name='Ana';
