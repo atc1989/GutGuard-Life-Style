@@ -594,7 +594,8 @@ function LifestyleMember() {
   const [toast, setToast] = useState("");
   const fmtT = (t) => { const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`; };
   const [toolsOpen, setToolsOpen] = useState(() => { try { return localStorage.getItem("gg-tools-open") === "1"; } catch (e) { return false; } }); // closed by default
-  const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2300); };
+  const toastTimer = useRef(0);
+  const flash = (m) => { setToast(m); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(""), 2300); };
   const [fire, setFire] = useState(0);
 
   const [plan, setPlan] = useState(LIVE ? LIVE.plan : stage === "trial" || stage === "ordered" || stage === "card" ? null : stage === "builder" ? { ...defaultPlan(), goal: "full" } : defaultPlan()); /* demo: the Builder is on Full recovery (6 a day) to show the Midday option */
@@ -618,7 +619,7 @@ function LifestyleMember() {
   const [payPick, setPayPick] = useState("card");
   const [feel, setFeel] = useState({ sleep: 0, energy: 0, digestion: 0 });
   const [feelSaved, setFeelSaved] = useState(false);
-  const [times, setTimes] = useState(() => { try { const t = JSON.parse(localStorage.getItem("gg-times") || "null"); if (t && t.morning) return t; } catch (e) {} return { morning: "07:00", lunch: "12:30", dreams: "21:00" }; }); /* reminder times: kept on this phone */
+  const [times, setTimes] = useState(() => { try { const t = JSON.parse(localStorage.getItem("gg-times" + (LIVE ? "-" + LIVE.cardNo : "")) || "null"); if (t && t.morning) return t; } catch (e) {} return { morning: "07:00", lunch: "12:30", dreams: "21:00" }; }); /* reminder times: kept on this phone */
   /* The member's own dose. null = the recommended dose for the goal. Any change shows "Adjusted". */
   const [myDose, setMyDoseRaw] = useState(() => { if (LIVE) return LIVE.dose; try { return JSON.parse(localStorage.getItem("gg-dose") || "null"); } catch (e) { return null; } });
   const setMyDose = (v) => { setMyDoseRaw(v); if (LIVE) { saveMyDose(v || null).catch(() => {}); return; } try { if (v) localStorage.setItem("gg-dose", JSON.stringify(v)); else localStorage.removeItem("gg-dose"); } catch (e) {} };
@@ -830,7 +831,7 @@ function LifestyleMember() {
     flash(`Payment confirmed · +${earned} E-Points`);
   };
   const saveChange = () => {
-    if (LIVE) { sendRequest(builder.mode === "goal" ? "goal" : "payment", { goal: bGoal, freq: bFreq }, flash); setBuilder(null); return; }
+    if (LIVE) { sendRequest(builder.mode === "goal" ? "goal" : "plan", { goal: bGoal, freq: bFreq }, flash); setBuilder(null); return; }
     if (builder.mode === "goal" && bGoal !== plan.goal) setGoalChanged(true);
     setPlan((p) => ({ ...p, goal: bGoal, freq: bFreq }));
     setBuilder(null);
@@ -884,7 +885,7 @@ function LifestyleMember() {
               </div>
               <div className="inr" style={{ fontSize: 12.5, color: C.mute, marginTop: 6, lineHeight: 1.5 }}>{G.label} · {G.caps} a day · {perRefill} blisters · {PAY[plan.pay].short}</div>
               {plan.status === "paused"
-                ? <button className="tap" onClick={() => { setPlan((p) => ({ ...p, status: "active", pausedUntil: null, start: new Date(now) })); flash("Welcome back · plan resumed"); }} style={{ ...cta, background: C.blue }}>Resume now</button>
+                ? <button className="tap" onClick={() => { if (LIVE) { sendRequest("resume", {}, flash); return; } setPlan((p) => ({ ...p, status: "active", pausedUntil: null, start: new Date(now) })); flash("Welcome back · plan resumed"); }} style={{ ...cta, background: C.blue }}>Resume now</button>
                 : <button className="tap" onClick={() => setSheetOpen("manage")} style={{ ...manageBtn, width: "100%", marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>Manage my plan <span style={{ color: C.blue }}>&rsaquo;</span></button>}
             </div>
           )}
@@ -1031,7 +1032,7 @@ function LifestyleMember() {
               </button>
               {toolsOpen && <div id="gg-tools" className="fade" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 8 }}>
                 {APPS.map((a) => (
-                  <button key={a.id} className="tap" onClick={() => flash(`Opening ${a.name}...`)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, padding: "12px 6px 10px", borderRadius: 12, background: C.paper, border: `1px solid ${C.line}`, textAlign: "center" }}>
+                  <button key={a.id} className="tap" onClick={() => { const u = LIVE ? ({ gema: process.env.NEXT_PUBLIC_GEMA_URL, academy: process.env.NEXT_PUBLIC_ACADEMY_URL })[a.id] : null; if (u) { window.location.href = u; return; } flash(LIVE ? `${a.name} opens here soon` : `Opening ${a.name}...`); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, padding: "12px 6px 10px", borderRadius: 12, background: C.paper, border: `1px solid ${C.line}`, textAlign: "center" }}>
                     <span style={{ width: 42, height: 42, borderRadius: 11, background: a.tone, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>{LI[APP_ICON[a.id]](20)}</span>
                     <span className="osw" style={{ fontSize: 12.5, fontWeight: 700, color: C.navy, lineHeight: 1.2 }}>{a.name}</span>
                     <span className="osw" style={{ fontSize: 11, fontWeight: 600, color: C.blue }}>Open &rsaquo;</span>
@@ -1107,7 +1108,7 @@ function LifestyleMember() {
                 </div>
                 {done ? (<>
                   {ph && <img src={ph} alt="" style={{ width: 38, height: 38, borderRadius: 10, objectFit: "cover" }} />}
-                  <button className="lw-undo" onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); flash(`${META[s].label} undone`); }}>{LI.undo(14)} Undo</button>
+                  <button className="lw-undo" onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); if (LIVE) persistDose(isoDay(TODAY), s === "lunch" ? "midday" : s, false).catch(() => {}); flash(`${META[s].label} undone`); }}>{LI.undo(14)} Undo</button>
                 </>) : (<>
                   <button className="lw-cam tap" onClick={() => openCam(s)} aria-label={`Take a photo of your ${META[s].label} dose`}>{LI.camera(19)}</button>
                   <button className={"lw-done tap" + (isNext ? "" : " soft")} onClick={() => confirm(s, false)}>Done</button>
@@ -1205,7 +1206,7 @@ function LifestyleMember() {
                 </div>
               </div>
             ))}
-            <button className="tap" disabled={!(feel.sleep && feel.energy && feel.digestion) || feelSaved} onClick={() => { setFeelSaved(true); if (LIVE) { try { localStorage.setItem("gg-feel-" + isoDay(TODAY), JSON.stringify(feel)); } catch (e) {} flash("Saved on this phone · next check in 7 days"); return; } flash("Saved · next check in 7 days"); }} style={{ ...cta, marginTop: 14, padding: 13, fontSize: 15, background: feelSaved ? C.good : (feel.sleep && feel.energy && feel.digestion) ? C.blue : "#c3ccd8" }}>{feelSaved ? "Saved ✓" : "Save this week"}</button>
+            <button className="tap" disabled={!(feel.sleep && feel.energy && feel.digestion) || feelSaved} onClick={() => { setFeelSaved(true); if (LIVE) { try { localStorage.setItem("gg-feel-" + LIVE.cardNo + "-" + isoDay(TODAY), JSON.stringify(feel)); } catch (e) {} flash("Saved on this phone · next check in 7 days"); return; } flash("Saved · next check in 7 days"); }} style={{ ...cta, marginTop: 14, padding: 13, fontSize: 15, background: feelSaved ? C.good : (feel.sleep && feel.energy && feel.digestion) ? C.blue : "#c3ccd8" }}>{feelSaved ? "Saved ✓" : "Save this week"}</button>
           </div>}
 
           </div><div className="col-r">
@@ -1847,7 +1848,7 @@ function LifestyleMember() {
               <div className="lw-seg" role="radiogroup" aria-label="Language">
                 {[["EN", "English"], ["TL", "Taglish"]].map(([code, full]) => <button key={code} role="radio" aria-checked={lang === code} className={lang === code ? "on" : ""} onClick={() => setLang(code)}><b>{full}</b></button>)}
               </div>
-              <button className="tap" onClick={() => { try { localStorage.setItem("gg-times", JSON.stringify(times)); } catch (e) {} setSheetOpen(null); flash("Settings saved"); }} style={{ ...cta, background: C.cta, color: C.onCta, fontWeight: 700 }}>Save changes</button>
+              <button className="tap" onClick={() => { try { localStorage.setItem("gg-times" + (LIVE ? "-" + LIVE.cardNo : ""), JSON.stringify(times)); } catch (e) {} setSheetOpen(null); flash("Settings saved"); }} style={{ ...cta, background: C.cta, color: C.onCta, fontWeight: 700 }}>Save changes</button>
             </div>
           </Overlay>
         )}

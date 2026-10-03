@@ -74,3 +74,26 @@ def no_ship_text_promise(rep):
     """The shipping text message is not built yet (Addendum 05, task 3)."""
     rep('{courier === "paid" ? "10 capsules. We text you when it ships." :',
         '{courier === "paid" ? (DEMO ? "10 capsules. We text you when it ships." : "10 capsules. Night 1 starts the day it is delivered.") :')
+
+
+def last_fake_saves(rep):
+    """Second review: Resume and dose Undo saved nothing; app buttons opened nothing;
+    phone-kept settings were shared between members on one phone."""
+    rep('onClick={() => { setPlan((p) => ({ ...p, status: "active", pausedUntil: null, start: new Date(now) })); flash("Welcome back · plan resumed"); }}',
+        'onClick={() => { if (LIVE) { sendRequest("resume", {}, flash); return; } setPlan((p) => ({ ...p, status: "active", pausedUntil: null, start: new Date(now) })); flash("Welcome back · plan resumed"); }}')
+    rep('onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); flash(`${META[s].label} undone`); }}',
+        'onClick={() => { setLog((L) => { const t = { ...(L[key(TODAY)] || {}) }; delete t[s]; return { ...L, [key(TODAY)]: t }; }); if (LIVE) persistDose(isoDay(TODAY), s === "lunch" ? "midday" : s, false).catch(() => {}); flash(`${META[s].label} undone`); }}')
+    rep('onClick={() => flash(`Opening ${a.name}...`)}',
+        'onClick={() => { const u = LIVE ? ({ gema: process.env.NEXT_PUBLIC_GEMA_URL, academy: process.env.NEXT_PUBLIC_ACADEMY_URL })[a.id] : null; if (u) { window.location.href = u; return; } flash(LIVE ? `${a.name} opens here soon` : `Opening ${a.name}...`); }}')
+    rep('sendRequest(builder.mode === "goal" ? "goal" : "payment", { goal: bGoal, freq: bFreq }, flash)',
+        'sendRequest(builder.mode === "goal" ? "goal" : "plan", { goal: bGoal, freq: bFreq }, flash)')
+    # phone-kept settings belong to the member, not to the phone
+    rep('localStorage.getItem("gg-times")', 'localStorage.getItem("gg-times" + (LIVE ? "-" + LIVE.cardNo : ""))')
+    rep('localStorage.setItem("gg-times", JSON.stringify(times))', 'localStorage.setItem("gg-times" + (LIVE ? "-" + LIVE.cardNo : ""), JSON.stringify(times))')
+    rep('localStorage.setItem("gg-feel-" + isoDay(TODAY), JSON.stringify(feel))', 'localStorage.setItem("gg-feel-" + LIVE.cardNo + "-" + isoDay(TODAY), JSON.stringify(feel))')
+
+
+def toast_timer(rep):
+    """A new message is not cleared early by the previous message's timer."""
+    rep('const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2300); };',
+        'const toastTimer = useRef(0);\n  const flash = (m) => { setToast(m); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(""), 2300); };')

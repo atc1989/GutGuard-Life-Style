@@ -98,6 +98,8 @@ import lifestyle_final
 lifestyle_final.apply(rep)
 lifestyle_final.no_artifact_links_member(rep)
 lifestyle_final.no_ship_text_promise(rep)
+lifestyle_final.last_fake_saves(rep)
+lifestyle_final.toast_timer(rep)
 
 # ── 5. The demo bar is hidden in production ────────────────────────────────────────────
 rep('''      {/* demo controls — not part of the product */}

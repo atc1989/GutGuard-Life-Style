@@ -100,7 +100,7 @@ revoke all on function public.lifestyle_mark_guardian() from public, anon;
 grant execute on function public.lifestyle_mark_guardian() to authenticated;
 
 -- ---------------------------------------------------------------------------
--- Member requests (Addendum 05). Skip, pause, cancel, change goal or payment, and reward
+-- Member requests (Addendum 05). Skip, pause, resume, cancel, change goal, plan or payment, and reward
 -- redemptions are saved here for Gutguard staff to confirm. The member page says "Request sent";
 -- nothing changes on the plan until staff (or the back-end task that replaces them) acts.
 -- The monthly payment-link job must not send a link while a skip, pause or cancel is pending.
@@ -108,8 +108,8 @@ grant execute on function public.lifestyle_mark_guardian() to authenticated;
 create table if not exists public.member_requests (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
-  kind text not null check (kind in ('skip', 'pause', 'cancel', 'goal', 'payment', 'redeem')),
-  detail jsonb not null default '{}'::jsonb,
+  kind text not null check (kind in ('skip', 'pause', 'resume', 'cancel', 'goal', 'plan', 'payment', 'redeem')),
+  detail jsonb not null default '{}'::jsonb check (pg_column_size(detail) <= 2000),
   status text not null default 'pending' check (status in ('pending', 'done', 'declined')),
   created_at timestamptz not null default now(),
   handled_at timestamptz,

@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
       "react-hooks/immutability": "warn",
       "react/no-unescaped-entities": "warn",
       "react-hooks/globals": "warn",
+      "react-hooks/refs": "warn",
     },
   },
   // Override default ignores of eslint-config-next.

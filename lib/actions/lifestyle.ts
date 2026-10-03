@@ -52,7 +52,7 @@ export async function markGutGuardian() {
 }
 
 const requestSchema = z.object({
-  kind: z.enum(["skip", "pause", "cancel", "goal", "payment", "redeem"]),
+  kind: z.enum(["skip", "pause", "resume", "cancel", "goal", "plan", "payment", "redeem"]),
   detail: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
 });
 
@@ -63,8 +63,16 @@ const requestSchema = z.object({
 export async function requestChange(input: unknown) {
   const parsed = requestSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: "Check your request." };
+  if (!isSupabaseConfigured()) return { ok: true as const, skipped: true };
   const ctx = await requireUser();
-  if (!ctx) return { ok: true as const, skipped: true };
+  // An expired log-in must not show "Request sent".
+  if (!ctx) return { ok: false as const, error: "Please log in again." };
+  const { count } = await ctx.supabase
+    .from("member_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", ctx.user.id)
+    .eq("status", "pending");
+  if ((count ?? 0) >= 10) return { ok: false as const, error: "You have requests waiting. Gutguard will confirm them first." };
   const { error } = await ctx.supabase.from("member_requests").insert({
     user_id: ctx.user.id,
     kind: parsed.data.kind,

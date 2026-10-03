@@ -135,6 +135,7 @@ rep('''const [step, setStep] = useState(() => (typeof location !== "undefined" &
 import lifestyle_final
 lifestyle_final.apply_landing(rep)
 lifestyle_final.no_artifact_links_landing(rep)
+lifestyle_final.toast_timer(rep)
 rep('createRoot(document.getElementById("root")).render(<LifestyleLanding />);', 'export default LifestyleLanding;')
 
 s = fix_fonts(s)

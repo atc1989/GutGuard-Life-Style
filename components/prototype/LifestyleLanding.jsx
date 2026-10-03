@@ -651,7 +651,8 @@ function LifestyleLanding({ initialLogin = false, initialJoin = false } = {}) {
   const [welcome, setWelcome] = useState(false);
   const [fire, setFire] = useState(0);
   const [toast, setToast] = useState("");
-  const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2300); };
+  const toastTimer = useRef(0);
+  const flash = (m) => { setToast(m); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(""), 2300); };
   const [points, setPoints] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const skipTop = useRef(false);
