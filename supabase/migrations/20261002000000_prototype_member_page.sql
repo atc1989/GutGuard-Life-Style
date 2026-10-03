@@ -9,6 +9,19 @@
 -- The trigger below stops a member from setting the server-only fields with their own session,
 -- because profiles_insert_own and profiles_update_own let a member write any column of their row.
 
+-- Pre-flight: member_requests uses lifestyle_is_admin(), which reads public.app_roles.
+-- Staging was recorded without app_roles (supabase/patches/README.md). Stop here, before any change.
+do $$
+begin
+  if to_regclass('public.profiles') is null or to_regclass('public.dose_logs') is null then
+    raise exception 'Lifestyle tables are missing. Wrong project?';
+  end if;
+  if to_regclass('public.app_roles') is null
+     or to_regprocedure('public.lifestyle_is_admin(uuid)') is null then
+    raise exception 'public.app_roles or lifestyle_is_admin() is missing. Apply 20260902000000_lifestyle_admin_rbac.sql (app_roles part) first.';
+  end if;
+end $$;
+
 alter table public.profiles
   add column if not exists lifestyle_stage text not null default 'card'
     check (lifestyle_stage in ('card', 'ordered', 'trial', 'member', 'base', 'builder')),

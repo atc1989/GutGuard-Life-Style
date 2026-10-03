@@ -46,3 +46,20 @@ The CREATE-TABLE migrations assume an empty Lifestyle-shaped `public.profiles`. 
 Production `supabase_migrations.schema_migrations` (21 rows, latest `20260827065245`) is the pre-Lifestyle shared-project series. Academy Change 8 versions are tracked in `academy.applied_migrations`, never here.
 
 Staging’s ledger is a different 25-row historical series (latest `20260827065241`). Same rule: do not insert Academy versions there.
+
+## `20261002000000_prototype_member_page.sql` (Addendum 05)
+
+Not applied yet. Fill in when done:
+
+| Project | Applied on | By | Check result |
+|---|---|---|---|
+| Staging `fxdsnacuonfvutdquogb` | | | |
+| Production `rvwseybgimmewuoccecu` | | | |
+
+How (both projects):
+
+1. Backup: Dashboard → Database → Backups (confirm today's daily backup exists), and export `profiles` as CSV.
+2. Paste `../migrations/20261002000000_prototype_member_page.sql` into the SQL editor and run it once. If it stops with "app_roles … is missing" (recorded Staging drift), run the `app_roles` and `lifestyle_is_admin` part of `20260902000000_lifestyle_admin_rbac.sql` first.
+3. Run `20261002_prototype_member_page_check.sql`. Every row must say `true`.
+4. Undo: `20261002_prototype_member_page_rollback.sql`, together with promoting the previous Vercel deployment.
+
