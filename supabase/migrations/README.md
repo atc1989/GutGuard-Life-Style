@@ -7,6 +7,7 @@ Apply in order on the **Staging / dev** Supabase project:
 3. `20260902000000_lifestyle_admin_rbac.sql` — `app_roles`, `lifestyle_is_admin()`, admin SELECT policies.
 4. `20260902010000_lifestyle_orders_stories.sql` — `orders`, `webhook_events`, story moderation status + feed RLS.
 5. `20261002000000_prototype_member_page.sql` — Addendum 05: member page fields on `profiles`, the server-field trigger, `lifestyle_mark_guardian()`, `member_requests`. It stops before any change if `app_roles` is missing.
+6. `20261003000000_shop_order_sync.sql` — Addendum 05 task 3: a paid website order sets the member's stage, plan and E-Points (`lifestyle_apply_shop_order`, `lifestyle_claim_shop_orders`). Test: `docs/prototype/test_shop_order_sync.sql` on a throwaway database.
 
 Then optionally load `../seed.sql` on development only.
 

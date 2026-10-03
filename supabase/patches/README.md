@@ -63,3 +63,12 @@ How (both projects):
 3. Run `20261002_prototype_member_page_check.sql`. Every row must say `true`.
 4. Undo: `20261002_prototype_member_page_rollback.sql`, together with promoting the previous Vercel deployment.
 
+## `20261003000000_shop_order_sync.sql` (Addendum 05, task 3)
+
+Same steps as above, after the member page file. Undo: `20261003_shop_order_sync_rollback.sql`.
+
+| Project | Applied on | By |
+|---|---|---|
+| Staging `fxdsnacuonfvutdquogb` | | |
+| Production `rvwseybgimmewuoccecu` | | |
+
