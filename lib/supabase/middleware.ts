@@ -65,7 +65,8 @@ export async function updateSession(request: NextRequest) {
     url.pathname = isAdminShell(pathname)
       ? "/"
       : unauthenticatedLifestylePath(pathname);
-    url.search = "";
+    // Addendum 05: a logged-out member opening /app lands on the landing's Log in step.
+    url.search = pathname === "/app" || pathname.startsWith("/app/") ? "?login" : "";
     const redirectResponse = NextResponse.redirect(url);
     supabaseResponse.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie);

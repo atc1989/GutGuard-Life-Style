@@ -46,3 +46,38 @@ The CREATE-TABLE migrations assume an empty Lifestyle-shaped `public.profiles`. 
 Production `supabase_migrations.schema_migrations` (21 rows, latest `20260827065245`) is the pre-Lifestyle shared-project series. Academy Change 8 versions are tracked in `academy.applied_migrations`, never here.
 
 Staging’s ledger is a different 25-row historical series (latest `20260827065241`). Same rule: do not insert Academy versions there.
+
+## `20261002000000_prototype_member_page.sql` (Addendum 05)
+
+Not applied yet. Fill in when done:
+
+| Project | Applied on | By | Check result |
+|---|---|---|---|
+| Staging `fxdsnacuonfvutdquogb` | | | |
+| Production `rvwseybgimmewuoccecu` | | | |
+
+How (both projects):
+
+1. Backup: Dashboard → Database → Backups (confirm today's daily backup exists), and export `profiles` as CSV.
+2. Paste `../migrations/20261002000000_prototype_member_page.sql` into the SQL editor and run it once. If it stops with "app_roles … is missing" (recorded Staging drift), run the `app_roles` and `lifestyle_is_admin` part of `20260902000000_lifestyle_admin_rbac.sql` first.
+3. Run `20261002_prototype_member_page_check.sql`. Every row must say `true`.
+4. Undo: `20261002_prototype_member_page_rollback.sql`, together with promoting the previous Vercel deployment.
+
+## `20261003000000_shop_order_sync.sql` (Addendum 05, task 3)
+
+Same steps as above, after the member page file. Check: `20261003_shop_order_sync_check.sql`. Undo: `20261003_shop_order_sync_rollback.sql`.
+
+| Project | Applied on | By |
+|---|---|---|
+| Staging `fxdsnacuonfvutdquogb` | | |
+| Production `rvwseybgimmewuoccecu` | | |
+
+## `task_e_points_lock.sql` (Addendum 05, task E)
+
+Apply only **after** the Lifestyle app with the task E code is live (the older app writes E-Points from the member's session, and those writes fail after this file). Check: `task_e_points_lock_check.sql`. Undo: `task_e_points_lock_rollback.sql`, only together with rolling the app back to a version from before task E.
+
+| Project | Applied on | By |
+|---|---|---|
+| Staging `fxdsnacuonfvutdquogb` | | |
+| Production `rvwseybgimmewuoccecu` | | |
+

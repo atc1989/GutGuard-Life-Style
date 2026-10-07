@@ -1,10 +1,6 @@
-import { StoryPage } from "@/components/member/StoryPage";
-import { listFeedStories } from "@/lib/actions/admin";
+import { redirect } from "next/navigation";
 
-export default async function Page() {
-  const result = await listFeedStories();
-  if (!result.ok) {
-    return <StoryPage feedError={result.error} />;
-  }
-  return <StoryPage feed={{ community: result.community, mine: result.mine }} />;
+/** Addendum 05: My Health, Stories and My Team are tabs of the member page now. */
+export default function Page() {
+  redirect("/app");
 }

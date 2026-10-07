@@ -1,5 +1,10 @@
-import { LandingView } from "@/components/funnel/LandingView";
+import LifestyleLanding from "@/components/prototype/LifestyleLanding";
 
-export default function HomePage() {
-  return <LandingView variant="gift" />;
+/**
+ * The approved landing (Addendum 05), drawn on the server so it shows at once.
+ * `?login` opens Log in; `?join` (from the website's Done screen) opens Sign up.
+ */
+export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  return <LifestyleLanding initialLogin={params.login !== undefined} initialJoin={params.join !== undefined} />;
 }

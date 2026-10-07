@@ -1,0 +1,43 @@
+01 watch paid|t
+02 same again|t
+03 ana|ordered|1
+04 delivered|t
+05 ana|trial|2026-10-03
+06 plan by email|t
+07 ana|member|full|monthly|active|2026-10-04|19
+08 gift for Ben|f
+09 Cy (no account) bottles+peak|f
+10 old-shop order, old id, no caps|t
+11 renewal, quarterly|t
+12 ana after renewal (start unchanged)|2026-10-04|monthly|77
+14 eve claims|0
+15 eve points|0
+16 ben claims|1
+17 cy claims|1
+18 cy again|0
+19 refund|t
+20 refund again|t
+21 Dee pays|f
+22 Dee refunded|t
+23 dee claims|1
+24 final|Ana|member|77
+24 final|Ben|ordered|0
+24 final|Cy|member|0
+24 final|Dee|member|0
+24 final|Eve|card|0
+25 events|1|shop:GG-1
+25 events|18|shop:GG-2
+25 events|1|shop:GG-3
+25 events|39|shop:GG-4
+25 events|-39|shop:GG-4:refund
+25 events|54|shop:GG-5
+25 events|3|shop:GG-OLD
+26 waiting|0
+27 refund first|t
+28 then paid|t
+29 ana points unchanged|77
+30 refund GG-5 (54 given)|t
+31 ana points|0
+32 refund row|-5
+33 renewal while paused|t
+34 ana plan|paused|2026-12-01|2026-10-04|18
