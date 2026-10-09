@@ -10,7 +10,9 @@ import { useSession } from "@/lib/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useToast } from "@/lib/toast";
 import { Button } from "@/components/ui/Button";
-import { Drawer } from "@/components/ui/Drawer";
+import { Sheet } from "@/components/ui/Sheet";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { StepProgress } from "@/components/lifestyle/StepProgress";
 import { FormField } from "@/components/ui/FormField";
 
 const STEPS = ["Who", "Change", "Record", "Sign"] as const;
@@ -75,7 +77,7 @@ export function StoryShare({
   }
 
   return (
-    <Drawer
+    <Sheet
       title="Stories of Hope"
       open={open}
       onClose={() => {
@@ -83,44 +85,38 @@ export function StoryShare({
         onClose();
       }}
       footer={
-        <div className="gg-row" style={{ width: "100%" }}>
+        <div className="gg-row gg-row--fill">
           {step > 0 ? (
-            <Button variant="secondary" onClick={() => setStep((n) => n - 1)}>
+            <Button variant="outline" onClick={() => setStep((n) => n - 1)}>
               Back
             </Button>
           ) : (
             <span />
           )}
           {step < STEPS.length - 1 ? (
-            <Button variant="commerce" onClick={() => setStep((n) => n + 1)}>
+            <Button onClick={() => setStep((n) => n + 1)}>
               Next
             </Button>
           ) : (
-            <Button variant="commerce" loading={loading} onClick={() => void submit()}>
+            <Button loading={loading} onClick={() => void submit()}>
               Sign & share
             </Button>
           )}
         </div>
       }
     >
-      <p className="gg-eyebrow">
-        Step {step + 1} of {STEPS.length} · {STEPS[step]}
-      </p>
-      <form className="gg-stack" style={{ marginTop: 16 }}>
+      <StepProgress steps={[...STEPS]} current={step + 1} />
+      <form className="gg-stack gg-sheet__section">
         {step === 0 ? (
           <>
-            <p className="gg-lede">Para kanino ang kwento?</p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <p className="gg-row__label">Para kanino ang kwento?</p>
+            <div className="gg-chips">
               {(["self", "other"] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
-                  className="gg-badge"
-                  style={{
-                    cursor: "pointer",
-                    borderColor: about === value ? "var(--gg-blue)" : undefined,
-                    color: about === value ? "var(--gg-blue)" : undefined,
-                  }}
+                  className="gg-chip"
+                  aria-pressed={about === value}
                   onClick={() => form.setValue("about", value)}
                 >
                   {value === "self" ? "Aking karanasan" : "Story about someone"}
@@ -129,6 +125,7 @@ export function StoryShare({
             </div>
             {about === "other" ? (
               <FormField
+                variant="lifestyle"
                 label="Your relationship"
                 placeholder="e.g. my child, my father"
                 {...form.register("relationship")}
@@ -139,21 +136,17 @@ export function StoryShare({
 
         {step === 1 ? (
           <>
-            <p className="gg-eyebrow">Before starting Gutguard · After taking Gutguard</p>
+            <p className="gg-row__label">Before starting Gutguard · After taking Gutguard</p>
             <p className="gg-help">Tap all that apply</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <div className="gg-chips">
               {OUTCOMES.map((outcome) => {
                 const selected = outcomes.includes(outcome);
                 return (
                   <button
                     key={outcome}
                     type="button"
-                    className="gg-badge"
-                    style={{
-                      cursor: "pointer",
-                      borderColor: selected ? "var(--gg-blue)" : undefined,
-                      color: selected ? "var(--gg-blue)" : undefined,
-                    }}
+                    className="gg-chip"
+                    aria-pressed={selected}
                     onClick={() => {
                       const current = form.getValues("outcomes");
                       form.setValue(
@@ -176,11 +169,13 @@ export function StoryShare({
         {step === 2 ? (
           <>
             <FormField
+              variant="lifestyle"
               label="Days taking Gutguard"
               {...form.register("days")}
               error={form.formState.errors.days?.message}
             />
             <FormField
+              variant="lifestyle"
               label="Capsules per day"
               {...form.register("capsules")}
               error={form.formState.errors.capsules?.message}
@@ -193,35 +188,29 @@ export function StoryShare({
 
         {step === 3 ? (
           <>
-            <label className="gg-help" style={{ display: "flex", gap: 10 }}>
-              <input
-                type="checkbox"
-                checked={Boolean(consentTruth)}
-                onChange={(event) =>
-                  form.setValue("consentTruth", event.target.checked, {
-                    shouldValidate: true,
-                  })
-                }
-                style={{ width: 19, height: 19, accentColor: "#0608A9" }}
-              />
+            <Checkbox
+              checked={Boolean(consentTruth)}
+              onChange={(event) =>
+                form.setValue("consentTruth", event.target.checked, {
+                  shouldValidate: true,
+                })
+              }
+            >
               This story is truthful and shared voluntarily.
-            </label>
-            <label className="gg-help" style={{ display: "flex", gap: 10 }}>
-              <input
-                type="checkbox"
-                checked={Boolean(consentSupplement)}
-                onChange={(event) =>
-                  form.setValue("consentSupplement", event.target.checked, {
-                    shouldValidate: true,
-                  })
-                }
-                style={{ width: 19, height: 19, accentColor: "#0608A9" }}
-              />
+            </Checkbox>
+            <Checkbox
+              checked={Boolean(consentSupplement)}
+              onChange={(event) =>
+                form.setValue("consentSupplement", event.target.checked, {
+                  shouldValidate: true,
+                })
+              }
+            >
               I understand Gutguard is a food supplement with no approved therapeutic claims — results vary.
-            </label>
+            </Checkbox>
           </>
         ) : null}
       </form>
-    </Drawer>
+    </Sheet>
   );
 }
