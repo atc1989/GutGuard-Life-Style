@@ -17,7 +17,7 @@ export default async function AdminStoriesPage({
   if (!result.ok) {
     return (
       <div className="gg-stack">
-        <h2 className="gg-admin__title">
+        <h2 className="gg-heading" style={{ fontSize: 28 }}>
           Stories
         </h2>
         <Alert tone="error">{result.error}</Alert>

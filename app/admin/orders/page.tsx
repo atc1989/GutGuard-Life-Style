@@ -16,7 +16,7 @@ export default async function AdminOrdersPage({
   if (!result.ok) {
     return (
       <div className="gg-stack">
-        <h2 className="gg-admin__title">
+        <h2 className="gg-heading" style={{ fontSize: 28 }}>
           Orders
         </h2>
         <Alert tone="error">{result.error}</Alert>

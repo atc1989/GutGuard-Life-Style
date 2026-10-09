@@ -31,10 +31,10 @@ export default async function AdminUserDetailPage({
       </Link>
       <div>
         <p className="gg-eyebrow">Read-only audit</p>
-        <h2 className="gg-admin__title">
+        <h2 className="gg-heading" style={{ fontSize: 32, marginTop: 8 }}>
           {user.name}
         </h2>
-        <p className="gg-help gg-admin__sub">
+        <p className="gg-help" style={{ marginTop: 6 }}>
           No privilege changes on this screen.
         </p>
       </div>

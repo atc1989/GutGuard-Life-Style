@@ -30,10 +30,10 @@ export default async function AdminUsersPage({
   return (
     <div className="gg-stack">
       <div>
-        <h2 className="gg-admin__title">
+        <h2 className="gg-heading" style={{ fontSize: 28 }}>
           Users
         </h2>
-        <p className="gg-help gg-admin__sub">
+        <p className="gg-help" style={{ marginTop: 6 }}>
           GEMA unlocked means BASE is complete — same gate as the member app.
         </p>
       </div>

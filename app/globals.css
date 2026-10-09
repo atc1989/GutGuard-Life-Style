@@ -25,21 +25,6 @@
   --gg-rule-soft: #e5e0d2;
   --gg-error: #b0202e;
 
-  /* GutGuard UI Library tokens (Component Inventory §A). Lifestyle ink folds
-     into --gg-ink per the 8 Oct decision. */
-  --gg-blue-deep: #03044f;
-  --gg-gold-pale: #e8dcc4;
-  --gg-gold-text: #7e6035;
-  --gg-heat: #ff5e3a;
-  --gg-heat-text: #b5431f;
-  --gg-heat-brick: #bf4a2b;
-  --gg-recovery: #2f86c9;
-  --gg-recovery-deep: #1e6fb8;
-  --gg-card-blue: #0b1fa8;
-  --gg-card-blue-deep: #061072;
-  --gg-card-gold: #e2b343;
-  --gg-seam: linear-gradient(90deg, var(--gg-heat), var(--gg-gold) 50%, var(--gg-recovery));
-
   --gg-serif: var(--font-fraunces), "Fraunces", "Times New Roman", serif;
   --gg-sans: var(--font-inter-tight), "Inter Tight", system-ui, -apple-system,
     "Segoe UI", sans-serif;
@@ -47,7 +32,6 @@
 
   --gg-r-sm: 10px;
   --gg-r-md: 14px;
-  --gg-r-card: 16px;
   --gg-r-lg: 24px;
   --gg-r-pill: 999px;
 
@@ -67,7 +51,7 @@
 }
 
 html {
-  background-color: var(--bone);
+  background-color: var(--paper);
   color-scheme: light;
   overflow-x: hidden;
 }
@@ -75,16 +59,14 @@ html {
 html,
 body {
   min-height: 100%;
-  background-color: var(--bone);
+  background-color: var(--paper);
 }
 
 body {
   min-height: 100dvh;
   color: var(--ink);
   font-family: var(--gg-sans);
-  /* clip, not hidden: hidden makes <body> a scroll container, which pins
-     every sticky bar to it instead of the viewport. */
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 body:has(.gg-backdrop) {
@@ -106,7 +88,7 @@ a {
 
 .gg-surface {
   color: var(--ink);
-  background-color: var(--bone);
+  background-color: var(--paper);
   background-image: radial-gradient(
     circle at 1px 1px,
     rgba(15, 15, 24, 0.025) 1px,
@@ -119,7 +101,7 @@ a {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 .gg-page {
@@ -248,134 +230,117 @@ a {
   line-height: 1;
 }
 
-/* Button — UI Library contract: primary · dark · light · outline · ghost ·
-   link, sizes sm / md / lg. `secondary` and `signout` are the DS outline and
-   stay as aliases of `outline`; the Admin shell squares every variant. */
 .gg-button {
-  min-height: 46px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 1px solid transparent;
-  border-radius: var(--gg-r-pill);
-  padding: 11px 22px;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--gg-r-sm);
+  padding: 12px 18px;
   font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.005em;
-  text-align: center;
+  font-weight: 800;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
-}
-
-.gg-button svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+    border-color 0.2s ease, transform 0.1s ease;
 }
 
 .gg-button--primary {
   background: var(--gg-blue);
   color: var(--gg-bone);
-  box-shadow: 0 10px 24px rgba(6, 8, 169, 0.18);
 }
 
 .gg-button--primary:hover:not(:disabled) {
   background: var(--gg-blue-press);
-  transform: translateY(-2px);
 }
 
-.gg-button--dark {
+.gg-button--editorial {
+  min-height: 62px;
+  justify-content: space-between;
+  border-radius: 0;
   background: var(--gg-ink);
   color: var(--gg-bone);
+  padding: 18px 24px;
 }
 
-.gg-button--dark:hover:not(:disabled) {
+.gg-button--editorial:hover:not(:disabled) {
   background: var(--gg-blue);
 }
 
-.gg-button--light {
-  background: var(--gg-paper);
+.gg-button--commerce {
+  min-height: 62px;
+  border-radius: var(--gg-r-md);
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font-weight: 900;
+}
+
+.gg-button--commerce:hover:not(:disabled) {
+  background: var(--gg-blue-press);
+}
+
+.gg-button--secondary {
+  border: 1px solid var(--gg-rule);
+  background: rgba(252, 250, 245, 0.72);
+  color: var(--gg-ink);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gg-button--secondary:hover:not(:disabled) {
+  border-color: var(--gg-blue);
   color: var(--gg-blue);
 }
 
-.gg-button--outline,
-.gg-button--secondary,
-.gg-button--signout {
-  border-color: var(--gg-rule);
-  border-radius: 12px;
-  background: var(--gg-paper);
-  color: var(--gg-ink);
-  font-weight: 600;
+.gg-button--pill {
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font-weight: 800;
+  padding: 14px 22px;
 }
 
-.gg-button--outline:hover:not(:disabled),
-.gg-button--secondary:hover:not(:disabled),
+.gg-button--pill:hover:not(:disabled) {
+  background: var(--gg-blue-press);
+}
+
+.gg-button--ghost {
+  background: transparent;
+  color: var(--gg-blue);
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 44px;
+}
+
+.gg-button--signout {
+  min-height: 44px;
+  border: 1px solid var(--gg-ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .gg-button--signout:hover:not(:disabled) {
   border-color: var(--gg-blue);
   color: var(--gg-blue);
 }
 
-.gg-button--ghost,
-.gg-button--link {
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  padding: 8px 4px;
-  color: var(--gg-blue);
-  font-size: 13.5px;
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: rgba(6, 8, 169, 0.3);
-  text-underline-offset: 3px;
-}
-
-.gg-button--ghost:hover:not(:disabled),
-.gg-button--link:hover:not(:disabled) {
-  text-decoration-color: currentColor;
-}
-
-.gg-button--sm {
-  min-height: 44px;
-  padding: 8px 16px;
-  font-size: 14px;
-}
-
-.gg-button--lg,
 .gg-button--block {
   width: 100%;
 }
 
-.gg-button--lg {
-  min-height: 54px;
-  font-size: 16px;
-}
-
 .gg-button:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.99);
 }
 
 .gg-button:disabled {
   background: var(--gg-bone-soft);
-  border-color: var(--gg-bone-soft);
   color: var(--gg-ink-4);
-  box-shadow: none;
   cursor: not-allowed;
-}
-
-.gg-button--primary:disabled {
-  background: rgba(6, 8, 169, 0.2);
-  border-color: transparent;
-  color: var(--gg-paper);
-}
-
-.gg-button--ghost:disabled,
-.gg-button--link:disabled {
-  background: transparent;
-  color: var(--gg-ink-4);
 }
 
 .gg-button__icon {
@@ -1034,6 +999,500 @@ a {
   color: var(--gg-ink-3);
 }
 
+.gg-bell {
+  position: relative;
+}
+
+.gg-bell__count {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font-size: 10px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.gg-bell__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(320px, calc(100vw - 32px));
+  z-index: 30;
+  overflow: hidden;
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-paper);
+  box-shadow: var(--gg-shadow-card);
+  outline: none;
+}
+
+.gg-bell__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 10px 16px;
+  border-bottom: 1px solid var(--gg-rule-soft);
+}
+
+.gg-bell__panel-head h2 {
+  margin: 0;
+  color: var(--gg-ink);
+  font-family: var(--gg-serif);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.gg-bell__empty {
+  margin: 0;
+  padding: 18px 16px;
+}
+
+.gg-sidebar {
+  display: none;
+  flex-direction: column;
+  width: 280px;
+  padding: 28px 12px 20px;
+  border-right: 1px solid var(--gg-rule);
+  background: var(--gg-bone);
+}
+
+.gg-sidebar__brand {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 12px 22px;
+  color: inherit;
+}
+
+.gg-sidebar__brand strong {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.gg-sidebar__brand em {
+  font-family: var(--gg-serif);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 0.95;
+  color: var(--gg-blue);
+}
+
+.gg-sidebar__nav,
+.gg-sidebar__tools {
+  display: grid;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.gg-sidebar__rule {
+  height: 1px;
+  margin: 16px 12px;
+  border: 0;
+  background: var(--gg-rule);
+}
+
+.gg-sidebar__label {
+  padding: 0 18px 6px;
+}
+
+.gg-sidebar__foot {
+  display: grid;
+  gap: 16px;
+  margin-top: auto;
+  padding: 20px 8px 8px;
+}
+
+.gg-sidebar__order {
+  display: grid;
+  gap: 10px;
+}
+
+.gg-sidebar__supply {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gg-sidebar__supply .gg-help {
+  margin: 0;
+}
+
+.gg-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--gg-r-md);
+  background: transparent;
+  color: var(--gg-ink);
+  font-size: 15.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gg-nav-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gg-nav-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.gg-nav-btn.is-active {
+  background: rgba(6, 8, 169, 0.07);
+  color: var(--gg-blue);
+  font-weight: 700;
+}
+
+.gg-nav-btn--quiet {
+  min-height: 44px;
+  font-size: 13px;
+  color: var(--gg-ink-3);
+}
+
+.gg-nav-btn[aria-disabled="true"] {
+  color: var(--gg-ink-3);
+}
+
+.gg-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--gg-r-md);
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.gg-avatar--sm {
+  width: 36px;
+  height: 36px;
+  font-size: 11px;
+}
+
+.gg-account {
+  position: relative;
+  min-width: 0;
+}
+
+.gg-account__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--gg-r-md);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gg-account__trigger:hover {
+  background: rgba(6, 8, 169, 0.07);
+}
+
+.gg-account__meta {
+  display: grid;
+  min-width: 0;
+}
+
+.gg-account__meta strong,
+.gg-account-card__meta strong {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gg-account__meta .gg-help,
+.gg-account-card__meta .gg-help {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gg-account__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  display: grid;
+  gap: 8px;
+  width: min(300px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-paper);
+  box-shadow: var(--gg-shadow-card);
+}
+
+.gg-account__menu--sidebar {
+  position: fixed;
+  right: auto;
+  top: auto;
+  left: 292px;
+  bottom: 20px;
+}
+
+.gg-account-sheet__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0 14px;
+  border-bottom: 1px solid var(--gg-rule-soft);
+}
+
+.gg-account-sheet__identity strong {
+  display: block;
+  font-size: 16px;
+}
+
+.gg-account-sheet__identity .gg-help {
+  margin: 2px 0 0;
+}
+
+.gg-account__menu-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 12px;
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.gg-account__menu .gg-nav-btn {
+  justify-content: flex-start;
+}
+
+.gg-account__badge {
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-blue);
+  color: var(--gg-bone);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.gg-account__badge--floating {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+.gg-account.is-open .gg-account__trigger {
+  background: rgba(6, 8, 169, 0.07);
+}
+
+.gg-account-card {
+  position: relative;
+  padding-top: 14px;
+  border-top: 1px solid var(--gg-rule);
+}
+
+.gg-account-card__trigger {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--gg-r-sm);
+  padding: 4px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gg-account-card__trigger:hover,
+.gg-account.is-open .gg-account-card__trigger {
+  background: rgba(6, 8, 169, 0.07);
+}
+
+.gg-account-card__trigger .gg-account__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.gg-bottom-bar {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.gg-bottom-bar__inner {
+  max-width: 440px;
+  margin: 0 auto;
+  pointer-events: auto;
+  display: block;
+  background: rgba(252, 250, 245, 0.97);
+  border-top: 1px solid var(--gg-rule);
+  box-shadow: 0 -10px 28px rgba(15, 15, 24, 0.08);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+
+.gg-bottom-bar .gg-button {
+  min-height: 56px;
+}
+
+.gg-bottom-bar .gg-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.gg-masthead {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gg-rule-soft);
+  background: rgba(252, 250, 245, 0.97);
+  backdrop-filter: blur(14px);
+}
+
+.gg-masthead__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gg-masthead__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gg-masthead__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.gg-masthead__brand strong {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.gg-masthead__brand em {
+  color: var(--gg-blue);
+  font-family: var(--gg-serif);
+  font-size: 19px;
+  font-style: italic;
+}
+
+.gg-mobile-sections {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 10px;
+}
+
+.gg-mobile-sections .gg-segment__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.gg-mobile-sections .gg-segment__button[data-active="true"] {
+  background: var(--gg-paper);
+  color: var(--gg-ink);
+  box-shadow: 0 2px 7px rgba(15, 15, 24, 0.09);
+}
+
+.gg-mobile-sections .gg-spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.gg-frame {
+  display: block;
+}
+
+.gg-content {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0 16px calc(104px + env(safe-area-inset-bottom, 0px));
+}
+
+.gg-content__body {
+  width: 100%;
+  padding-top: 18px;
+}
+
+.gg-story-disclaimer {
+  margin: 0;
+  color: var(--gg-ink-3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 899px) {
+  .gg-account__menu {
+    display: none;
+  }
+
+  .gg-bell__panel {
+    display: none;
+  }
+}
+
 .gg-notification-list {
   display: grid;
   gap: 0;
@@ -1055,6 +1514,190 @@ a {
 
 .gg-bell__panel .gg-notification-list li {
   padding: 14px 16px;
+}
+
+.gg-funnel {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 24px 22px 48px;
+}
+
+.gg-funnel--editorial {
+  padding-top: 48px;
+}
+
+.gg-funnel-title {
+  margin: 10px 0 16px;
+}
+
+.gg-funnel-lede {
+  margin-bottom: 24px;
+}
+
+.gg-funnel-display {
+  margin-top: 10px;
+}
+
+.gg-funnel-ledger {
+  margin-top: 28px;
+}
+
+.gg-funnel-card {
+  margin-top: 18px;
+}
+
+.gg-funnel-card-copy {
+  margin-top: 8px;
+}
+
+.gg-funnel-actions {
+  margin-top: 22px;
+}
+
+.gg-invite-note {
+  margin-top: 6px;
+}
+
+.gg-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.gg-split,
+.gg-grid-2,
+.gg-grid-3 {
+  display: grid;
+  gap: 16px;
+}
+
+.gg-page-head {
+  display: grid;
+  gap: 10px;
+}
+
+.gg-cta-row {
+  display: grid;
+  gap: 12px;
+}
+
+.gg-flip {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  perspective: 900px;
+  /* Card type scales with the card, not the viewport. */
+  container-type: inline-size;
+}
+
+.gg-flip:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.gg-flip__inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.7s var(--gg-ease-out);
+  /* Width-only scaling on the shared card ratio. Never pair with a height.
+     The container context lives on .gg-flip: layout containment here would
+     flatten transform-style and kill the flip. */
+  aspect-ratio: var(--gg-card-ratio);
+}
+
+.gg-flip.is-back .gg-flip__inner {
+  transform: rotateY(180deg);
+}
+
+.gg-flip__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.gg-flip__face--back {
+  transform: rotateY(180deg);
+}
+
+/*
+ * Door card faces. Both fill the shared ID-1 plane, so the content has to work
+ * inside a fixed height rather than set one. Sizes are in container units so a
+ * 320px phone and a 420px desktop column read the same.
+ */
+.gg-doorcard {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 6px;
+  overflow: hidden;
+  padding: clamp(14px, 4.2cqw, 22px);
+}
+
+.gg-doorcard .gg-eyebrow {
+  font-size: clamp(8px, 2.1cqw, 10px);
+}
+
+.gg-doorcard__name {
+  align-self: end;
+  margin: 0;
+  color: var(--gg-bone);
+  font-family: var(--gg-serif);
+  font-size: clamp(20px, 6.4cqw, 32px);
+  font-weight: 400;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.gg-doorcard__sub {
+  color: var(--gg-bone);
+  font-size: clamp(11px, 3cqw, 14px);
+  opacity: 0.86;
+}
+
+.gg-doorcard__hint {
+  color: var(--gg-gold-soft);
+  margin: 0;
+}
+
+.gg-doorcard--back {
+  grid-template-rows: auto 1fr;
+  text-align: left;
+}
+
+.gg-doorcard__scan {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(10px, 3cqw, 16px);
+  min-height: 0;
+}
+
+.gg-doorcard__scan .gg-qr {
+  padding: 6px;
+  border-radius: var(--gg-r-sm);
+}
+
+/* The SVG carries a viewBox, so CSS can scale it without touching the seed. */
+.gg-doorcard__scan .gg-qr svg {
+  display: block;
+  width: clamp(88px, 30cqw, 136px);
+  height: auto;
+}
+
+.gg-doorcard__cardno {
+  font-family: var(--gg-mono);
+  font-size: clamp(10px, 2.8cqw, 13px);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
 }
 
 .gg-demo {
@@ -1090,6 +1733,14 @@ a {
 
 body.has-demo {
   padding-top: 48px;
+}
+
+body.has-demo .gg-frame {
+  min-height: calc(100dvh - 48px);
+}
+
+body.has-demo .gg-masthead {
+  top: 48px;
 }
 
 .gg-confetti {
@@ -1149,6 +1800,238 @@ body.has-demo {
   }
 }
 
+.gg-dialog-grab {
+  width: 42px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: var(--gg-r-pill);
+  background: var(--gg-rule);
+}
+
+.gg-cal {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.gg-cal__day {
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-sm);
+  background: var(--gg-paper);
+  color: var(--gg-ink);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.gg-cal__day[aria-selected="true"] {
+  border-color: var(--gg-blue);
+  color: var(--gg-blue);
+  box-shadow: 0 0 0 3px rgba(6, 8, 169, 0.12);
+}
+
+.gg-cal__day i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gg-rule);
+}
+
+.gg-cal__day i[data-count="1"],
+.gg-cal__day i[data-count="2"] {
+  background: var(--gg-gold);
+}
+
+.gg-cal__day i[data-count="3"] {
+  background: var(--gg-blue);
+}
+
+@media (min-width: 900px) {
+  .gg-sidebar {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    width: 280px;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow-y: auto;
+    padding: 32px 12px 20px;
+  }
+
+  body.has-demo .gg-sidebar {
+    top: 48px;
+    height: calc(100dvh - 48px);
+    min-height: calc(100dvh - 48px);
+  }
+
+  .gg-bottom-bar {
+    display: none;
+  }
+
+  .gg-frame {
+    display: block;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    min-height: 100dvh;
+  }
+
+  .gg-content {
+    width: auto;
+    max-width: none;
+    margin-left: 280px;
+    min-width: 0;
+    padding: 0 40px 56px;
+  }
+
+  .gg-content__body {
+    max-width: 1040px;
+    margin-inline: auto;
+    padding-top: 24px;
+  }
+
+  .gg-funnel {
+    max-width: 1240px;
+    padding: 48px 48px 72px;
+  }
+
+  .gg-funnel--editorial {
+    padding-top: 64px;
+  }
+
+  .gg-split {
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 48px;
+    align-items: start;
+  }
+
+  .gg-split--card {
+    grid-template-columns: 420px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .gg-split--form {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
+    align-items: start;
+  }
+
+  .gg-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .gg-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .gg-page-head {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    margin-bottom: 8px;
+  }
+
+  .gg-cta-row {
+    max-width: 440px;
+  }
+
+  .gg-masthead {
+    display: none;
+  }
+
+  .gg-mobile-sections {
+    display: none;
+  }
+
+  .gg-backdrop {
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  .gg-dialog {
+    width: min(360px, calc(100vw - 48px));
+    height: 100%;
+    max-height: none;
+    border-radius: var(--gg-r-lg) 0 0 var(--gg-r-lg);
+    box-shadow: -22px 0 70px rgba(15, 15, 24, 0.22);
+    animation-name: gg-drawer-in;
+  }
+
+  .gg-dialog.is-closing {
+    animation-name: gg-drawer-out;
+  }
+
+  .gg-dialog-grab {
+    display: none;
+  }
+
+  .gg-cal {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+
+  .gg-dialog-body {
+    flex: 1;
+    max-height: none;
+  }
+
+  .gg-toast-viewport {
+    bottom: 24px;
+  }
+
+  .gg-mobile-only {
+    display: none;
+  }
+
+  .gg-flip {
+    margin: 0;
+  }
+
+  .gg-demo {
+    padding: 6px 24px;
+  }
+
+  .gg-demo button {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+}
+
+@keyframes gg-drawer-in {
+  from { transform: translateX(42px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes gg-drawer-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(42px); opacity: 0; }
+}
+
+@media (min-width: 1200px) {
+  .gg-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+@media (max-width: 899px) {
+  .gg-toast-viewport {
+    bottom: 92px;
+  }
+
+  .gg-desktop-only {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gg-button,
   .gg-segment__button,
@@ -1175,81 +2058,9 @@ body.has-demo {
 }
 
 .gg-admin__hero {
-  display: grid;
-  gap: 8px;
   border-bottom: 1px solid var(--gg-rule);
   padding-bottom: 18px;
   margin-bottom: 16px;
-}
-
-.gg-admin__hero-title {
-  font-family: var(--gg-serif);
-  font-size: clamp(30px, 4vw, 40px);
-  font-weight: 400;
-  line-height: 1.04;
-}
-
-.gg-admin__title {
-  font-family: var(--gg-serif);
-  font-size: clamp(24px, 3vw, 30px);
-  font-weight: 400;
-  line-height: 1.1;
-}
-
-.gg-admin__sub,
-.gg-admin__copy {
-  margin-top: 6px;
-}
-
-/* Admin dialect is square: every shared control inside the shell drops its
-   commerce / Lifestyle radius and lift. Badges keep the DS pill. */
-.gg-admin .gg-button,
-.gg-admin .gg-field__control,
-.gg-admin .gg-icon-btn,
-.gg-admin .gg-card,
-.gg-admin .gg-alert,
-.gg-admin .gg-empty,
-.gg-admin .gg-dialog,
-.gg-admin .gg-qr {
-  border-radius: 0;
-}
-
-.gg-admin .gg-button {
-  min-height: 44px;
-  box-shadow: none;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.gg-admin .gg-button--primary:hover:not(:disabled) {
-  transform: none;
-}
-
-.gg-admin .gg-button--link,
-.gg-admin .gg-button--ghost {
-  letter-spacing: normal;
-  text-transform: none;
-  font-size: 13px;
-}
-
-.gg-admin .gg-card {
-  box-shadow: none;
-}
-
-.gg-admin .gg-field__control {
-  background: rgba(244, 241, 234, 0.6);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.gg-admin .gg-field__control--lg {
-  min-height: 48px;
-}
-
-.gg-admin .gg-field__control:focus-visible {
-  box-shadow: 0 0 0 2px rgba(6, 8, 169, 0.14);
 }
 
 .gg-admin__tabs {
@@ -1261,28 +2072,24 @@ body.has-demo {
   padding-bottom: 0;
 }
 
-/* DS Tabs, admin variant: 11px / 800 / .16em; hover + active = blue fill. */
 .gg-admin__tab {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  padding: 12px 18px;
+  padding: 10px 14px;
   border-radius: 0;
-  border: 0;
+  border: 1px solid transparent;
   border-bottom: 2px solid transparent;
   color: var(--gg-ink-3);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.gg-admin__tab:hover,
 .gg-admin__tab[aria-current="page"] {
-  background: var(--gg-blue);
-  color: var(--gg-bone);
+  color: var(--gg-blue);
   border-bottom-color: var(--gg-blue);
 }
 

@@ -1,0 +1,126 @@
+/*
+ * Temporary Lifestyle card. Only the inner artwork (.face and below) is meant
+ * to be replaced when the approved design lands — the wrapper, ratio and
+ * pointer contract stay put so nothing reflows around it.
+ */
+.wrap {
+  position: relative;
+  width: min(100%, var(--gg-card-width, 560px));
+  /* ID-1. Width-only scaling: never pair this with a fixed height. */
+  aspect-ratio: var(--gg-card-ratio);
+  margin-inline: auto;
+  /* Inner type scales with the card, not the viewport, so the same artwork
+     reads at 320px and at desktop. */
+  container-type: inline-size;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  overflow: hidden;
+  padding: clamp(16px, 3.4cqw, 28px);
+  border: 1px solid rgba(244, 241, 234, 0.18);
+  border-radius: var(--gg-r-lg);
+  background:
+    radial-gradient(120% 130% at 14% 8%, rgba(6, 8, 169, 0.92) 0%, rgba(6, 8, 169, 0) 58%),
+    linear-gradient(142deg, var(--gg-ink) 0%, #0a0c52 54%, var(--gg-blue-press) 100%);
+  color: var(--gg-bone);
+  transform: perspective(1000px) rotateX(var(--gg-card-rx, 0deg))
+    rotateY(var(--gg-card-ry, 0deg)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 260ms var(--gg-ease-out);
+  box-shadow:
+    inset 0 1px 0 rgba(244, 241, 234, 0.16),
+    0 2px 6px rgba(15, 15, 24, 0.28),
+    0 18px 40px rgba(4, 6, 122, 0.3),
+    0 38px 84px rgba(15, 15, 24, 0.38);
+}
+
+/* Fine gold hairline, the same recognition cue as the ceremonial door card. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(176, 141, 91, 0.32);
+  border-radius: calc(var(--gg-r-lg) - 8px);
+  pointer-events: none;
+}
+
+.glare {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--gg-card-glare, 0);
+  background: radial-gradient(
+    36% 58% at var(--gg-card-gx, 50%) var(--gg-card-gy, 0%),
+    rgba(244, 241, 234, 0.26) 0%,
+    rgba(244, 241, 234, 0) 72%
+  );
+  transition: opacity 220ms var(--gg-ease-out);
+}
+
+.head,
+.foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  color: var(--gg-gold-soft);
+  font-size: clamp(8px, 1.9cqw, 10px);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.wordmark {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  margin: 0;
+  color: var(--gg-bone);
+  font-family: var(--gg-serif);
+  font-size: clamp(20px, 6cqw, 38px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+}
+
+.number {
+  color: rgba(244, 241, 234, 0.82);
+  font-family: var(--gg-mono);
+  font-size: clamp(9px, 2.4cqw, 13px);
+  letter-spacing: 0.16em;
+}
+
+/* Touch, no-hover and reduced-motion all get the finished static card. The
+   component also refuses to attach pointer handlers in those modes, so this is
+   only belt and braces for the transition itself. */
+@media (hover: none), (pointer: coarse) {
+  .card {
+    transition: none;
+  }
+
+  .glare {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .glare {
+    display: none;
+  }
+}

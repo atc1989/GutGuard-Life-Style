@@ -1,0 +1,280 @@
+/*
+ * Landing-only layout. The canonical 900px cut from the Design System
+ * breakpoints note; the member-app shell widths are untouched.
+ */
+.page {
+  padding-bottom: clamp(48px, 8vw, 80px);
+}
+
+.shell {
+  width: min(100%, 900px);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 5vw, 24px);
+}
+
+/* Hero ------------------------------------------------------------------ */
+
+.hero {
+  padding-top: clamp(32px, 7vw, 64px);
+}
+
+.heroCopy {
+  text-align: center;
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+
+.heroCopy .lede {
+  max-width: 52ch;
+}
+
+.heroCta {
+  margin-top: clamp(20px, 3vw, 28px);
+}
+
+/*
+ * A rounded panel that starts on the paper canvas and deepens into blue, with
+ * the card floating where the two meet.
+ *
+ * It runs paper -> blue rather than ink -> paper on purpose. Ink and paper are
+ * at opposite ends of the lightness scale with nothing brand-coloured between
+ * them, so any fade between the two spends its whole length in neutral grey —
+ * that was the smear. Paper to blue travels through the brand's own hues and
+ * never goes grey, however long or short the ramp is.
+ */
+.stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: min(100% - clamp(32px, 8vw, 96px), 1100px);
+  margin: clamp(28px, 5vw, 48px) auto 0;
+  padding-block: clamp(36px, 7vw, 84px) clamp(56px, 11vw, 132px);
+  border-radius: clamp(18px, 3vw, 32px);
+  background:
+    /* Fine rules, drawn in paper. They vanish against the pale top of the
+       panel and only appear once the blue is dark enough to reveal them, so
+       the grid needs no mask. */
+    repeating-linear-gradient(90deg, rgba(252, 250, 245, 0.14) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(180deg, rgba(252, 250, 245, 0.14) 0 1px, transparent 1px 72px),
+    linear-gradient(
+      180deg,
+      rgba(6, 8, 169, 0) 0%,
+      rgba(6, 8, 169, 0.02) 18%,
+      rgba(6, 8, 169, 0.07) 32%,
+      rgba(6, 8, 169, 0.15) 44%,
+      rgba(6, 8, 169, 0.26) 56%,
+      rgba(6, 8, 169, 0.38) 68%,
+      rgba(6, 8, 169, 0.49) 80%,
+      rgba(6, 8, 169, 0.58) 92%,
+      rgba(6, 8, 169, 0.62) 100%
+    ),
+    var(--gg-paper);
+}
+
+.stageInner {
+  position: relative;
+  z-index: 1;
+  padding-inline: clamp(16px, 4vw, 28px);
+}
+
+/* Back on the paper canvas, so this reads in ink like the rest of the page. */
+.stageCaption {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  max-width: 46ch;
+  margin: clamp(28px, 4vw, 44px) auto 0;
+  text-align: center;
+}
+
+.stageCaption .stageHeading {
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+/* Trust ----------------------------------------------------------------- */
+
+.trust {
+  margin-top: clamp(28px, 5vw, 48px);
+}
+
+.trustGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.statCard {
+  display: grid;
+  gap: 4px;
+  padding: clamp(14px, 2.4vw, 20px);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-bone);
+  text-align: center;
+}
+
+.statValue {
+  display: block;
+  color: var(--gg-ink);
+  font-family: var(--gg-serif);
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Protocol -------------------------------------------------------------- */
+
+.steps {
+  margin-top: clamp(36px, 6vw, 56px);
+}
+
+.stepGrid {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepCard {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: clamp(16px, 2.6vw, 24px);
+  border: 1px solid var(--gg-rule);
+  border-radius: var(--gg-r-md);
+  background: var(--gg-bone-soft);
+}
+
+.stepCard .stepTitle {
+  font-size: clamp(22px, 2.6vw, 26px);
+}
+
+/* FAQ and wayfinding ----------------------------------------------------- */
+
+.faq {
+  margin-top: clamp(36px, 6vw, 56px);
+}
+
+.faqGrid {
+  display: grid;
+  gap: clamp(24px, 4vw, 40px);
+  margin-top: 14px;
+  align-items: start;
+}
+
+.faqList {
+  border-top: 1px solid var(--gg-rule);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--gg-rule);
+}
+
+.faqSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 12px 2px;
+  color: var(--gg-ink);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* The default disclosure triangle would compete with the chevron. */
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqSummary:focus-visible {
+  outline: 3px solid var(--gg-gold);
+  outline-offset: 3px;
+}
+
+.faqSummary:hover {
+  color: var(--gg-blue);
+}
+
+.faqChevron {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s var(--gg-ease-out), color 0.2s ease;
+}
+
+.faqItem[open] .faqSummary {
+  color: var(--gg-blue);
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+}
+
+.faqBody {
+  padding: 0 2px 16px;
+  color: var(--gg-ink-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wayfinding {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.wayLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqChevron {
+    transition: none;
+  }
+}
+
+/* Desktop --------------------------------------------------------------- */
+
+@media (min-width: 900px) {
+  .trustGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stepGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .faqGrid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+/* Narrow refinement: the established ~440px mobile measure. */
+@media (max-width: 599px) {
+  .shell {
+    width: min(100%, 440px);
+    padding-inline: 18px;
+  }
+
+  /* The panel is allowed to run wider than the content shell on desktop, but
+     not here — at 560-599px an untethered panel sits visibly wider than the
+     440px column beneath it. Below 440px this is the full-bleed-minus-gutter
+     width it already had. */
+  .stage {
+    width: min(100% - 32px, 440px);
+  }
+}

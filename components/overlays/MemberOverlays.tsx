@@ -12,14 +12,13 @@ import { useOverlay } from "@/lib/overlay-store";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
 import { Button } from "@/components/ui/Button";
+import { SpokeLinks } from "@/components/shell/SpokeLinks";
 import { Card } from "@/components/ui/Card";
-import { Sheet } from "@/components/ui/Sheet";
+import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 import { EventRow } from "@/components/ui/RequirementTimeline";
-import { Stepper } from "@/components/ui/Stepper";
-import { ListRow } from "@/components/lifestyle/ListRow";
-import { spokeLinks } from "@/lib/app-links";
+import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { QRBlock } from "@/components/ui/QRBlock";
 import { RequirementTimeline } from "@/components/ui/RequirementTimeline";
 import { Switch } from "@/components/ui/Switch";
@@ -44,7 +43,7 @@ import { formatIdentityDetails } from "@/lib/member-display";
 import { memberNotifications } from "@/lib/member-notifications";
 import { Avatar } from "@/components/ui/Avatar";
 import { useMemberChrome } from "@/lib/lifestyle/member-chrome-context";
-import { Bell, CalendarDays, GraduationCap, QrCode, Settings } from "lucide-react";
+import { Bell, QrCode, Settings } from "lucide-react";
 
 /**
  * Change 5 — the one place a member edits their name and mobile.
@@ -119,7 +118,6 @@ function SettingsIdentity() {
         </p>
       ) : null}
       <FormField
-        variant="lifestyle"
         label="Your name"
         placeholder="Your name here"
         autoComplete="name"
@@ -127,7 +125,6 @@ function SettingsIdentity() {
         error={form.formState.errors.name?.message}
       />
       <FormField
-        variant="lifestyle"
         label="Mobile number"
         placeholder="09xx xxx xxxx"
         inputMode="tel"
@@ -136,7 +133,7 @@ function SettingsIdentity() {
         {...form.register("mobile")}
         error={form.formState.errors.mobile?.message}
       />
-      <Button type="submit" size="lg" loading={saving}>
+      <Button type="submit" variant="commerce" loading={saving}>
         Save details
       </Button>
     </form>
@@ -165,100 +162,98 @@ export function MemberOverlays() {
 
   return (
     <>
-      <Sheet
+      <Drawer
         id="gg-account-sheet"
         title="Account"
         open={overlay === "account"}
         onClose={close}
       >
-        <div className="gg-stack gg-stack--tight">
-          <div className="gg-sheet-identity">
-            <Avatar name={displayName} size={44} />
+        <div className="gg-stack">
+          <div className="gg-account-sheet__identity">
+            <Avatar name={displayName} />
             <div>
               <strong>{displayName}</strong>
-              {chrome.sponsor ? <p className="gg-help">with {chrome.sponsor}</p> : null}
+              {chrome.sponsor ? (
+                <p className="gg-help">with {chrome.sponsor}</p>
+              ) : null}
             </div>
           </div>
-          <ListRow
-            icon={<Bell />}
-            title="Notifications"
-            description={
-              notifications.length
-                ? `${notifications.length} new`
-                : "You’re all caught up."
-            }
-            onClick={() => open("notifications")}
-          />
-          {spokeLinks().map((link) => (
-            <ListRow
-              key={link.key}
-              href={link.href}
-              icon={link.key === "gema" ? <CalendarDays /> : <GraduationCap />}
-              title={link.label}
-              description={link.hint}
-            />
-          ))}
-          <ListRow icon={<Settings />} title="Settings" onClick={() => open("settings")} />
-          <ListRow icon={<QrCode />} title="My QR code" onClick={() => open("qr")} />
+          <Button variant="secondary" block onClick={() => open("notifications")}>
+            <Bell aria-hidden />
+            Notifications
+            {notifications.length ? (
+              <span className="gg-account__badge">{notifications.length}</span>
+            ) : null}
+          </Button>
+          <SpokeLinks variant="sheet" />
+          <Button variant="secondary" block onClick={() => open("settings")}>
+            <Settings aria-hidden />
+            Settings
+          </Button>
+          <Button variant="secondary" block onClick={() => open("qr")}>
+            <QrCode aria-hidden />
+            My QR code
+          </Button>
           <SignOutButton />
         </div>
-      </Sheet>
-      <Sheet
-        title="Order now"
-        subtitle={`₱${FIRST_ORDER_PESOS.toLocaleString()} · 1 bottle / 2 blisters`}
-        open={overlay === "order"}
-        onClose={close}
-      >
-        <div className="gg-stack gg-stack--tight">
+      </Drawer>
+      <Drawer title="Order now" open={overlay === "order"} onClose={close}>
+        <p className="gg-lede" style={{ marginBottom: 16 }}>
+          Mock checkout — no card charge in the browser. When Supabase is on, this
+          queues a pending order for webhook reconcile.
+        </p>
+        <Card>
+          <p className="gg-eyebrow">Your Gutguard</p>
+          <h3 className="gg-heading" style={{ fontSize: 28, margin: "8px 0" }}>
+            Monthly protocol
+          </h3>
           <p className="gg-help">
-            Mock checkout — no card charge in the browser. When Supabase is on, this
-            queues a pending order for webhook reconcile.
+            ₱{FIRST_ORDER_PESOS.toLocaleString()} · 1 bottle / 2 blisters
           </p>
-          <Card title="Monthly protocol" eyebrow="Your Gutguard">
-            <div className="gg-row">
-              <span className="gg-row__label">Quantity</span>
-              <Stepper
-                label="Order quantity"
-                value={qty}
-                min={1}
-                max={6}
-                unit={qty > 1 ? "bottles" : "bottle"}
-                onChange={setQty}
-              />
-            </div>
-          </Card>
-          <Button
-            size="lg"
-            onClick={() => {
-              void (async () => {
-                const result = await queueMemberOrder({
-                  qty,
-                  amountPesos: FIRST_ORDER_PESOS * qty,
-                });
-                if (!result.ok) {
-                  push({
-                    tone: "error",
-                    title: "Could not queue",
-                    body: result.error,
-                  });
-                  return;
-                }
-                update({ daysLeft: 30 * qty, phase: "member" });
+          <div className="gg-row" style={{ marginTop: 16 }}>
+            <span>Quantity</span>
+            <QuantityStepper
+              label="Order quantity"
+              value={qty}
+              min={1}
+              max={6}
+              onChange={setQty}
+            />
+          </div>
+        </Card>
+        <Button
+          variant="commerce"
+          block
+          style={{ marginTop: 16 }}
+          onClick={() => {
+            void (async () => {
+              const result = await queueMemberOrder({
+                qty,
+                amountPesos: FIRST_ORDER_PESOS * qty,
+              });
+              if (!result.ok) {
                 push({
-                  tone: "success",
-                  title: "Order queued",
-                  body: `${qty} bottle${qty > 1 ? "s" : ""} — mock only, no charge.`,
+                  tone: "error",
+                  title: "Could not queue",
+                  body: result.error,
                 });
-                close();
-              })();
-            }}
-          >
-            Place mock order
-          </Button>
-        </div>
-      </Sheet>
+                return;
+              }
+              update({ daysLeft: 30 * qty, phase: "member" });
+              push({
+                tone: "success",
+                title: "Order queued",
+                body: `${qty} bottle${qty > 1 ? "s" : ""} — mock only, no charge.`,
+              });
+              close();
+            })();
+          }}
+        >
+          Place mock order
+        </Button>
+      </Drawer>
 
-      <Sheet title="Settings" open={overlay === "settings"} onClose={close}>
+      <Drawer title="Settings" open={overlay === "settings"} onClose={close}>
         <div className="gg-stack">
           {/* Mounted only while open, so each visit starts from the row. */}
           {overlay === "settings" ? <SettingsIdentity /> : null}
@@ -269,8 +264,8 @@ export function MemberOverlays() {
           />
           <p className="gg-help">Nudges + low-supply reminders</p>
           <div className="gg-row">
-            <span className="gg-row__label">Capsules per day</span>
-            <Stepper
+            <span>Capsules per day</span>
+            <QuantityStepper
               label="Daily capsules"
               value={session.capsulesPerDay}
               min={2}
@@ -282,14 +277,14 @@ export function MemberOverlays() {
           {identityDetails.length ? (
             <p className="gg-help">{identityDetails.join(" · ")}</p>
           ) : null}
-          <Button variant="outline" onClick={() => open("qr")}>
+          <Button variant="secondary" onClick={() => open("qr")}>
             Show my QR code full size
           </Button>
           <SignOutButton />
         </div>
-      </Sheet>
+      </Drawer>
 
-      <Sheet
+      <Drawer
         id="gg-notifications-sheet"
         title="Notifications"
         open={overlay === "notifications"}
@@ -304,10 +299,10 @@ export function MemberOverlays() {
         ) : (
           <EmptyState title="No alerts" copy="You’re all caught up." />
         )}
-      </Sheet>
+      </Drawer>
 
-      <Sheet title="BASE Activation" open={overlay === "base"} onClose={close}>
-        <p className="gg-help gg-sheet__lead">
+      <Drawer title="BASE Activation" open={overlay === "base"} onClose={close}>
+        <p className="gg-lede" style={{ marginBottom: 16 }}>
           Where every Gentrep starts. Learn the product and the protocol properly.
         </p>
         <RequirementTimeline
@@ -326,7 +321,7 @@ export function MemberOverlays() {
             },
           }))}
         />
-        <div className="gg-sheet__section">
+        <div style={{ marginTop: 16 }}>
           {EVENTS.slice(0, 3).map((event) => (
             <EventRow
               key={event.id}
@@ -343,15 +338,15 @@ export function MemberOverlays() {
             />
           ))}
         </div>
-      </Sheet>
+      </Drawer>
 
-      <Sheet
+      <Drawer
         title="GEMA"
         open={overlay === "gema"}
         onClose={close}
         footer={
           !baseComplete ? (
-            <Button size="lg" onClick={() => open("base")}>
+            <Button variant="commerce" onClick={() => open("base")}>
               Continue BASE
             </Button>
           ) : undefined
@@ -363,8 +358,9 @@ export function MemberOverlays() {
               For members who finish BASE and choose to build.
             </p>
             {GEMA_RANKS.map((rank) => (
-              <Card key={rank.title} title={rank.title}>
-                <p className="gg-help">{rank.copy}</p>
+              <Card key={rank.title}>
+                <p className="gg-eyebrow">{rank.title}</p>
+                <p style={{ marginTop: 8 }}>{rank.copy}</p>
               </Card>
             ))}
           </div>
@@ -374,23 +370,35 @@ export function MemberOverlays() {
             copy={`Opens when BASE Activation is complete — ${BASE_STEPS.length - session.baseDone.filter(Boolean).length} to go.`}
           />
         )}
-      </Sheet>
+      </Drawer>
 
-      <Sheet title="GG-VERSE" open={overlay === "ggverse"} onClose={close}>
+      <Drawer title="GG-VERSE" open={overlay === "ggverse"} onClose={close}>
         <div className="gg-stack">
-          <Card variant="ceremonial" eyebrow="Invitation only" title="The members’ world">
-            <p className="gg-card__body">
+          <Card variant="ceremonial">
+            <p className="gg-eyebrow" style={{ color: "var(--gg-gold-soft)" }}>
+              Invitation only
+            </p>
+            <h3
+              className="gg-heading"
+              style={{ color: "var(--gg-bone)", marginTop: 8 }}
+            >
+              The members’ world
+            </h3>
+            <p
+              className="gg-lede"
+              style={{ color: "var(--gg-bone)", marginTop: 10 }}
+            >
               Ranks, tools, the builder economy. Your sponsor decides when you’re ready and sends the link.
             </p>
           </Card>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => window.open(LINKS.site, "_blank", "noopener")}
           >
             Ask my sponsor for access
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             disabled={session.telegram}
             onClick={() => {
               window.open(LINKS.telegram, "_blank", "noopener");
@@ -430,7 +438,7 @@ export function MemberOverlays() {
               : `Join Telegram · +${POINTS.telegram}`}
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             disabled={session.facebook}
             onClick={() => {
               window.open(LINKS.facebook, "_blank", "noopener");
@@ -469,27 +477,31 @@ export function MemberOverlays() {
               : `Follow Facebook · +${POINTS.facebook}`}
           </Button>
         </div>
-      </Sheet>
+      </Drawer>
 
-      <Sheet
-        title="Your QR"
-        subtitle={displayName}
-        open={overlay === "qr"}
-        onClose={close}
-      >
-        {chrome.cardNo ? (
-          <div className="gg-qr-sheet">
-            <p className="gg-help">Show this to staff at the door and in the centers.</p>
-            <QRBlock seed={chrome.cardNo} />
-            <p className="gg-qr-sheet__number">{chrome.cardNo}</p>
-          </div>
-        ) : (
-          <EmptyState
-            title="Card not ready"
-            copy="Your Gutguard card number will show here once it is minted. This is not a guest or placeholder code."
-          />
-        )}
-      </Sheet>
+      <Drawer title="Your QR" open={overlay === "qr"} onClose={close}>
+        <div style={{ textAlign: "center" }}>
+          <p className="gg-eyebrow">{displayName}</p>
+          {chrome.cardNo ? (
+            <>
+              <p className="gg-help" style={{ margin: "8px 0 12px" }}>
+                Show this to staff at the door and in the centers.
+              </p>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <QRBlock seed={chrome.cardNo} />
+              </div>
+              <p className="gg-help" style={{ fontFamily: "var(--gg-mono)", marginTop: 12 }}>
+                {chrome.cardNo}
+              </p>
+            </>
+          ) : (
+            <EmptyState
+              title="Card not ready"
+              copy="Your Gutguard card number will show here once it is minted. This is not a guest or placeholder code."
+            />
+          )}
+        </div>
+      </Drawer>
 
       <StoryShare open={overlay === "share"} onClose={close} />
       <InvitePicker />
