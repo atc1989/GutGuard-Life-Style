@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+import "./lifestyle-ui.css";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -25,20 +26,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FCFAF5",
+  themeColor: "#F4F1EA",
   colorScheme: "light",
 };
 
-const PAPER = "#FCFAF5";
+const BONE = "#F4F1EA";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${fraunces.variable} ${interTight.variable}`}
-      style={{ backgroundColor: PAPER, colorScheme: "light" }}
+      style={{ backgroundColor: BONE, colorScheme: "light" }}
     >
-      <body className="gg-surface" style={{ backgroundColor: PAPER }}>
+      <body className="gg-surface" style={{ backgroundColor: BONE }}>
         <Providers>{children}</Providers>
       </body>
     </html>
