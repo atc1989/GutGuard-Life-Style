@@ -21,20 +21,13 @@ export function RequirementTimeline({
           <div>
             <div className={cx("gg-req__node", step.done && "is-done")} />
           </div>
-          <Card>
-            <Badge active={step.done}>{step.done ? "Done" : step.when}</Badge>
-            <h3 className="gg-heading" style={{ fontSize: 24, marginTop: 8 }}>
-              {step.title}
-            </h3>
-            <p className="gg-help" style={{ marginTop: 6 }}>
-              {step.detail}
-            </p>
+          <Card
+            title={step.title}
+            aside={<Badge tone="status" active={step.done}>{step.done ? "Done" : step.when}</Badge>}
+          >
+            <p className="gg-help">{step.detail}</p>
             {step.onToggle ? (
-              <Button
-                variant="secondary"
-                onClick={step.onToggle}
-                style={{ marginTop: 12 }}
-              >
+              <Button variant="outline" size="sm" onClick={step.onToggle}>
                 {step.done ? "Mark open" : "Mark done"}
               </Button>
             ) : null}
@@ -61,16 +54,16 @@ export function EventRow({
     <div className="gg-event">
       <div className="gg-event__date">
         <small>{day}</small>
-        <strong style={{ fontSize: 22 }}>{when.match(/\d+/)?.[0] ?? "—"}</strong>
+        <strong>{when.match(/\d+/)?.[0] ?? "—"}</strong>
       </div>
-      <div style={{ flex: 1 }}>
+      <div className="gg-event__main">
         <strong>{title}</strong>
         <p className="gg-help">
           {place} · {when}
         </p>
       </div>
       {onBook ? (
-        <Button variant="secondary" onClick={onBook}>
+        <Button variant="outline" size="sm" onClick={onBook}>
           Book this
         </Button>
       ) : null}

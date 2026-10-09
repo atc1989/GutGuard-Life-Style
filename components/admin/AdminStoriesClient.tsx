@@ -81,10 +81,10 @@ export function AdminStoriesClient({
   return (
     <div className="gg-stack">
       <div>
-        <h2 className="gg-heading" style={{ fontSize: 28 }}>
+        <h2 className="gg-admin__title">
           Stories
         </h2>
-        <p className="gg-help" style={{ marginTop: 6 }}>
+        <p className="gg-help gg-admin__sub">
           Pending stories stay off the member feed until approved.
         </p>
       </div>
@@ -118,7 +118,7 @@ export function AdminStoriesClient({
           Select all
         </label>
         <Button
-          variant="commerce"
+          variant="primary"
           disabled={!selected.length || pending}
           aria-busy={pending}
           onClick={() => runModerate("approve", selected)}
@@ -178,7 +178,7 @@ export function AdminStoriesClient({
                     <p className="gg-help">
                       {row.days} days · {row.capsules} capsules
                     </p>
-                    <p style={{ marginTop: 6 }}>{row.outcomes.join(", ") || "—"}</p>
+                    <p className="gg-admin__copy">{row.outcomes.join(", ") || "—"}</p>
                     {row.rejectReason ? (
                       <p className="gg-help">Reject: {row.rejectReason}</p>
                     ) : null}
@@ -189,7 +189,7 @@ export function AdminStoriesClient({
                   <td>
                     <div className="gg-admin-row-actions">
                       <Button
-                        variant="commerce"
+                        variant="primary"
                         disabled={pending}
                         onClick={() => runModerate("approve", [row.id])}
                       >
@@ -224,7 +224,7 @@ export function AdminStoriesClient({
               Cancel
             </Button>
             <Button
-              variant="commerce"
+              variant="primary"
               loading={pending}
               onClick={() => runModerate("reject", selected)}
             >

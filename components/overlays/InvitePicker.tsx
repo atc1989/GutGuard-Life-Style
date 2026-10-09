@@ -8,8 +8,8 @@ import { useSession } from "@/lib/session";
 import { useToast } from "@/lib/toast";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Drawer } from "@/components/ui/Drawer";
+import { PersonRow } from "@/components/lifestyle/PersonRow";
+import { Sheet } from "@/components/ui/Sheet";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FormField } from "@/components/ui/FormField";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -83,18 +83,19 @@ export function InvitePicker() {
   }
 
   return (
-    <Drawer title="Invite a friend" open={overlay === "invite"} onClose={close}>
+    <Sheet title="Invite a friend" open={overlay === "invite"} onClose={close}>
       <div className="gg-stack">
-        <p className="gg-lede">
+        <p className="gg-help">
           Pick anyone from Messages, Messenger, or Viber. The date and place are already in the link.
         </p>
         <FormField
+          variant="lifestyle"
           label="Search contacts"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Name or number"
         />
-        <Button variant="secondary" onClick={share}>
+        <Button variant="outline" onClick={share}>
           Open phone share menu
         </Button>
         {rows.length === 0 ? (
@@ -103,25 +104,27 @@ export function InvitePicker() {
           rows.map((contact) => {
             const invited = session.contactInvited[contact.id] ?? contact.invited;
             return (
-              <Card key={contact.id}>
-                <div className="gg-row">
-                  <div>
-                    <strong>{contact.name}</strong>
-                    <p className="gg-help">{contact.handle}</p>
-                  </div>
-                  {invited ? (
+              <PersonRow
+                key={contact.id}
+                variant="team"
+                initialsFrom={contact.name}
+                name={contact.name}
+                description={contact.handle}
+                trailing={
+                  invited ? (
                     <Badge active>Invited</Badge>
                   ) : (
                     <Button
-                      variant="secondary"
+                      variant="outline"
+                      size="sm"
                       loading={busy === contact.id}
                       onClick={() => void invite(contact)}
                     >
                       Invite
                     </Button>
-                  )}
-                </div>
-              </Card>
+                  )
+                }
+              />
             );
           })
         )}
@@ -129,6 +132,6 @@ export function InvitePicker() {
           +{POINTS.register} pending when they join. Points become real when they come to an event.
         </p>
       </div>
-    </Drawer>
+    </Sheet>
   );
 }

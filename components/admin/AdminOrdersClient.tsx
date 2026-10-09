@@ -60,10 +60,10 @@ export function AdminOrdersClient({
   return (
     <div className="gg-stack">
       <div>
-        <h2 className="gg-heading" style={{ fontSize: 28 }}>
+        <h2 className="gg-admin__title">
           Orders
         </h2>
-        <p className="gg-help" style={{ marginTop: 6 }}>
+        <p className="gg-help gg-admin__sub">
           Status comes from Maya webhooks — operators never paste a card number here.
         </p>
       </div>
@@ -195,7 +195,7 @@ export function AdminOrdersClient({
               Cancel
             </Button>
             <Button
-              variant="commerce"
+              variant="primary"
               loading={pending}
               onClick={() => {
                 if (!recoverTarget) return;
