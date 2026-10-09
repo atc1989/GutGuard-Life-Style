@@ -9,30 +9,13 @@ import { useEffect, useId, useRef, useState } from "react";
 type Props = {
   id?: string;
   title: string;
-  /** Grey line under the title (sheet only). */
-  subtitle?: ReactNode;
   open: boolean;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  /**
-   * `dialog` is the DS Dialog (header · body · footer, SVG close) — squared by
-   * the Admin shell. `sheet` is the UI Library Lifestyle Sheet: grab bar, title
-   * + subtitle, "Close" pill; bottom sheet on phones, centred from 900px.
-   */
-  variant?: "dialog" | "sheet";
 };
 
-export function Dialog({
-  id,
-  title,
-  subtitle,
-  open,
-  onClose,
-  children,
-  footer,
-  variant = "dialog",
-}: Props) {
+export function Dialog({ id, title, open, onClose, children, footer }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
@@ -54,8 +37,7 @@ export function Dialog({
   }, [closing]);
 
   useEffect(() => {
-    // Wait for the surface to mount: focus and inert need the real node.
-    if (!open || !rendered) return;
+    if (!open) return;
 
     openerRef.current = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
@@ -134,20 +116,18 @@ export function Dialog({
         document.getElementById("gg-account-trigger")?.focus();
       }
     };
-  }, [open, rendered, onClose]);
+  }, [open, onClose]);
 
   if (!rendered) return null;
 
-  const sheet = variant === "sheet";
-
   return (
     <div
-      className={cx("gg-backdrop", sheet && "gg-backdrop--sheet", closing && "is-closing")}
+      className={cx("gg-backdrop", closing && "is-closing")}
       onClick={onClose}
     >
       <div
         id={id}
-        className={cx("gg-dialog", sheet && "gg-sheet", closing && "is-closing")}
+        className={cx("gg-dialog", closing && "is-closing")}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -155,35 +135,17 @@ export function Dialog({
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
       >
-        {sheet ? (
-          <>
-            <div className="gg-sheet__grab" aria-hidden />
-            <div className="gg-sheet__head">
-              <div>
-                <h2 className="gg-sheet__title" id={titleId}>
-                  {title}
-                </h2>
-                {subtitle ? <p className="gg-sheet__subtitle">{subtitle}</p> : null}
-              </div>
-              <button type="button" className="gg-sheet__close" onClick={onClose}>
-                Close
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="gg-dialog-header">
-            <h2 className="gg-dialog-title" id={titleId}>
-              {title}
-            </h2>
-            <IconButton label="Close" onClick={onClose}>
-              <X />
-            </IconButton>
-          </div>
-        )}
-        <div className={cx("gg-dialog-body", sheet && "gg-sheet__body")}>{children}</div>
-        {footer ? (
-          <div className={cx("gg-dialog-footer", sheet && "gg-sheet__footer")}>{footer}</div>
-        ) : null}
+        <div className="gg-dialog-grab" aria-hidden />
+        <div className="gg-dialog-header">
+          <h2 className="gg-dialog-title" id={titleId}>
+            {title}
+          </h2>
+          <IconButton label="Close" onClick={onClose}>
+            <X />
+          </IconButton>
+        </div>
+        <div className="gg-dialog-body">{children}</div>
+        {footer ? <div className="gg-dialog-footer">{footer}</div> : null}
       </div>
     </div>
   );

@@ -1,15 +1,10 @@
 import { cx } from "@/lib/cx";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
-/**
- * Labelled input. `lifestyle` is the UI Library `TextField` (ink semibold
- * label, sans help line, paper control); `boxed` is the DS commerce field and
- * stays for admin (squared by `.gg-admin`); `ruled` is the DS booth field.
- */
 type Props = InputHTMLAttributes<HTMLInputElement> & {
-  label: ReactNode;
+  label: string;
   error?: string;
-  variant?: "boxed" | "ruled" | "lifestyle";
+  variant?: "boxed" | "ruled";
   hint?: ReactNode;
 };
 
@@ -25,7 +20,7 @@ export function FormField({
   const fieldId = id ?? props.name;
   const invalid = Boolean(error);
   const describedBy = [
-    hint && (variant === "ruled" || !error) ? `${fieldId}-hint` : null,
+    hint ? `${fieldId}-hint` : null,
     error ? `${fieldId}-error` : null,
   ]
     .filter(Boolean)
@@ -58,26 +53,18 @@ export function FormField({
     );
   }
 
-  const lifestyle = variant === "lifestyle";
-
   return (
-    <label
-      className={cx("gg-field", lifestyle && "gg-field--lifestyle", className)}
-      htmlFor={fieldId}
-    >
+    <label className={cx("gg-field", className)} htmlFor={fieldId}>
       <span className="gg-field__label">{label}</span>
       <input
         id={fieldId}
-        className={cx(
-          "gg-field__control",
-          !lifestyle && !props["aria-label"] && "gg-field__control--lg",
-        )}
+        className={cx("gg-field__control", props["aria-label"] ? undefined : "gg-field__control--lg")}
         {...props}
         aria-invalid={invalid}
         aria-describedby={describedBy}
       />
-      {hint && !error ? (
-        <span className="gg-field__help" id={`${fieldId}-hint`}>
+      {hint ? (
+        <span className="gg-help" id={`${fieldId}-hint`}>
           {hint}
         </span>
       ) : null}

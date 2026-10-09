@@ -3,12 +3,9 @@
 import { STORIES } from "@/lib/mock/seed";
 import { useOverlay } from "@/lib/overlay-store";
 import type { StoryStatus } from "@/lib/schemas/story-moderate";
-import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 
 type Feed = {
   community: {
@@ -48,81 +45,70 @@ export function StoryPage({
         }));
 
   return (
-    <div className="gg-cols">
-      <div className="gg-col">
-        <header className="gg-page-head">
-          <h1 className="gg-page-head__title">My Story</h1>
-          <p className="gg-page-head__lede">What the community is reporting, day by day.</p>
-        </header>
-        <div className="gg-share">
-          <Button size="lg" onClick={() => open("share")}>
-            Share my story
-          </Button>
-          <p className="gg-share__note">
-            Gutguard is a food supplement with no approved therapeutic claims — results vary.
+    <div className="gg-stack">
+      <div className="gg-page-head">
+        <div>
+          <h1 className="gg-heading">My Story</h1>
+          <p className="gg-lede">
+            What the community is reporting, day by day.
           </p>
         </div>
-
-        {mine.length > 0 ? (
-          <section className="gg-stack gg-stack--tight" aria-labelledby="gg-mine-title">
-            <Eyebrow as="h2" id="gg-mine-title">
-              Your submissions
-            </Eyebrow>
-            {mine.map((story) => (
-              <Card
-                key={story.id}
-                title={story.about === "self" ? "Your own story" : story.about}
-                aside={
-                  <Badge tone="status" active={story.status === "approved"}>
-                    {story.status}
-                  </Badge>
-                }
-              >
-                <p className="gg-help">{story.outcomes.join(", ") || "Waiting for review"}</p>
-              </Card>
-            ))}
-          </section>
-        ) : null}
+        <Button variant="commerce" onClick={() => open("share")}>
+          Share my story
+        </Button>
       </div>
+      <p className="gg-alert gg-story-disclaimer">
+        Gutguard is a food supplement with no approved therapeutic claims — results vary.
+      </p>
 
-      <section className="gg-col" aria-labelledby="gg-feed-title">
-        <div className="gg-section-head">
-          <h2 className="gg-section-head__title" id="gg-feed-title">
-            Stories of Hope
-          </h2>
+      {feedError ? (
+        <p className="gg-help" role="status">
+          {feedError}
+        </p>
+      ) : null}
+
+      {mine.length > 0 ? (
+        <div className="gg-stack">
+          <p className="gg-eyebrow">Your submissions</p>
+          {mine.map((story) => (
+            <Card key={story.id}>
+              <Badge active={story.status === "approved"}>{story.status}</Badge>
+              <p className="gg-lede" style={{ marginTop: 8 }}>
+                {story.about === "self" ? "Your own story" : story.about}
+              </p>
+              <p className="gg-help" style={{ marginTop: 6 }}>
+                {story.outcomes.join(", ") || "Waiting for review"}
+              </p>
+            </Card>
+          ))}
         </div>
-        {feedError ? (
-          <p className="gg-help" role="status">
-            {feedError}
-          </p>
-        ) : null}
-        {community.length === 0 ? (
-          <EmptyState
-            title="No approved stories yet."
-            copy="Share yours — it appears here after review."
-          />
-        ) : (
-          community.map((story) => (
-            <article key={story.id} className="gg-story">
-              <div className="gg-story__who">
-                <Avatar name={story.name} tone="ink" />
-                <p>
-                  <strong>{story.name}</strong>
-                  {story.days ? <span> · {story.days}</span> : null}
-                </p>
-              </div>
-              <p className="gg-story__quote">“{story.about}”</p>
+      ) : null}
+
+      {community.length === 0 ? (
+        <div className="gg-empty">
+          <strong>No approved stories yet.</strong>
+          <p>Share yours — it appears here after review.</p>
+        </div>
+      ) : (
+        <div className="gg-grid-2">
+          {community.map((story) => (
+            <Card key={story.id}>
+              <p className="gg-eyebrow">{story.days}</p>
+              <h2 className="gg-heading" style={{ fontSize: 26, marginTop: 6 }}>
+                {story.name}
+              </h2>
+              <p className="gg-lede" style={{ marginTop: 8 }}>
+                {story.about}
+              </p>
               {story.outcomes.length ? (
-                <ul className="gg-story__tags" aria-label="Outcomes">
-                  {story.outcomes.map((outcome) => (
-                    <li key={outcome}>{outcome}</li>
-                  ))}
-                </ul>
+                <p className="gg-help" style={{ marginTop: 8 }}>
+                  {story.outcomes.join(", ")}
+                </p>
               ) : null}
-            </article>
-          ))
-        )}
-      </section>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

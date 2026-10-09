@@ -1,14 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { MemberTabs } from "@/components/shell/MemberTabs";
-import { MemberTopBar } from "@/components/shell/MemberTopBar";
+import { BottomBar } from "@/components/shell/BottomBar";
+import { Masthead } from "@/components/shell/Masthead";
+import { Sidebar } from "@/components/shell/Sidebar";
 import { MemberOverlays } from "@/components/overlays/MemberOverlays";
 import { MemberChromeProvider } from "@/lib/lifestyle/member-chrome-context";
 import type { MemberChrome } from "@/lib/lifestyle/member-chrome";
 import type { ReactNode } from "react";
 
-/** UI Library app shell: TopBar `app` + underline Tabs over one content well. */
 export function MemberShell({
   children,
   chrome,
@@ -19,13 +19,16 @@ export function MemberShell({
   const pathname = usePathname();
   return (
     <MemberChromeProvider chrome={chrome}>
-      <div className="gg-app">
-        <MemberTopBar />
-        <MemberTabs />
-        {/* Only the page body crossfades; the chrome around it stays mounted. */}
-        <main className="gg-app__main gg-page" key={pathname}>
-          {children}
-        </main>
+      <div className="gg-frame">
+        <Sidebar />
+        <div className="gg-content">
+          <Masthead />
+          {/* Only the page body crossfades; the chrome around it stays mounted. */}
+          <div className="gg-content__body gg-page" key={pathname}>
+            {children}
+          </div>
+        </div>
+        <BottomBar />
         <MemberOverlays />
       </div>
     </MemberChromeProvider>

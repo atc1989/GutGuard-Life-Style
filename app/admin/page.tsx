@@ -26,7 +26,7 @@ export default function AdminHomePage() {
         {MODULES.map((module) => (
           <Link key={module.href} href={module.href} className="gg-admin__module">
             <p className="gg-eyebrow">{module.title}</p>
-            <p className="gg-admin__copy">{module.copy}</p>
+            <p style={{ marginTop: 8 }}>{module.copy}</p>
           </Link>
         ))}
       </div>
