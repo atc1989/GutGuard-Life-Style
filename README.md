@@ -52,6 +52,10 @@ To persist members for real:
 - `npm run build` — production build
 - `npm test` — points helper
 
+## Two-week plan
+
+Week 1 (HTML → Next.js conversion) is in this repo. Week 2 (mobile, polish, first Supabase write-through) is in [BIEN-TWO-WEEK-PLAN.md](BIEN-TWO-WEEK-PLAN.md).
+
 ## Vaults (read-only)
 
 - Tech stack: `d:\GutGuard\GutGuard Tech Stack\`
